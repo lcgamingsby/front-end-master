@@ -1,0 +1,123 @@
+.admin-dashboard {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 10px 20px;
+    border-bottom: 3px solid #00003D;
+  }
+  
+  .logo-title {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo-title img {
+    width: 40px;
+    margin-right: 10px;
+  }
+  
+  .admin-nav .nav-btn {
+    background: none;
+    border: none;
+    font-weight: bold;
+    color: #00003D;
+    margin: 0 10px;
+    font-size: 1rem;
+  }
+  
+  .admin-nav .nav-btn.active {
+    border-bottom: 3px solid #00003D;
+  }
+  
+  .admin-info {
+    text-align: right;
+    font-size: 0.9rem;
+    color: #00003D;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #00003D;
+  }
+  
+  .exam-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .add-btn {
+    background-color: #00003D;
+    color: white;
+    padding: 10px 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+  }
+  
+  .search-bar {
+    padding: 8px 16px;
+    border: 2px solid #00003D;
+    border-radius: 8px;
+    width: 250px;
+  }
+  
+  .exam-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .exam-table th {
+    background-color: #00003D;
+    color: white;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .exam-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .edit-btn {
+    background-color: #FACC15;
+    border: none;
+    margin-right: 5px;
+    padding: 6px;
+    border-radius: 6px;
+  }
+  
+  .delete-btn {
+    background-color: #FCA5A5;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+  }
+  
+  .pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .page-btn {
+    background-color: #00003D;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 50%;
+    font-weight: bold;
+  }
+  
+  .page-btn.active {
+    background-color: #00003D;
+    color: white;
+  }
+  
