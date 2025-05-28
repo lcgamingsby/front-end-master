@@ -58,7 +58,7 @@ function QuestionsPage() {
           <h1>TEC UKDC</h1>
         </div>
         <nav className="admin-nav">
-          <button className="nav-btn" onClick={() => navigate("/")}>Home</button>
+          <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
           <button className="nav-btn" onClick={() => navigate("/exams")}>Exams</button>
           <button className="nav-btn active" onClick={() => navigate("/questions")}>Questions</button>
           <button className="nav-btn" onClick={() => navigate("/students")}>Students</button>

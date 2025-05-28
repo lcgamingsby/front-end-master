@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 function StudentDashboard() {
   const [userName, setUserName] = useState("");
   const [exams, setExams] = useState([]);
-  const handleExamClick = (exam) => {
+  const handleExamClick = (exam) => { 
     if (exam.status === "ongoing") {
       navigate(`/test1`); // arahkan ke halaman ujian
     }

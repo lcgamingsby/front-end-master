@@ -5,8 +5,10 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
+import { useNavigate } from "react-router-dom";
 import "../App.css";
 
+//pertanyaan
 const questions = [
   {
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
@@ -19,7 +21,7 @@ const questions = [
     correctOption: 2,
   },
 ];
-
+//pertanyaan
 const App = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -31,7 +33,7 @@ const App = () => {
   const [userAnswers, setUserAnswers] = useState([]);
   const [flaggedQuestions, setFlaggedQuestions] = useState([]);
   const [answeredQuestions, setAnsweredQuestions] = useState([]);
-
+  const navigate = useNavigate();
 
 
   const audioRef = useRef(new Audio(questions[currentQuestion].audio));
@@ -48,6 +50,16 @@ const App = () => {
       audio.pause();
     };
   }, []);
+
+  useEffect(() => {
+    const prevAnswer = userAnswers.find((ans) => ans.question === currentQuestion + 1);
+    if (prevAnswer) {
+      setSelectedOption(prevAnswer.selected);
+    } else {
+      setSelectedOption(null);
+    }
+  }, [currentQuestion, userAnswers]);
+  
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -74,6 +86,15 @@ const App = () => {
 
   const handleOptionClick = (index) => {
     setSelectedOption(index);
+  
+    setUserAnswers((prev) => {
+      const updated = prev.filter((a) => a.question !== currentQuestion + 1);
+      return [...updated, { question: currentQuestion + 1, selected: index }];
+    });
+  
+    if (!answeredQuestions.includes(currentQuestion)) {
+      setAnsweredQuestions((prev) => [...prev, currentQuestion]);
+    }
   };
 
   const handleNext = () => {
@@ -98,12 +119,6 @@ const App = () => {
       }
     }
   
-    // Simpan jawaban
-    setUserAnswers((prev) => [
-      ...prev,
-      { question: currentQuestion + 1, selected: selectedOption },
-    ]);
-  
     // Pindah ke soal berikutnya
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion((prev) => prev + 1);
@@ -116,7 +131,6 @@ const App = () => {
   
 
   const handleFinishTest = () => {
-    // Simpan hasil tes ke database
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     const testResult = {
       username: loggedInUser.name,
@@ -124,12 +138,26 @@ const App = () => {
       userAnswers,
     };
   
-    // Simpan ke localStorage atau bisa dikirim ke server
+    // Simpan ke localStorage
     localStorage.setItem("testResult", JSON.stringify(testResult));
   
-    setShowConfirmDialog(false);
-    setShowResultDialog(true);
-  };
+    // Buat file CSV
+    let csvContent = `Username,Score\n${testResult.username},${testResult.score}\n\n`;
+    csvContent += "Question,Selected Option\n";
+    testResult.userAnswers.forEach((ans) => {
+      const optionLabel = String.fromCharCode(65 + ans.selected);
+      csvContent += `${ans.question},${optionLabel}\n`;
+    });
+  
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `test_result_${testResult.username}.csv`;
+    a.click();
+
+    navigate("/student");
+  };  
   
 
   const formatTime = (seconds) => {
