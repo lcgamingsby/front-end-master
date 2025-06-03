@@ -55,7 +55,9 @@ function QuestionsPage() {
       <header className="admin-header">
         <div className="logo-title">
           <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-          <h1>TEC UKDC</h1>
+          <span>
+            <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
+          </span>
         </div>
         <nav className="admin-nav">
           <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>

@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import ExamsPage from './pages/ExamsPage';
+import NewExamPage from "./pages/NewExamPage";
 import QuestionsPage from "./pages/QuestionsPage";
 import AddQuestionPage from "./pages/AddQuestionPage";
 import StudentsPage from "./pages/StudentsPage";
@@ -20,6 +21,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/exams" element={<ExamsPage />} />
+        <Route path="/exams/new" element={<NewExamPage />} />
         <Route path="/questions" element={<QuestionsPage />} />
         <Route path="/questions/add" element={<AddQuestionPage />} />
         <Route path="/questions/edit" element={<AddQuestionPage />} />

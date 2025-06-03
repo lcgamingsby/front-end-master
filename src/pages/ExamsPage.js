@@ -74,7 +74,9 @@ function ExamsPage() {
       <header className="admin-header">
         <div className="logo-title">
           <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-          <h1>TEC UKDC</h1>
+           <span>
+              <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
+           </span>
         </div>
         <nav className="admin-nav">
           <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
@@ -92,11 +94,7 @@ function ExamsPage() {
         <h2 className="page-title">All Exams</h2>
 
         <div className="exam-actions">
-          <button className="add-btn" onClick={() => {
-            setShowForm(true);
-            setFormData({ id: "", title: "", date: "", time: "", students: "" });
-            setEditIndex(null);
-          }}>
+          <button className="add-btn" onClick={() => navigate("/exams/new")}>
             + Add an Exam
           </button>
 

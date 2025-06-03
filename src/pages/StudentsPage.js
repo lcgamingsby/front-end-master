@@ -21,7 +21,7 @@ function StudentsPage() {
   const filteredStudents = students.filter((student) =>
     student.id.toString().includes(searchTerm.toLowerCase()) ||
     student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.npm.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.nim.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -50,7 +50,9 @@ function StudentsPage() {
       <header className="admin-header">
         <div className="logo-title">
           <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-          <h1>TEC UKDC</h1>
+          <span>
+            <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
+          </span>
         </div>
         <nav className="admin-nav">
           <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
