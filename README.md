@@ -1,12 +1,12 @@
-DATA YANG DIPAKAI DUMMY(ADA DI FOLDER DATA)
+# React + Vite
 
-UNTUK TEST BISA LANGSUNG NPM START DI FOLDER DIREKTORI INI
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+Currently, two official plugins are available:
 
-UPDATE 
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-1. pop up window hasil jawaban dihapus, digantikan dengan menyimpan hasil ujian ke file csv(sementara)
-2. Login Page sudah otomatis mengidentifikasi yang login admin atau mahasiswa
-3. Jawaban soal pada listeningexam akan otomatis tersimpan, jika dari soal a sudah terpilih lalu ke soal b maka jawaban soal a tersimpan, begitu juga sebaliknya
-4. Update Form Exam untuk add exam blm bisa
-5. Update Warna TEC UKDC
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

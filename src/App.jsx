@@ -1,8 +1,7 @@
-import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ExamsPage from './pages/ExamsPage';
 import NewExamPage from "./pages/NewExamPage";
 import QuestionsPage from "./pages/QuestionsPage";
@@ -31,7 +30,7 @@ function App() {
         <Route path="/test1" element={<Test1/>} />
       </Routes>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App

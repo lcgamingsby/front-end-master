@@ -22,7 +22,7 @@ const questions = [
   },
 ];
 //pertanyaan
-const App = () => {
+const ListeningTest = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [playing, setPlaying] = useState(false);
@@ -163,8 +163,16 @@ const App = () => {
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const formatAudioTime = (duration) => {
+    roundedDuration = Math.round(duration);
+
+    const minutes = Math.floor(roundedDuration / 60);
+    const seconds = Math.floor(roundedDuration % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
 
   const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
 
@@ -178,7 +186,8 @@ const App = () => {
           <h1 className="test-title">Listening Test</h1>
         </div>
         <span className="timer">⏳ {formatTime(timeLeft)}</span>
-        <span className="username">{loggedInUser ? loggedInUser.name : "Guest"}</span> {/* Menampilkan nama pengguna */}
+        {/* Menampilkan nama pengguna */}
+        <span className="username">{loggedInUser ? loggedInUser.name : "Guest"}</span>
       </div>
 
       <div className="content">
@@ -211,7 +220,7 @@ const App = () => {
             <Button variant="contained" className="play-button" onClick={handlePlayPause}>
               {playing ? "Pause" : "Play"}
             </Button>
-            <span className="audio-timer">0:00/0:10</span>
+            <span className="audio-timer">{formatAudioTime(audioRef.current.currentTime)}/{formatAudioTime(audioRef.current.duration)}</span>
           </div>
 
           <p>{`Soal ${currentQuestion+1}: Lorem ipsum dolor sit amet consectetur?`}</p>
@@ -283,4 +292,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default ListeningTest;
