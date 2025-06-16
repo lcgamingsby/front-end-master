@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import "../App.css"; // pastikan file CSS diimpor
+import "../../App.css"; // pastikan file CSS diimpor
 import { useNavigate } from "react-router-dom";
-
 
 function AdminDashboard() {
   const [adminName] = useState("");
@@ -37,10 +36,10 @@ function AdminDashboard() {
         </div>
         <nav className="admin-nav">
         <button className="nav-btn active">Home</button>
-        <button className="nav-btn" onClick={() => navigate("/exams")}>Exams</button>
+        <button className="nav-btn" onClick={() => navigate("/admin/exams")}>Exams</button>
 
-        <button className="nav-btn">Questions</button>
-        <button className="nav-btn">Students</button>
+        <button className="nav-btn" onClick={() => navigate("/admin/questions")}>Questions</button>
+        <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
       </nav>
         <div className="admin-info">
           <strong>{adminName}</strong>

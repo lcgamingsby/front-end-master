@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../AdminStudents.css";
+import "../../AdminStudents.css";
 
 function AddStudentPage() {
   const navigate = useNavigate();
@@ -56,9 +56,9 @@ function AddStudentPage() {
           </span>
         </div>
         <nav className="admin-nav">
-          <button className="nav-btn" onClick={() => navigate("/")}>Home</button>
-          <button className="nav-btn" onClick={() => navigate("/exams")}>Exams</button>
-          <button className="nav-btn" onClick={() => navigate("/questions")}>Questions</button>
+          <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
+          <button className="nav-btn" onClick={() => navigate("/admin/exams")}>Exams</button>
+          <button className="nav-btn" onClick={() => navigate("/admin/questions")}>Questions</button>
           <button className="nav-btn active">Students</button>
         </nav>
         <div className="admin-info">

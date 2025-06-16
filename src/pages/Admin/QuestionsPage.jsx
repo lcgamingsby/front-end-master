@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "../AdminQuestions.css";
+import "../../AdminQuestions.css";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaFilter } from "react-icons/fa";
 
@@ -61,9 +61,9 @@ function QuestionsPage() {
         </div>
         <nav className="admin-nav">
           <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
-          <button className="nav-btn" onClick={() => navigate("/exams")}>Exams</button>
-          <button className="nav-btn active" onClick={() => navigate("/questions")}>Questions</button>
-          <button className="nav-btn" onClick={() => navigate("/students")}>Students</button>
+          <button className="nav-btn" onClick={() => navigate("/admin/exams")}>Exams</button>
+          <button className="nav-btn active" onClick={() => navigate("/admin/questions")}>Questions</button>
+          <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
         </nav>
         <div className="admin-info">
           <strong>ADMIN</strong>
