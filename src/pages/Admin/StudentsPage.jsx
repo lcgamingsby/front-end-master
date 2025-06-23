@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "../../AdminStudents.css";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaSearch, FaFilter } from "react-icons/fa";
+import { config } from "../../data/config";
+import axios from "axios";
 
 function StudentsPage() {
   const navigate = useNavigate();
@@ -14,13 +16,15 @@ function StudentsPage() {
   const [studentToDelete, setStudentToDelete] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("students") || "[]");
-    setStudents(saved);
+    fetch(config.apiUrl + "/users/page/1")
+    .then((response) => response.json())
+    .then((data) => setStudents(data))
   }, []);
 
+  console.log(students, typeof students);
+
   const filteredStudents = students.filter((student) =>
-    student.id.toString().includes(searchTerm.toLowerCase()) ||
-    student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.nim.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -34,15 +38,28 @@ function StudentsPage() {
     setShowConfirm(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
+    /*
     const updated = students.filter((s) => s.id !== studentToDelete.id);
     setStudents(updated);
     localStorage.setItem("students", JSON.stringify(updated));
     setShowConfirm(false);
+    */
+
+    const studentNIM = studentToDelete.nim;
+
+    try {
+      await axios.delete(config.apiUrl + "/users/" + studentNIM);
+      
+      // reload page after deletion
+      navigate("/admin/students");
+    } catch (error) {
+      console.error("Error deleting student:", error);
+    }
   };
 
   const handleEdit = (student) => {
-    navigate("/add-student", { state: { student, isEdit: true } });
+    navigate("/admin/students/add", { state: { student: student, isEdit: true } });
   };
 
   return (
@@ -69,7 +86,7 @@ function StudentsPage() {
       <main className="admin-content">
         <h2 className="page-title">All Students</h2>
         <div className="exam-actions">
-          <button className="add-btn" onClick={() => navigate("/add-student")}>
+          <button className="add-btn" onClick={() => navigate("/admin/students/add")}>
             + Add a Student
           </button>
 
@@ -104,9 +121,8 @@ function StudentsPage() {
         <table className="exam-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Full Name</th>
               <th>NIM</th>
+              <th>Full Name</th>
               <th>Email</th>
               <th>Password</th>
               <th>Actions</th>
@@ -114,10 +130,9 @@ function StudentsPage() {
           </thead>
           <tbody>
             {currentStudents.map((student) => (
-              <tr key={student.id}>
-                <td>{student.id}</td>
-                <td>{student.fullName}</td>
+              <tr key={student.nim}>
                 <td>{student.nim}</td>
+                <td>{student.name}</td>
                 <td>{student.email}</td>
                 <td>{student.password}</td>
                 <td>

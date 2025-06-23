@@ -29,6 +29,7 @@ function AddQuestionPage() {
   }, []);
 
   const handleSave = () => {
+    /*
     const newQuestion = {
       id: Date.now(),
       type,
@@ -51,6 +52,7 @@ function AddQuestionPage() {
     }
 
     localStorage.setItem("questions", JSON.stringify(existingQuestions));
+    */
     navigate("/questions");
   };
 
@@ -76,78 +78,80 @@ function AddQuestionPage() {
       </header>
 
       <main className="admin-content">
-        <button className="back-btn" onClick={() => navigate("/questions")}>← Back to Questions</button>
+        <button className="back-btn" onClick={() => navigate("/admin/questions")}>← Back to Questions</button>
 
         <div className="form-section">
           <h2 className="form-title">{editMode ? "Edit Question" : "New Question"}</h2>
 
-          <div className="form-group">
-            <label>QUESTION TYPE</label>
-            <div className="radio-group">
-              {["Grammar", "Reading", "Listening"].map((option) => (
-                <label key={option}>
-                  <input
-                    type="radio"
-                    name="type"
-                    value={option}
-                    checked={type === option}
-                    onChange={() => setType(option)}
-                  /> {option}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {type === "Listening" && (
+          <form onSubmit={handleSave} encType="multipart/form-data">
             <div className="form-group">
-              <label>UPLOAD AUDIO (LISTENING)</label>
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={(e) => setAudioFile(e.target.files[0])}
+              <label>QUESTION TYPE</label>
+              <div className="radio-group">
+                {["Grammar", "Reading", "Listening"].map((option) => (
+                  <label key={option}>
+                    <input
+                      type="radio"
+                      name="type"
+                      value={option}
+                      checked={type === option}
+                      onChange={() => setType(option)}
+                    /> {option}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {type === "Listening" && (
+              <div className="form-group">
+                <label>UPLOAD AUDIO (LISTENING)</label>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={(e) => setAudioFile(e.target.files[0])}
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>QUESTION TEXT</label>
+              <textarea
+                placeholder="Text of the question"
+                value={questionText}
+                onChange={(e) => setQuestionText(e.target.value)}
               />
             </div>
-          )}
 
-          <div className="form-group">
-            <label>QUESTION TEXT</label>
-            <textarea
-              placeholder="Text of the question"
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>ANSWERS</label>
-            {answers.map((ans, idx) => (
-              <div key={idx} className="answer-option">
-                <input
-                  type="text"
-                  placeholder={`Answer ${String.fromCharCode(65 + idx)}`}
-                  value={ans}
-                  onChange={(e) => {
-                    const newAnswers = [...answers];
-                    newAnswers[idx] = e.target.value;
-                    setAnswers(newAnswers);
-                  }}
-                />
-                <label>
+            <div className="form-group">
+              <label>ANSWERS</label>
+              {answers.map((ans, idx) => (
+                <div key={idx} className="answer-option">
                   <input
-                    type="radio"
-                    name="correct"
-                    checked={correctAnswer === idx}
-                    onChange={() => setCorrectAnswer(idx)}
+                    type="text"
+                    placeholder={`Answer ${String.fromCharCode(65 + idx)}`}
+                    value={ans}
+                    onChange={(e) => {
+                      const newAnswers = [...answers];
+                      newAnswers[idx] = e.target.value;
+                      setAnswers(newAnswers);
+                    }}
                   />
-                  Set {String.fromCharCode(65 + idx)} as the correct answer
-                </label>
-              </div>
-            ))}
-          </div>
+                  <label>
+                    <input
+                      type="radio"
+                      name="correct"
+                      checked={correctAnswer === idx}
+                      onChange={() => setCorrectAnswer(idx)}
+                    />
+                    Set {String.fromCharCode(65 + idx)} as the correct answer
+                  </label>
+                </div>
+              ))}
+            </div>
 
-          <button className="add-btn" onClick={handleSave}>
-            {editMode ? "Save Changes" : "Add Question"}
-          </button>
+            <button className="add-btn">
+              {editMode ? "Save Changes" : "Add Question"}
+            </button>
+          </form>
         </div>
       </main>
     </div>

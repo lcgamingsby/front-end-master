@@ -3,14 +3,14 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ExamsPage from './pages/Admin/ExamsPage';
-import NewExamPage from "./pages/NewExamPage";
+import NewExamPage from "./pages/Admin/NewExamPage";
 import QuestionsPage from "./pages/Admin/QuestionsPage";
 import AddQuestionPage from "./pages/Admin/AddQuestionPage";
 import StudentsPage from "./pages/Admin/StudentsPage";
 import AddStudentPage from "./pages/Admin/AddStudentPage";
 
 import StudentDashboard from "./pages/StudentDashboard";
-import Test1 from "./pages/listeningtest"
+import ListeningTest from "./pages/listeningtest";
 
 function App() {
   return (
@@ -27,7 +27,7 @@ function App() {
         <Route path="/admin/students" element={<StudentsPage />} />
         <Route path="/admin/students/add" element={<AddStudentPage />} />
         <Route path="/student" element={<StudentDashboard/>} />
-        <Route path="/test1" element={<Test1/>} />
+        <Route path="/test1" element={<ListeningTest/>} />
       </Routes>
     </Router>
   )

@@ -1,12 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "../App.css";
+import "../App_old.css";
 
 function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="home-page">
+    <div className="min-h-screen bg-linear-135 from-[#0097DA] to-[#003366] text-white">
       <div className="home-app-bar">
         <div className="home-logo-container">
           <img src="/logoukdc.png" alt="Logo" className="home-logo" />

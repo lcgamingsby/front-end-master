@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../../AdminQuestions.css";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaFilter } from "react-icons/fa";
+import { config } from "../../data/config";
 
 function QuestionsPage() {
   const [questions, setQuestions] = useState([]);
@@ -13,21 +14,37 @@ function QuestionsPage() {
 
   const navigate = useNavigate();
 
+  /*
   useEffect(() => {
     const storedQuestions = JSON.parse(localStorage.getItem("questions")) || [];
     setQuestions(storedQuestions);
+  }, []);
+  */
+
+  useEffect(() => {
+    fetch(config.apiUrl + "/questions/page/1")
+    .then((response) => response.json())
+    .then((data) => {
+      setQuestions(data.map((q, index) => ({
+        ...q, answers: [q.choice_a, q.choice_b, q.choice_c, q.choice_d]})
+      ));
+      //console.log(data, typeof data);
+    })
   }, []);
 
   const filteredQuestions = questions.filter((q) => {
     const search = searchTerm.toLowerCase();
     const matchSearch =
-      q.id.toString().includes(search) ||
-      q.type.toLowerCase().includes(search) ||
-      q.question.toLowerCase().includes(search) ||
-      q.answers.toLowerCase().includes(search);
+      q.question_id.toString().includes(search) ||
+      q.question_type.toLowerCase().includes(search) ||
+      q.question_text.toLowerCase().includes(search) ||
+      q.choice_a.includes(search) ||
+      q.choice_b.includes(search) ||
+      q.choice_c.includes(search) ||
+      q.choice_d.includes(search);
 
     const matchType =
-      selectedType === "All Types" || q.type.toLowerCase() === selectedType.toLowerCase();
+      selectedType === "All Types" || q.question_type.toLowerCase() === selectedType.toLowerCase();
 
     return matchSearch && matchType;
   });
@@ -76,39 +93,38 @@ function QuestionsPage() {
 
         <div className="exam-actions">
           <div className="left-actions-column">
-            <button className="add-btn" onClick={() => navigate("/questions/add")}>
+            <button className="add-btn" onClick={() => navigate("/admin/questions/add")}>
               + Add a Question
             </button>
 
             <div className="items-per-page">
-  <label>Show</label>
-  <select
-    className="dropdown-medium"
-    value={itemsPerPage}
-    onChange={(e) => setItemsPerPage(Number(e.target.value))}
-  >
-    <option value={10}>10</option>
-    <option value={20}>20</option>
-    <option value={50}>50</option>
-  </select>
-  <label>items</label>
-</div>
-
+              <label>Show</label>
+              <select
+                className="dropdown-medium"
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <label>items</label>
+            </div>
           </div>
 
           <div className="right-actions horizontal-group">
             <div className="type-filter">
-  <select
-    className="dropdown-medium"
-    value={selectedType}
-    onChange={(e) => setSelectedType(e.target.value)}
-  >
-    <option value="All Types">All Types</option>
-    <option value="Grammar">Grammar</option>
-    <option value="Reading">Reading</option>
-    <option value="Listening">Listening</option>
-  </select>
-</div>
+              <select
+                className="dropdown-medium"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+              >
+                <option value="All Types">All Types</option>
+                <option value="Grammar">Grammar</option>
+                <option value="Reading">Reading</option>
+                <option value="Listening">Listening</option>
+              </select>
+            </div>
 
 
             <div className="search-container">
@@ -136,26 +152,29 @@ function QuestionsPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredQuestions.slice(0, itemsPerPage).map((q, idx) => (
-              <tr key={q.id}>
-                <td>{q.id}</td>
-                <td>{q.type}</td>
-                <td>
-                  {q.audioURL ? (
-                    <audio controls src={q.audioURL} />
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td className="truncate">{q.question}</td>
-                <td className="truncate">{q.answers}</td>
-                <td>{q.correctAnswer}</td>
-                <td>
-                  <button className="edit-btn yellow" onClick={() => handleEdit(idx)}><FaEdit /></button>
-                  <button className="delete-btn red" onClick={() => confirmDelete(idx)}><FaTrash /></button>
-                </td>
-              </tr>
-            ))}
+            {filteredQuestions.slice(0, itemsPerPage).map((q, idx) => {
+              let answerText = q.answers.join(", ");
+
+              return (
+                <tr key={q.question_id}>
+                  <td>{q.question_id}</td>
+                  <td>{q.question_type}</td>
+                  <td>
+                    {q.audio_path ? (
+                      <audio controls src={`${config.audioUrl}/${q.audio_path}`} />
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="truncate" title={q.question_text}>{q.question_text.length > 100 ? q.question_text.slice(0, 100).trim() + "..." : q.question_text}</td>
+                  <td className="truncate" title={answerText}>{answerText.length > 100 ? answerText.slice(0, 100).trim() + "..." : answerText}</td>
+                  <td>{q.answer}</td>
+                  <td>
+                    <button className="edit-btn yellow" onClick={() => handleEdit(idx)}><FaEdit /></button>
+                    <button className="delete-btn red" onClick={() => confirmDelete(idx)}><FaTrash /></button>
+                  </td>
+                </tr>
+            )})}
           </tbody>
         </table>
 

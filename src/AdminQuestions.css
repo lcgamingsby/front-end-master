@@ -247,7 +247,14 @@
   margin-bottom: 0.5rem;
 }
 
+.form-group :disabled {
+  background-color: #d0d0d0;
+  color: #808080;
+}
+
 .form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
 .form-group textarea,
 .form-group input[type="file"] {
   width: 100%;

@@ -12,6 +12,11 @@ function StudentDashboard() {
       navigate(`/test1`); // arahkan ke halaman ujian
     }
   };
+  const handleLogout = () => {
+    localStorage.removeItem("loggedInUser");
+    navigate("/login");
+  };
+
   const navigate = useNavigate();
   
 
@@ -47,7 +52,8 @@ function StudentDashboard() {
         </div>
         <div className="user-info">
           <div>Halo</div>
-          <strong>{userName}</strong>
+          <strong>{userName}</strong><br />
+          <button className="logout-btn" onClick={handleLogout}>Logout</button>
         </div>
       </header>
 

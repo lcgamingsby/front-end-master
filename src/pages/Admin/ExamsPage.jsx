@@ -94,7 +94,7 @@ function ExamsPage() {
         <h2 className="page-title">All Exams</h2>
 
         <div className="exam-actions">
-          <button className="add-btn" onClick={() => navigate("/exams/new")}>
+          <button className="add-btn" onClick={() => navigate("/admin/exams/new")}>
             + Add an Exam
           </button>
 

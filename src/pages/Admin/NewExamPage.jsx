@@ -1,7 +1,7 @@
 // src/pages/NewExamPage.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../AdminExams.css";
+import "../../AdminExams.css";
 import { FaFilter } from "react-icons/fa";
 
 function NewExamPage() {
@@ -45,8 +45,8 @@ function NewExamPage() {
         <nav className="admin-nav">
           <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
           <button className="nav-btn active">Exams</button>
-          <button className="nav-btn" onClick={() => navigate("/questions")}>Questions</button>
-          <button className="nav-btn" onClick={() => navigate("/students")}>Students</button>
+          <button className="nav-btn" onClick={() => navigate("/admin/questions")}>Questions</button>
+          <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
         </nav>
         <div className="admin-info">
           <strong>ADMIN</strong>
@@ -56,7 +56,7 @@ function NewExamPage() {
 
       <main className="admin-content">
         <div className="page-header">
-          <button className="back-btn" onClick={() => navigate("/exams")}>←</button>
+          <button className="back-btn" onClick={() => navigate("/admin/exams")}>←</button>
           <h2 className="page-title">New Exam</h2>
         </div>
 

@@ -27,23 +27,23 @@ function LoginPage() {
     <div className="login-page">
       <div className="login-card">
         <h2>Login</h2>
+        <form>
+          <input
+            type="text"
+            placeholder="Nama"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-        <input
-          type="text"
-          placeholder="Nama"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+          <input
+            type="password"
+            placeholder="Kata Sandi"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <input
-          type="password"
-          placeholder="Kata Sandi"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <button onClick={handleLogin}>Masuk</button>
-
+          <button onClick={handleLogin}>Masuk</button>
+        </form>
         <p className="note">Gunakan akun yang telah terdaftar.</p>
       </div>
     </div>

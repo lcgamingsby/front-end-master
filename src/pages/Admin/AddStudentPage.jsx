@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../AdminStudents.css";
+import axios from "axios";
+import { config } from "../../data/config";
 
 function AddStudentPage() {
   const navigate = useNavigate();
@@ -13,11 +15,13 @@ function AddStudentPage() {
   const [form, setForm] = useState(
     editStudent || {
       nim: "",
-      fullName: "",
+      name: "",
       email: "",
       password: "",
     }
   );
+
+  console.log(editStudent, isEdit);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,24 +30,44 @@ function AddStudentPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const stored = JSON.parse(localStorage.getItem("students") || "[]");
 
     if (isEdit) {
+      /*
       const updatedList = stored.map((s) =>
         s.id === editStudent.id ? { ...form, id: editStudent.id } : s
       );
       localStorage.setItem("students", JSON.stringify(updatedList));
+      */
+
+      const updatedStudent = {
+        name: form.name,
+        email: form.email,
+      }
+
+      try {
+        await axios.put(config.apiUrl + "/users/" + form.nim, updatedStudent);
+        navigate("/admin/students");
+      } catch (e) {
+        console.error("Failed to update student:", e);
+      }
     } else {
       const newStudent = {
-        id: stored.length + 1,
-        ...form,
-      };
-      localStorage.setItem("students", JSON.stringify([...stored, newStudent]));
-    }
+        nim: form.nim,
+        name: form.name,
+        email: form.email,
+        password: form.password,
+      }
 
-    navigate("/students");
+      try {
+        await axios.post(config.apiUrl + "/users", newStudent);
+        navigate("/admin/students");
+      } catch (e) {
+        console.error("Failed to add student:", e);
+      }
+    }
   };
 
   return (
@@ -68,29 +92,30 @@ function AddStudentPage() {
       </header>
 
       <main className="admin-content">
-        <button className="back-btn" onClick={() => navigate("/students")}>&larr;</button>
+        <button className="back-btn" onClick={() => navigate("/admin/students")}>&larr;</button>
         <h2 className="page-title">{isEdit ? "Edit Student" : "New Student"}</h2>
 
         <form className="student-form-modern" onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className="form-group w-4/5">
             <label>STUDENT NIM</label>
             <input
               type="text"
               name="nim"
               value={form.nim}
               onChange={handleChange}
+              disabled={isEdit}
               placeholder="Enter NIM"
               required
               className="full-input"
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group w-4/5">
             <label>STUDENT NAME</label>
             <input
               type="text"
-              name="fullName"
-              value={form.fullName}
+              name="name"
+              value={form.name}
               onChange={handleChange}
               placeholder="Enter full name"
               required
@@ -98,7 +123,7 @@ function AddStudentPage() {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group w-4/5">
             <label>EMAIL</label>
             <input
               type="email"
@@ -111,23 +136,23 @@ function AddStudentPage() {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group ">
             <label>PASSWORD</label>
-            <div className="password-wrapper">
+            <div className="password-wrapper flex gap-2 justify-between items-center w-4/5">
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
                 value={form.password}
                 onChange={handleChange}
                 placeholder="Enter password"
-                required
-                className="full-input password-field"
+                required={!isEdit}
+                className="full-input grow w-full"
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
-                className="password-toggle"
+                className="password-toggle w-8 h-8"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={32} /> : <Eye size={32} />}
               </span>
             </div>
           </div>
