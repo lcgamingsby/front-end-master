@@ -14,11 +14,22 @@ function StudentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showConfirm, setShowConfirm] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
+  const [finishedLoading, setFinishedLoading] = useState(false);
+  const [totalStudents, setTotalStudents] = useState(0);
 
   useEffect(() => {
+    fetch(config.apiUrl + "/users/count")
+    .then((response) => response.json())
+    .then((data) => {
+      setTotalStudents(data.count);
+    });
+
     fetch(config.apiUrl + "/users/page/1")
     .then((response) => response.json())
-    .then((data) => setStudents(data))
+    .then((data) => {
+      setStudents(data);
+      setFinishedLoading(true);
+    })
   }, []);
 
   console.log(students, typeof students);
@@ -39,13 +50,6 @@ function StudentsPage() {
   };
 
   const handleConfirmDelete = async () => {
-    /*
-    const updated = students.filter((s) => s.id !== studentToDelete.id);
-    setStudents(updated);
-    localStorage.setItem("students", JSON.stringify(updated));
-    setShowConfirm(false);
-    */
-
     const studentNIM = studentToDelete.nim;
 
     try {
@@ -129,24 +133,32 @@ function StudentsPage() {
             </tr>
           </thead>
           <tbody>
-            {currentStudents.map((student) => (
-              <tr key={student.nim}>
-                <td>{student.nim}</td>
-                <td>{student.name}</td>
-                <td>{student.email}</td>
-                <td>{student.password}</td>
-                <td>
-                  <button className="edit-btn yellow" onClick={() => handleEdit(student)}><FaEdit /></button>
-                  <button className="delete-btn red" onClick={() => confirmDelete(student)}><FaTrash /></button>
+            {finishedLoading && currentStudents.length > 0 ? (
+              currentStudents.map((student) => (
+                <tr key={student.nim}>
+                  <td>{student.nim}</td>
+                  <td>{student.name}</td>
+                  <td>{student.email}</td>
+                  <td>{student.password}</td>
+                  <td>
+                    <button className="edit-btn yellow" onClick={() => handleEdit(student)}><FaEdit /></button>
+                    <button className="delete-btn red" onClick={() => confirmDelete(student)}><FaTrash /></button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="no-data text-center">
+                  {finishedLoading ? "No students found." : "Loading students..."}
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
 
         <div className="pagination">
           <p className="pagination-info">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} out of {filteredStudents.length}
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} out of {totalStudents}
           </p>
           <div className="page-buttons">
             <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>«</button>

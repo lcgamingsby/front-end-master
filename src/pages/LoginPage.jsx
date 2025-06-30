@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { students, admins } from "../data/users";
-import "../App.css";
+import "../App_old.css";
 
 function LoginPage() {
   const [name, setName] = useState("");

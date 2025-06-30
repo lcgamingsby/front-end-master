@@ -6,13 +6,13 @@ function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-linear-135 from-[#0097DA] to-[#003366] text-white">
-      <div className="home-app-bar">
-        <div className="home-logo-container">
-          <img src="/logoukdc.png" alt="Logo" className="home-logo" />
-          <h1 className="home-test-title">TEC UKDC</h1>
+    <div className="min-h-screen bg-linear-135 from-tec-light to-tec-dark text-white">
+      <div className="flex justify-between items-center py-5 px-10 bg-white shadow-lg">
+        <div className="flex items-center">
+          <img src="/logoukdc.png" alt="Logo" className="w-12 h-12 mr-3.5" />
+          <h1 className="text-2xl text-tec-dark">TEC UKDC</h1>
         </div>
-        <button className="home-login-button" onClick={() => navigate("/login")}>
+        <button className="bg-tec-light text-white py-3 px-6 border-0 text-lg font-semibold transition-colors duration-300 cursor-pointer" onClick={() => navigate("/login")}>
           Login
         </button>
       </div>
