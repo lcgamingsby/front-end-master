@@ -1,59 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../../AdminQuestions.css";
+import axios from "axios";
+import { config } from "../../data/config";
 
 function AddQuestionPage() {
   const navigate = useNavigate();
-  const [type, setType] = useState("Grammar");
-  const [questionText, setQuestionText] = useState("");
-  const [answers, setAnswers] = useState(["", "", "", ""]);
-  const [correctAnswer, setCorrectAnswer] = useState(null);
-  const [audioFile, setAudioFile] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
+  const location = useLocation();
+  const isEdit = location.state?.isEdit || false;
+  const editQuestion = location.state?.question || null;
 
-  useEffect(() => {
-    const index = localStorage.getItem("editQuestionIndex");
-    if (index !== null) {
-      const questions = JSON.parse(localStorage.getItem("questions")) || [];
-      const q = questions[index];
-      if (q) {
-        setEditMode(true);
-        setEditIndex(Number(index));
-        setType(q.type);
-        setQuestionText(q.question);
-        setAnswers(q.answers.split(", ").map((a) => a.trim()));
-        setCorrectAnswer(q.correctAnswer.charCodeAt(0) - 65);
+  const [type, setType] = useState(editQuestion != null ? editQuestion.question_type : "grammar");
+  const [questionText, setQuestionText] = useState(editQuestion != null ? editQuestion.question_text : "");
+  const [answers, setAnswers] = useState(editQuestion != null ? [editQuestion.choice_a, editQuestion.choice_b, editQuestion.choice_c, editQuestion.choice_d] : ["", "", "", ""]);
+  const [correctAnswer, setCorrectAnswer] = useState(editQuestion != null ? editQuestion.answer : null);
+  const [audioFile, setAudioFile] = useState(null);
+
+  const handleSave = (e) => {
+    e.preventDefault();
+
+    const form = e.target;
+
+    console.log(form);
+
+    const formData = new FormData(form);
+    formData.append("answer", correctAnswer);
+
+    console.log(formData);
+
+    if (isEdit) {
+      try {
+        await axios.put(`${config.apiUrl}/questions/${editQuestion.question_id}`, formData)
       }
     }
-  }, []);
-
-  const handleSave = () => {
-    /*
-    const newQuestion = {
-      id: Date.now(),
-      type,
-      audioURL: audioFile ? URL.createObjectURL(audioFile) : null,
-      question: questionText,
-      answers: answers.join(", "),
-      correctAnswer: String.fromCharCode(65 + correctAnswer),
-    };
-
-    let existingQuestions = JSON.parse(localStorage.getItem("questions")) || [];
-
-    if (editMode) {
-      // replace the question at editIndex
-      existingQuestions[editIndex] = { ...existingQuestions[editIndex], ...newQuestion };
-      localStorage.removeItem("editQuestionIndex");
-      alert("Question updated!");
-    } else {
-      existingQuestions.push(newQuestion);
-      alert("Question added!");
-    }
-
-    localStorage.setItem("questions", JSON.stringify(existingQuestions));
-    */
-    navigate("/questions");
+    //navigate("admin/questions");
   };
 
   return (
@@ -81,31 +61,32 @@ function AddQuestionPage() {
         <button className="back-btn" onClick={() => navigate("/admin/questions")}>← Back to Questions</button>
 
         <div className="form-section">
-          <h2 className="form-title">{editMode ? "Edit Question" : "New Question"}</h2>
+          <h2 className="form-title">{isEdit ? "Edit Question" : "New Question"}</h2>
 
-          <form onSubmit={handleSave} encType="multipart/form-data">
+          <form onSubmit={handleSave}  encType="multipart/form-data">
             <div className="form-group">
               <label>QUESTION TYPE</label>
               <div className="radio-group">
-                {["Grammar", "Reading", "Listening"].map((option) => (
-                  <label key={option}>
+                {[{type: "grammar", text: "Grammar"}, {type: "reading", text: "Reading"}, {type: "listening", text: "Listening"}].map((option) => (
+                  <label key={option.type}>
                     <input
                       type="radio"
-                      name="type"
-                      value={option}
-                      checked={type === option}
-                      onChange={() => setType(option)}
-                    /> {option}
+                      name="question_type"
+                      value={option.type}
+                      checked={type === option.type}
+                      onChange={() => setType(option.type)}
+                    /> {option.text}
                   </label>
                 ))}
               </div>
             </div>
 
-            {type === "Listening" && (
+            {type === "listening" && (
               <div className="form-group">
                 <label>UPLOAD AUDIO (LISTENING)</label>
                 <input
                   type="file"
+                  name="file"
                   accept="audio/*"
                   onChange={(e) => setAudioFile(e.target.files[0])}
                 />
@@ -116,6 +97,7 @@ function AddQuestionPage() {
               <label>QUESTION TEXT</label>
               <textarea
                 placeholder="Text of the question"
+                name="question_text"
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
               />
@@ -123,11 +105,16 @@ function AddQuestionPage() {
 
             <div className="form-group">
               <label>ANSWERS</label>
-              {answers.map((ans, idx) => (
+              {answers.map((ans, idx) => {
+                const letter = String.fromCharCode(65 + idx);
+                const letter_lower = letter.toLowerCase();
+
+                return (
                 <div key={idx} className="answer-option">
                   <input
                     type="text"
-                    placeholder={`Answer ${String.fromCharCode(65 + idx)}`}
+                    name={`choice_${letter_lower}`}
+                    placeholder={`Answer ${letter}`}
                     value={ans}
                     onChange={(e) => {
                       const newAnswers = [...answers];
@@ -138,18 +125,17 @@ function AddQuestionPage() {
                   <label>
                     <input
                       type="radio"
-                      name="correct"
-                      checked={correctAnswer === idx}
-                      onChange={() => setCorrectAnswer(idx)}
+                      checked={correctAnswer === letter_lower}
+                      onChange={() => setCorrectAnswer(letter_lower)}
                     />
-                    Set {String.fromCharCode(65 + idx)} as the correct answer
+                    Set {letter} as the correct answer
                   </label>
                 </div>
-              ))}
+              )})}
             </div>
 
             <button className="add-btn">
-              {editMode ? "Save Changes" : "Add Question"}
+              {isEdit ? "Save Changes" : "Add Question"}
             </button>
           </form>
         </div>

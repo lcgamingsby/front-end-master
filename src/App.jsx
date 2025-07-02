@@ -26,6 +26,7 @@ function App() {
         <Route path="/admin/questions/edit" element={<AddQuestionPage />} />
         <Route path="/admin/students" element={<StudentsPage />} />
         <Route path="/admin/students/add" element={<AddStudentPage />} />
+        <Route path="/admin/students/edit" element={<AddStudentPage />} />
         <Route path="/student" element={<StudentDashboard/>} />
         <Route path="/test1" element={<ListeningTest/>} />
       </Routes>

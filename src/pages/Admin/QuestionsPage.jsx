@@ -62,9 +62,10 @@ function QuestionsPage() {
     setShowDeleteModal(false);
   };
 
-  const handleEdit = (index) => {
-    localStorage.setItem("editQuestionIndex", index);
-    navigate("/questions/edit");
+  const handleEdit = (question) => {
+    console.log(question);
+
+    navigate("/admin/questions/edit", { state: { question: question, isEdit: true } });
   };
 
   return (
@@ -170,8 +171,8 @@ function QuestionsPage() {
                   <td className="truncate" title={answerText}>{answerText.length > 100 ? answerText.slice(0, 100).trim() + "..." : answerText}</td>
                   <td>{q.answer}</td>
                   <td>
-                    <button className="edit-btn yellow" onClick={() => handleEdit(idx)}><FaEdit /></button>
-                    <button className="delete-btn red" onClick={() => confirmDelete(idx)}><FaTrash /></button>
+                    <button className="edit-btn yellow" onClick={() => handleEdit(q)}><FaEdit /></button>
+                    <button className="delete-btn red" onClick={() => confirmDelete(q)}><FaTrash /></button>
                   </td>
                 </tr>
             )})}

@@ -63,7 +63,7 @@ function StudentsPage() {
   };
 
   const handleEdit = (student) => {
-    navigate("/admin/students/add", { state: { student: student, isEdit: true } });
+    navigate("/admin/students/edit", { state: { student: student, isEdit: true } });
   };
 
   return (

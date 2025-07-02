@@ -32,16 +32,7 @@ function AddStudentPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const stored = JSON.parse(localStorage.getItem("students") || "[]");
-
     if (isEdit) {
-      /*
-      const updatedList = stored.map((s) =>
-        s.id === editStudent.id ? { ...form, id: editStudent.id } : s
-      );
-      localStorage.setItem("students", JSON.stringify(updatedList));
-      */
-
       const updatedStudent = {
         name: form.name,
         email: form.email,
