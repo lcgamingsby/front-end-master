@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaSearch, FaFilter } from "react-icons/fa";
 import { config } from "../../data/config";
 import axios from "axios";
+import ModalConfirmDelete from "../Components/ModalConfirmDelete";
 
 function StudentsPage() {
   const navigate = useNavigate();
@@ -15,16 +16,10 @@ function StudentsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [finishedLoading, setFinishedLoading] = useState(false);
-  const [totalStudents, setTotalStudents] = useState(0);
 
   useEffect(() => {
-    fetch(config.apiUrl + "/users/count")
-    .then((response) => response.json())
-    .then((data) => {
-      setTotalStudents(data.count);
-    });
-
-    fetch(config.apiUrl + "/users/page/1")
+    // GET students data
+    fetch(config.apiUrl + "/users/")
     .then((response) => response.json())
     .then((data) => {
       setStudents(data);
@@ -82,7 +77,7 @@ function StudentsPage() {
           <button className="nav-btn active">Students</button>
         </nav>
         <div className="admin-info">
-          <strong>ADMIN</strong>
+          <strong>ADMIN</strong><br/>
           <span>JOHN DOE</span>
         </div>
       </header>
@@ -158,7 +153,7 @@ function StudentsPage() {
 
         <div className="pagination">
           <p className="pagination-info">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} out of {totalStudents}
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} out of {students.length}
           </p>
           <div className="page-buttons">
             <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>«</button>
@@ -177,7 +172,7 @@ function StudentsPage() {
           </div>
         </div>
 
-        {showConfirm && (
+        {showConfirm && (/*
           <div className="confirm-overlay">
             <div className="confirm-modal">
               <div className="confirm-icon">
@@ -197,7 +192,14 @@ function StudentsPage() {
               </div>
             </div>
           </div>
-        )}
+        */
+        <ModalConfirmDelete
+          isOpen={showConfirm}
+          openModal={setShowConfirm}
+          onTrue={handleConfirmDelete}
+          title="Confirm Deletion"
+          message="Are you sure you want to delete this student? This action cannot be undone."
+        />)}
       </main>
     </div>
   );

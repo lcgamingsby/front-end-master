@@ -124,12 +124,6 @@
 }
 
 /* --- Global Reset & Base Styles --- */
-body, h1, h2, h3, p, ul {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
-}
 
 .admin-dashboard {
   background-color: #f9f9f9;

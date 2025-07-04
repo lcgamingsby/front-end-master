@@ -16,7 +16,7 @@ function AddQuestionPage() {
   const [correctAnswer, setCorrectAnswer] = useState(editQuestion != null ? editQuestion.answer : null);
   const [audioFile, setAudioFile] = useState(null);
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
 
     const form = e.target;
@@ -31,6 +31,14 @@ function AddQuestionPage() {
     if (isEdit) {
       try {
         await axios.put(`${config.apiUrl}/questions/${editQuestion.question_id}`, formData)
+      } catch (e) {
+        console.error("Failed to update question:", e);
+      }
+    } else {
+      try {
+        await axios.post(`${config.apiUrl}/questions`, formData);
+      } catch (e) {
+        console.error("Failed to add question:", e);
       }
     }
     //navigate("admin/questions");

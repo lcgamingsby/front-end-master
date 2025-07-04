@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "../../App.css"; // pastikan file CSS diimpor
+import "../../App_old.css"; // pastikan file CSS diimpor
 import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
