@@ -13,18 +13,17 @@ function StudentDashboard() {
     }
   };
   const handleLogout = () => {
+    localStorage.removeItem("jwtToken");
     localStorage.removeItem("loggedInUser");
     navigate("/login");
   };
 
   const navigate = useNavigate();
+
+  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
   
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("loggedInUser"));
-    if (userData?.name) {
-      setUserName(userData.name);
-    }
 
     // Contoh data dummy, nantinya bisa kamu fetch dari API
     setExams([
@@ -52,7 +51,7 @@ function StudentDashboard() {
         </div>
         <div className="user-info">
           <div>Halo</div>
-          <strong>{userName}</strong><br />
+          <strong>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}</strong><br />
           <button className="logout-btn" onClick={handleLogout}>Logout</button>
         </div>
       </header>

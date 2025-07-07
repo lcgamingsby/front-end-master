@@ -17,6 +17,8 @@ function ExamsPage() {
   const [editIndex, setEditIndex] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
+  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
+
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
@@ -85,8 +87,8 @@ function ExamsPage() {
           <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
         </nav>
         <div className="admin-info">
-          <strong>ADMIN</strong>
-          <span>JOHN DOE</span>
+          <strong>ADMIN</strong><br/>
+          <span>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}</span>
         </div>
       </header>
 

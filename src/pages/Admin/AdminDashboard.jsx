@@ -8,6 +8,7 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("jwtToken");
     navigate("/login");
   };
 

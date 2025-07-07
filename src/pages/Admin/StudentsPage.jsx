@@ -17,14 +17,55 @@ function StudentsPage() {
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [finishedLoading, setFinishedLoading] = useState(false);
 
+  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
+
+  // Read-Delete Students
+  // Create-Update on AddStudentPage.jsx
+  const getStudents = async () => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+
+      const response = await axios.get(config.apiUrl + "/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setStudents(response.data);
+      setFinishedLoading(true);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      setFinishedLoading(true);
+    }
+  }
+
+  const deleteStudent = async (nim) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+
+      const response = await axios.delete(config.apiUrl + "/users/" + nim, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (response.status === 200) {
+        // seamless update
+        // console.log("Successfully deleted student:", nim); // debug
+        setShowConfirm(false);
+
+        setStudents((prevStudents) =>
+          prevStudents.filter((student) => student.nim !== nim)
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting student:", error);
+    }
+  }
+
   useEffect(() => {
     // GET students data
-    fetch(config.apiUrl + "/users/")
-    .then((response) => response.json())
-    .then((data) => {
-      setStudents(data);
-      setFinishedLoading(true);
-    })
+    getStudents();
   }, []);
 
   console.log(students, typeof students);
@@ -47,14 +88,7 @@ function StudentsPage() {
   const handleConfirmDelete = async () => {
     const studentNIM = studentToDelete.nim;
 
-    try {
-      await axios.delete(config.apiUrl + "/users/" + studentNIM);
-      
-      // reload page after deletion
-      navigate("/admin/students");
-    } catch (error) {
-      console.error("Error deleting student:", error);
-    }
+    deleteStudent(studentNIM);
   };
 
   const handleEdit = (student) => {
@@ -78,7 +112,7 @@ function StudentsPage() {
         </nav>
         <div className="admin-info">
           <strong>ADMIN</strong><br/>
-          <span>JOHN DOE</span>
+          <span>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}</span>
         </div>
       </header>
 
@@ -94,7 +128,15 @@ function StudentsPage() {
               <label>Show</label>
               <select
                 value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+
+                  const newTotalPages = Math.ceil(filteredStudents.length / Number(e.target.value));
+
+                  if (currentPage > newTotalPages) {
+                    setCurrentPage(newTotalPages);
+                  }
+                }}
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>

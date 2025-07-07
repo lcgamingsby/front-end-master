@@ -5,30 +5,27 @@ import { FaEdit, FaTrash, FaFilter } from "react-icons/fa";
 import { config } from "../../data/config";
 
 function QuestionsPage() {
+  const navigate = useNavigate();
+
   const [questions, setQuestions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [selectedType, setSelectedType] = useState("All Types");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
+  const [finishedLoading, setFinishedLoading] = useState(false);
 
-  const navigate = useNavigate();
-
-  /*
-  useEffect(() => {
-    const storedQuestions = JSON.parse(localStorage.getItem("questions")) || [];
-    setQuestions(storedQuestions);
-  }, []);
-  */
+  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
 
   useEffect(() => {
-    fetch(config.apiUrl + "/questions/page/1")
+    // GET questions data
+    fetch(config.apiUrl + "/questions")
     .then((response) => response.json())
     .then((data) => {
       setQuestions(data.map((q, index) => ({
         ...q, answers: [q.choice_a, q.choice_b, q.choice_c, q.choice_d]})
       ));
-      //console.log(data, typeof data);
+      setFinishedLoading(true);
     })
   }, []);
 
@@ -84,8 +81,8 @@ function QuestionsPage() {
           <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
         </nav>
         <div className="admin-info">
-          <strong>ADMIN</strong>
-          <span>JOHN DOE</span>
+          <strong>ADMIN</strong><br/>
+          <span>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}</span>
         </div>
       </header>
 
@@ -103,7 +100,14 @@ function QuestionsPage() {
               <select
                 className="dropdown-medium"
                 value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  const newTotalPages = Math.ceil(filteredStudents.length / Number(e.target.value));
+
+                  if (currentPage > newTotalPages) {
+                    setCurrentPage(newTotalPages);
+                  }
+                }}
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -181,7 +185,7 @@ function QuestionsPage() {
 
         <div className="pagination">
           <span className="pagination-info">
-            Showing 1 to {Math.min(itemsPerPage, filteredQuestions.length)} out of {filteredQuestions.length}
+            Showing 1 to {Math.min(itemsPerPage, filteredQuestions.length)} out of {questions.length}
           </span>
           <div className="page-buttons">
             <button className="page-btn">«</button>

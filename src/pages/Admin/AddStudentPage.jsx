@@ -21,14 +21,50 @@ function AddStudentPage() {
     }
   );
 
-  console.log(editStudent, isEdit);
-
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  // Create-Update Students
+  // Read-Delete on StudentsPage.jsx
+  const createStudent = async (student) => {
+    const token = localStorage.getItem("jwtToken");
+
+    try {
+      await axios.post(config.apiUrl + "/users", student, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // navigate to students page after adding
+      navigate("/admin/students");
+    } catch (e) {
+      console.error("Failed to add student:", e);
+    }
+  }
+
+  const updateStudent = async (nim, student) => {
+    const token = localStorage.getItem("jwtToken");
+
+    try {
+      await axios.put(config.apiUrl + "/users/" + nim, student, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // navigate to students page after updating
+      navigate("/admin/students");
+    } catch (e) {
+      console.error("Failed to update student:", e);
+    }
+  }
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,12 +74,7 @@ function AddStudentPage() {
         email: form.email,
       }
 
-      try {
-        await axios.put(config.apiUrl + "/users/" + form.nim, updatedStudent);
-        navigate("/admin/students");
-      } catch (e) {
-        console.error("Failed to update student:", e);
-      }
+      updateStudent(form.nim, updatedStudent);
     } else {
       const newStudent = {
         nim: form.nim,
@@ -51,13 +82,8 @@ function AddStudentPage() {
         email: form.email,
         password: form.password,
       }
-
-      try {
-        await axios.post(config.apiUrl + "/users", newStudent);
-        navigate("/admin/students");
-      } catch (e) {
-        console.error("Failed to add student:", e);
-      }
+      
+      createStudent(newStudent);
     }
   };
 
