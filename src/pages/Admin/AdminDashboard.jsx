@@ -19,7 +19,7 @@ function AdminDashboard() {
         id: 1,
         title: "Session 1 TEC Exam",
         date: "12 Jan 2024",
-        time: "14:00–16:30",
+        time: "14:00-16:30",
         remaining: "00:45:00",
         status: "ongoing",
       },

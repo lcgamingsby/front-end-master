@@ -16,7 +16,41 @@ function AddQuestionPage() {
   const [correctAnswer, setCorrectAnswer] = useState(editQuestion != null ? editQuestion.answer : null);
   const [audioFile, setAudioFile] = useState(null);
 
-  const handleSave = async (e) => {
+  // Create-Update Questions
+  // Read-Delete on QuestionsPage.jsx
+  const createQuestion = async (question) => {
+    const token = localStorage.getItem("jwtToken");
+
+    try {
+      const response = await axios.post(`${config.apiUrl}/questions`, question, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      navigate("/admin/questions");
+    } catch (e) {
+      console.error("Failed to add question:", e);
+    }
+  }
+
+  const updateQuestion = async (id, question) => {
+    const token = localStorage.getItem("jwtToken");
+
+    try {
+      await axios.put(`${config.apiUrl}/questions/${id}`, question, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      navigate("/admin/questions");
+    } catch (e) {
+      console.error("Failed to add question:", e);
+    }
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const form = e.target;
@@ -29,19 +63,10 @@ function AddQuestionPage() {
     console.log(formData);
 
     if (isEdit) {
-      try {
-        await axios.put(`${config.apiUrl}/questions/${editQuestion.question_id}`, formData)
-      } catch (e) {
-        console.error("Failed to update question:", e);
-      }
+      updateQuestion(editQuestion.question_id, formData);
     } else {
-      try {
-        await axios.post(`${config.apiUrl}/questions`, formData);
-      } catch (e) {
-        console.error("Failed to add question:", e);
-      }
+      createQuestion(formData);
     }
-    //navigate("admin/questions");
   };
 
   return (
@@ -71,7 +96,7 @@ function AddQuestionPage() {
         <div className="form-section">
           <h2 className="form-title">{isEdit ? "Edit Question" : "New Question"}</h2>
 
-          <form onSubmit={handleSave}  encType="multipart/form-data">
+          <form onSubmit={handleSubmit}  encType="multipart/form-data">
             <div className="form-group">
               <label>QUESTION TYPE</label>
               <div className="radio-group">

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "../../App_old.css";
 import { FaExclamationTriangle } from "react-icons/fa";
 
 const ModalConfirmDelete = ({ isOpen, openModal, onTrue, onFalse, title, message}) => {

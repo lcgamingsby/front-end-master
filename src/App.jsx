@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
@@ -12,23 +12,32 @@ import AddStudentPage from "./pages/Admin/AddStudentPage";
 import StudentDashboard from "./pages/StudentDashboard";
 import ListeningTest from "./pages/listeningtest";
 
+import PublicRoute from "./pages/Components/PublicRoute";
+import PrivateRoute from "./pages/Components/PrivateRoute";
+
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/exams" element={<ExamsPage />} />
-        <Route path="/admin/exams/new" element={<NewExamPage />} />
-        <Route path="/admin/questions" element={<QuestionsPage />} />
-        <Route path="/admin/questions/add" element={<AddQuestionPage />} />
-        <Route path="/admin/questions/edit" element={<AddQuestionPage />} />
-        <Route path="/admin/students" element={<StudentsPage />} />
-        <Route path="/admin/students/add" element={<AddStudentPage />} />
-        <Route path="/admin/students/edit" element={<AddStudentPage />} />
-        <Route path="/student" element={<StudentDashboard/>} />
-        <Route path="/test1" element={<ListeningTest/>} />
+        <Route path="/login" element={<PublicRoute />}>
+          <Route index element={<LoginPage />} />
+        </Route>
+        <Route path="/admin" element={<PrivateRoute role="admin" />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="exams" element={<ExamsPage />} />
+          <Route path="exams/new" element={<NewExamPage />} />
+          <Route path="questions" element={<QuestionsPage />} />
+          <Route path="questions/add" element={<AddQuestionPage />} />
+          <Route path="questions/edit" element={<AddQuestionPage />} />
+          <Route path="students" element={<StudentsPage />} />
+          <Route path="students/add" element={<AddStudentPage />} />
+          <Route path="students/edit" element={<AddStudentPage />} />
+        </Route>
+        <Route path="/student" element={<PrivateRoute role="mahasiswa" />}>
+          <Route index element={<StudentDashboard/>} />
+          <Route path="test" element={<ListeningTest/>} />
+        </Route>
       </Routes>
     </Router>
   )

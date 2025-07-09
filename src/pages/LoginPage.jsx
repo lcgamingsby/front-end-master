@@ -4,10 +4,12 @@ import { students, admins } from "../data/users";
 import "../App_old.css";
 import axios from "axios";
 import { config } from "../data/config";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function LoginPage() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -45,39 +47,44 @@ function LoginPage() {
   // Redirect if already logged in
   const loggedInUser = localStorage.getItem("loggedInUser");
 
-  if (loggedInUser) {
-    const user = JSON.parse(loggedInUser);
-    if (user.role === "admin") {
-      navigate("/admin");
-    } else if (user.role === "mahasiswa") {
-      navigate("/student");
-    } else {
-      navigate("/");
-    }
-  }
+  console.log(loggedInUser);
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <h2>Login</h2>
+    <div className="flex items-center justify-center w-screen h-screen bg-linear-135 from-tec-light to-tec-dark">
+      <div className="bg-white py-10 px-8 rounded-xl shadow-lg w-full max-w-md text-center">
+        <h2 className="mb-5 text-2xl text-tec-dark font-bold">Login</h2>
         <form onSubmit={handleLogin}>
           <input
             type="text"
             placeholder="Username atau E-mail"
             value={name}
+            className="w-9/10 py-3 px-4 my-3 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
             onChange={(e) => setName(e.target.value)}
           />
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="w-9/10 mx-auto py-3 px-4 my-3 border border-gray-300 rounded-lg text-lg outline-none flex items-center justify-between hover:border-tec-light">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              className="flex-grow max-w-11/12 outline-none"
+              
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-          <button type="submit">Masuk</button>
+            <button type="button" onClick={() => setShowPassword(!showPassword)}>
+              {showPassword ? (
+                <FaEyeSlash className="text-tec-dark w-6 h-6" />
+              ) : (
+                <FaEye className="text-tec-dark w-6 h-6" />
+              )}
+            </button>
+            
+          </div>
+
+          <button type="submit" className="w-full p-3 bg-tec-light text-white text-lg font-semibold rounded-lg cursor-pointer transition mt-3 hover:bg-tec-light-hover">Masuk</button>
         </form>
-        <p className="note">Gunakan akun yang telah terdaftar.</p>
+        <p className="note mt-3 text-sm text-slate-500">Gunakan akun yang telah terdaftar.</p>
       </div>
     </div>
   );

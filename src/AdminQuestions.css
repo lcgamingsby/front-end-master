@@ -395,3 +395,21 @@
   border: 1px solid #ccc;
   min-width: 140px;
 }
+
+.exam-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.exam-table th,
+.exam-table td {
+  border-bottom: 1px solid #ccc;
+  padding: 0.8rem;
+  text-align: left;
+}
+
+.exam-table th {
+  background-color: #0a0a23;
+  color: white;
+}

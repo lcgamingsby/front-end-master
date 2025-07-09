@@ -3,6 +3,8 @@ import "../../AdminQuestions.css";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaFilter } from "react-icons/fa";
 import { config } from "../../data/config";
+import axios from "axios";
+import ModalConfirmDelete from "../Components/ModalConfirmDelete";
 
 function QuestionsPage() {
   const navigate = useNavigate();
@@ -10,23 +12,61 @@ function QuestionsPage() {
   const [questions, setQuestions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedType, setSelectedType] = useState("All Types");
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [toDelete, setToDelete] = useState(null);
   const [finishedLoading, setFinishedLoading] = useState(false);
 
   const userData = JSON.parse(localStorage.getItem("loggedInUser"));
 
-  useEffect(() => {
-    // GET questions data
-    fetch(config.apiUrl + "/questions")
-    .then((response) => response.json())
-    .then((data) => {
-      setQuestions(data.map((q, index) => ({
+  // Read-Delete Questions
+  // Create-Update on AddQuestionPage.jsx
+  const getQuestions = async () => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+
+      const response = await axios.get(config.apiUrl + "/questions", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setQuestions(response.data.map((q, index) => ({
         ...q, answers: [q.choice_a, q.choice_b, q.choice_c, q.choice_d]})
       ));
       setFinishedLoading(true);
-    })
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+      setFinishedLoading(true);
+    }
+  }
+
+  const deleteQuestion = async (questionId) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+
+      const response = await axios.delete(config.apiUrl + "/questions/" + questionId, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        setShowConfirm(false);
+
+        setQuestions((prevQuestions) =>
+          prevQuestions.filter((question) => question.question_id !== questionId)
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting student:", error);
+    }
+  }
+
+  useEffect(() => {
+    // GET questions data
+    getQuestions();
   }, []);
 
   const filteredQuestions = questions.filter((q) => {
@@ -46,17 +86,19 @@ function QuestionsPage() {
     return matchSearch && matchType;
   });
 
+  const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentQuestions = filteredQuestions.slice(startIndex, startIndex + itemsPerPage);
+
   const confirmDelete = (index) => {
-    setDeleteIndex(index);
-    setShowDeleteModal(true);
+    setToDelete(index);
+    setShowConfirm(true);
   };
 
-  const handleDeleteConfirmed = () => {
-    const updated = [...questions];
-    updated.splice(deleteIndex, 1);
-    setQuestions(updated);
-    localStorage.setItem("questions", JSON.stringify(updated));
-    setShowDeleteModal(false);
+  const handleConfirmDelete = () => {
+    const questionID = toDelete.question_id;
+
+    deleteQuestion(questionID);
   };
 
   const handleEdit = (question) => {
@@ -157,7 +199,8 @@ function QuestionsPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredQuestions.slice(0, itemsPerPage).map((q, idx) => {
+            {finishedLoading && currentQuestions.length > 0 ? (
+              currentQuestions.map((q, idx) => {
               let answerText = q.answers.join(", ");
 
               return (
@@ -179,7 +222,13 @@ function QuestionsPage() {
                     <button className="delete-btn red" onClick={() => confirmDelete(q)}><FaTrash /></button>
                   </td>
                 </tr>
-            )})}
+            )})) : (
+              <tr>
+                <td colSpan="5" className="no-data text-center">
+                  {finishedLoading ? "No questions found." : "Loading questions..."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
 
@@ -188,34 +237,31 @@ function QuestionsPage() {
             Showing 1 to {Math.min(itemsPerPage, filteredQuestions.length)} out of {questions.length}
           </span>
           <div className="page-buttons">
-            <button className="page-btn">«</button>
-            <button className="page-btn active">1</button>
-            <button className="page-btn">2</button>
-            <button className="page-btn">3</button>
-            <button className="page-btn">4</button>
-            <button className="page-btn">»</button>
+            <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>«</button>
+            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>‹</button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                className={`page-btn ${currentPage === i + 1 ? "active" : ""}`}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>›</button>
+            <button className="page-btn" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>»</button>
           </div>
         </div>
       </main>
 
-      {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <div className="modal-header">
-              <FaTrash className="modal-icon" />
-              <h3>Confirm Deletion</h3>
-            </div>
-            <p>Are you sure to delete this question?</p>
-            <div className="modal-buttons">
-              <button className="modal-delete-btn" onClick={handleDeleteConfirmed}>
-                <FaTrash /> Delete
-              </button>
-              <button className="modal-cancel-btn" onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      {showConfirm && (
+        <ModalConfirmDelete
+          isOpen={showConfirm}
+          openModal={setShowConfirm}
+          onTrue={handleConfirmDelete}
+          title="Confirm Deletion"
+          message="Are you sure you want to delete this question? This action cannot be undone."
+        />
       )}
     </div>
   );

@@ -11,7 +11,11 @@ function HomePage() {
           <img src="/logoukdc.png" alt="Logo" className="w-12 h-12 mr-3.5" />
           <h1 className="text-2xl text-tec-dark font-bold">TEC UKDC</h1>
         </div>
-        <button className="bg-tec-dark hover:bg-tec-light text-white py-5 px-6 border-0 text-lg font-semibold transition-colors duration-150 cursor-pointer" onClick={() => navigate("/login")}>
+        <button
+          className="bg-tec-dark hover:bg-tec-light text-white py-5 px-6 border-0 text-lg font-semibold
+            transition-colors duration-150 cursor-pointer"
+          onClick={() => navigate("/login")}
+        >
           Login
         </button>
       </div>

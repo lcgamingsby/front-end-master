@@ -14,7 +14,7 @@ function StudentsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [studentToDelete, setStudentToDelete] = useState(null);
+  const [toDelete, setToDelete] = useState(null);
   const [finishedLoading, setFinishedLoading] = useState(false);
 
   const userData = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -81,12 +81,12 @@ function StudentsPage() {
   const currentStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
 
   const confirmDelete = (student) => {
-    setStudentToDelete(student);
+    setToDelete(student);
     setShowConfirm(true);
   };
 
   const handleConfirmDelete = async () => {
-    const studentNIM = studentToDelete.nim;
+    const studentNIM = toDelete.nim;
 
     deleteStudent(studentNIM);
   };
@@ -165,7 +165,6 @@ function StudentsPage() {
               <th>NIM</th>
               <th>Full Name</th>
               <th>Email</th>
-              <th>Password</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -176,7 +175,6 @@ function StudentsPage() {
                   <td>{student.nim}</td>
                   <td>{student.name}</td>
                   <td>{student.email}</td>
-                  <td>{student.password}</td>
                   <td>
                     <button className="edit-btn yellow" onClick={() => handleEdit(student)}><FaEdit /></button>
                     <button className="delete-btn red" onClick={() => confirmDelete(student)}><FaTrash /></button>
