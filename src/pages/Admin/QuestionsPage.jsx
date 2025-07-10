@@ -5,6 +5,7 @@ import { FaEdit, FaTrash, FaFilter } from "react-icons/fa";
 import { config } from "../../data/config";
 import axios from "axios";
 import ModalConfirmDelete from "../Components/ModalConfirmDelete";
+import Navbar from "../Components/Navbar";
 
 function QuestionsPage() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ function QuestionsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(config.apiUrl + "/questions", {
+      const response = await axios.get(`${config.backendUrl}/api/questions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -46,7 +47,7 @@ function QuestionsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.delete(config.apiUrl + "/questions/" + questionId, {
+      const response = await axios.delete(`${config.backendUrl}/api/questions/${questionId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -109,24 +110,7 @@ function QuestionsPage() {
 
   return (
     <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="logo-title">
-          <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-          <span>
-            <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
-          </span>
-        </div>
-        <nav className="admin-nav">
-          <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/exams")}>Exams</button>
-          <button className="nav-btn active" onClick={() => navigate("/admin/questions")}>Questions</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
-        </nav>
-        <div className="admin-info">
-          <strong>ADMIN</strong><br/>
-          <span>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}</span>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="admin-content">
         <h2 className="page-title">All Questions</h2>
@@ -191,10 +175,8 @@ function QuestionsPage() {
             <tr>
               <th>ID</th>
               <th>Type</th>
-              <th>Audio</th>
               <th>Question</th>
               <th>Answer Choices</th>
-              <th>Correct Answer</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -206,17 +188,16 @@ function QuestionsPage() {
               return (
                 <tr key={q.question_id}>
                   <td>{q.question_id}</td>
-                  <td>{q.question_type}</td>
-                  <td>
+                  <td>{q.question_type[0].toUpperCase() + q.question_type.slice(1)}</td>
+                  <td className="truncate" title={q.question_text}>
                     {q.audio_path ? (
                       <audio controls src={`${config.audioUrl}/${q.audio_path}`} />
-                    ) : (
-                      "-"
-                    )}
+                    ) : null}
+                    {q.question_text.length > 80 ? q.question_text.slice(0, 80).trim() + "..." : q.question_text}
                   </td>
-                  <td className="truncate" title={q.question_text}>{q.question_text.length > 100 ? q.question_text.slice(0, 100).trim() + "..." : q.question_text}</td>
-                  <td className="truncate" title={answerText}>{answerText.length > 100 ? answerText.slice(0, 100).trim() + "..." : answerText}</td>
-                  <td>{q.answer}</td>
+                  <td className="truncate" title={answerText}>
+                    {answerText.length > 60 ? answerText.slice(0, 60).trim() + "..." : answerText}
+                  </td>
                   <td>
                     <button className="edit-btn yellow" onClick={() => handleEdit(q)}><FaEdit /></button>
                     <button className="delete-btn red" onClick={() => confirmDelete(q)}><FaTrash /></button>

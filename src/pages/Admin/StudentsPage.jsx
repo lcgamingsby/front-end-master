@@ -5,6 +5,7 @@ import { FaEdit, FaTrash, FaSearch, FaFilter } from "react-icons/fa";
 import { config } from "../../data/config";
 import axios from "axios";
 import ModalConfirmDelete from "../Components/ModalConfirmDelete";
+import Navbar from "../Components/Navbar";
 
 function StudentsPage() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ function StudentsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(config.apiUrl + "/users", {
+      const response = await axios.get(config.backendUrl + "/api/users", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -43,7 +44,7 @@ function StudentsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.delete(config.apiUrl + "/users/" + nim, {
+      const response = await axios.delete(config.backendUrl + "/api/users/" + nim, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -97,24 +98,7 @@ function StudentsPage() {
 
   return (
     <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="logo-title">
-          <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-          <span>
-            <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
-          </span>
-        </div>
-        <nav className="admin-nav">
-          <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/exams")}>Exams</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/questions")}>Questions</button>
-          <button className="nav-btn active">Students</button>
-        </nav>
-        <div className="admin-info">
-          <strong>ADMIN</strong><br/>
-          <span>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}</span>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="admin-content">
         <h2 className="page-title">All Students</h2>

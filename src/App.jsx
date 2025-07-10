@@ -3,7 +3,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ExamsPage from './pages/Admin/ExamsPage';
-import NewExamPage from "./pages/Admin/NewExamPage";
+import AddExamPage from "./pages/Admin/AddExamPage";
 import QuestionsPage from "./pages/Admin/QuestionsPage";
 import AddQuestionPage from "./pages/Admin/AddQuestionPage";
 import StudentsPage from "./pages/Admin/StudentsPage";
@@ -26,7 +26,7 @@ function App() {
         <Route path="/admin" element={<PrivateRoute role="admin" />}>
           <Route index element={<AdminDashboard />} />
           <Route path="exams" element={<ExamsPage />} />
-          <Route path="exams/new" element={<NewExamPage />} />
+          <Route path="exams/add" element={<AddExamPage />} />
           <Route path="questions" element={<QuestionsPage />} />
           <Route path="questions/add" element={<AddQuestionPage />} />
           <Route path="questions/edit" element={<AddQuestionPage />} />

@@ -1,10 +1,10 @@
-// src/pages/NewExamPage.js
+// src/pages/AddExamPage.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../AdminExams.css";
 import { FaFilter } from "react-icons/fa";
 
-function NewExamPage() {
+function AddExamPage() {
   const navigate = useNavigate();
 
   const [selectedType, setSelectedType] = useState("All");
@@ -181,4 +181,4 @@ function NewExamPage() {
   );
 }
 
-export default NewExamPage;
+export default AddExamPage;

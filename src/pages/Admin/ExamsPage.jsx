@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../../AdminExams.css";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaFilter } from "react-icons/fa";
+import Navbar from "../Components/Navbar";
 
 function ExamsPage() {
   const [exams, setExams] = useState([]);
@@ -73,30 +74,13 @@ function ExamsPage() {
 
   return (
     <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="logo-title">
-          <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-           <span>
-              <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
-           </span>
-        </div>
-        <nav className="admin-nav">
-          <button className="nav-btn" onClick={() => navigate("/admin/")}>Home</button>
-          <button className="nav-btn active">Exams</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/questions")}>Questions</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
-        </nav>
-        <div className="admin-info">
-          <strong>ADMIN</strong><br/>
-          <span>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}</span>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="admin-content">
         <h2 className="page-title">All Exams</h2>
 
         <div className="exam-actions">
-          <button className="add-btn" onClick={() => navigate("/admin/exams/new")}>
+          <button className="add-btn" onClick={() => navigate("/admin/exams/add")}>
             + Add an Exam
           </button>
 

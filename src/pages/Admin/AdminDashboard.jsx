@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../../App_old.css"; // pastikan file CSS diimpor
 import { useNavigate } from "react-router-dom";
+import Navbar from "../Components/Navbar";
 
 function AdminDashboard() {
   const [adminName] = useState("");
@@ -28,25 +29,7 @@ function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="logo-title">
-          <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-           <span>
-    <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
-  </span>
-        </div>
-        <nav className="admin-nav">
-        <button className="nav-btn active">Home</button>
-        <button className="nav-btn" onClick={() => navigate("/admin/exams")}>Exams</button>
-
-        <button className="nav-btn" onClick={() => navigate("/admin/questions")}>Questions</button>
-        <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
-      </nav>
-        <div className="admin-info">
-          <strong>{adminName}</strong>
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="admin-content">
         <div className="admin-stats">

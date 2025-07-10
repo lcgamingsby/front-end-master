@@ -34,7 +34,7 @@ function AddStudentPage() {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.post(config.apiUrl + "/users", student, {
+      await axios.post(`${config.apiUrl}/api/users/`, student, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -51,7 +51,7 @@ function AddStudentPage() {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.put(config.apiUrl + "/users/" + nim, student, {
+      await axios.put(`${config.apiUrl}/api/users/${nim}`, student, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
