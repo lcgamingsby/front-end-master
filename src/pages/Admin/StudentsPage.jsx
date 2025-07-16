@@ -18,8 +18,6 @@ function StudentsPage() {
   const [toDelete, setToDelete] = useState(null);
   const [finishedLoading, setFinishedLoading] = useState(false);
 
-  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
-
   // Read-Delete Students
   // Create-Update on AddStudentPage.jsx
   const getStudents = async () => {

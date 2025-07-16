@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "../../AdminQuestions.css";
 import axios from "axios";
 import { config } from "../../data/config";
+import ProgressBar from "../Components/ProgressBar";
+import Navbar from "../Components/Navbar";
 
 function AddQuestionPage() {
   const navigate = useNavigate();
@@ -16,36 +18,54 @@ function AddQuestionPage() {
   const [correctAnswer, setCorrectAnswer] = useState(editQuestion != null ? editQuestion.answer : null);
   const [audioFile, setAudioFile] = useState(null);
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   // Create-Update Questions
   // Read-Delete on QuestionsPage.jsx
-  const createQuestion = async (question) => {
+  const createQuestion = async (question, onProgress) => {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      const response = await axios.post(`$${config.backendUrl}/api/questions`, question, {
+      await axios.post(`${config.backendUrl}/api/questions`, question, {
         headers: {
           Authorization: `Bearer ${token}`,
+        },
+        onUploadProgress: (progressEvent) => {
+          if (onProgress) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onProgress(percent);
+          }
         },
       });
 
       navigate("/admin/questions");
     } catch (e) {
+      if (onProgress) onProgress(0);
+
       console.error("Failed to add question:", e);
     }
   }
 
-  const updateQuestion = async (id, question) => {
+  const updateQuestion = async (id, question, onProgress) => {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.put(`$${config.backendUrl}/api/questions/${id}`, question, {
+      await axios.put(`${config.backendUrl}/api/questions/${id}`, question, {
         headers: {
           Authorization: `Bearer ${token}`,
+        },
+        onUploadProgress: (progressEvent) => {
+          if (onProgress) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onProgress(percent);
+          }
         },
       });
       
       navigate("/admin/questions");
     } catch (e) {
+      if (onProgress) onProgress(0);
+
       console.error("Failed to add question:", e);
     }
   }
@@ -54,41 +74,21 @@ function AddQuestionPage() {
     e.preventDefault();
 
     const form = e.target;
-
-    console.log(form);
-
     const formData = new FormData(form);
     formData.append("answer", correctAnswer);
 
-    console.log(formData);
+    setUploadProgress(0);
 
     if (isEdit) {
-      updateQuestion(editQuestion.question_id, formData);
+      updateQuestion(editQuestion.question_id, formData, setUploadProgress);
     } else {
-      createQuestion(formData);
+      createQuestion(formData, setUploadProgress);
     }
   };
 
   return (
     <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="logo-title">
-          <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-          <span>
-             <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
-          </span>
-        </div>
-        <nav className="admin-nav">
-          <button className="nav-btn" onClick={() => navigate("/admin/")}>Home</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/exams")}>Exams</button>
-          <button className="nav-btn active" onClick={() => navigate("/admin/questions")}>Questions</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
-        </nav>
-        <div className="admin-info">
-          <strong>ADMIN</strong>
-          <span>JOHN DOE</span>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="admin-content">
         <button className="back-btn" onClick={() => navigate("/admin/questions")}>← Back to Questions</button>
@@ -115,15 +115,21 @@ function AddQuestionPage() {
             </div>
 
             {type === "listening" && (
-              <div className="form-group">
-                <label>UPLOAD AUDIO (LISTENING)</label>
-                <input
-                  type="file"
-                  name="file"
-                  accept="audio/*"
-                  onChange={(e) => setAudioFile(e.target.files[0])}
-                />
-              </div>
+              <>
+                <div className="form-group">
+                  <label>UPLOAD AUDIO (LISTENING)</label>
+                  <input
+                    type="file"
+                    name="file"
+                    accept="audio/*"
+                    onChange={(e) => setAudioFile(e.target.files[0])}
+                  />
+                </div>
+
+                {uploadProgress > 0 && (
+                  <ProgressBar percentage={uploadProgress} />
+                ) }
+              </>
             )}
 
             <div className="form-group">

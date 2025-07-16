@@ -1,18 +1,19 @@
 import React, { useState } from "react";
-import { FaChevronCircleDown, FaChevronDown, FaChevronUp, FaExclamationTriangle, FaSignOutAlt } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaSignOutAlt } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useUser } from "./UserContext";
 
 function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const userData = JSON.parse(localStorage.getItem("loggedInUser"));
+    const { user, setUser } = useUser();
 
     const [showDropdown, setShowDropdown] = useState(false);
 
     const handleLogout = () => {
-        localStorage.removeItem("loggedInUser");
         localStorage.removeItem("jwtToken");
+        setUser(null);
         navigate("/login");
     }
 
@@ -23,7 +24,7 @@ function Navbar() {
                 <img src="/logoukdc.png" alt="Logo" className="w-12 h-12 mr-3.5" />
                 <h1 className="text-2xl text-tec-dark font-bold">TEC UKDC</h1>
             </div>
-            {userData.role === "admin" ? (
+            {user.role === "admin" ? (
                 <div className="flex items-center select-none gap-1">
                     <button
                         className={`${location.pathname == "/admin" ? "bg-tec-dark hover:bg-tec-light text-white"
@@ -62,12 +63,12 @@ function Navbar() {
         </div>
         <div className="relative">
             <button
-                className="text-right text-sm hover:bg-slate-200 py-3 px-1 text-tec-darker flex items-center gap-2"
+                className="text-right text-sm hover:bg-slate-200 py-3 px-2 text-tec-darker flex items-center gap-2"
                 onClick={() => setShowDropdown(!showDropdown)}
             >
                 <span>
                     <strong>ADMIN</strong><br/>
-                    <span>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}
+                    <span>{user.name.length > 50 ? user.name.slice(0, 50 + 1).trim() + "..." : user.name}
                     </span>
                 </span>
             {showDropdown ? <FaChevronUp /> : <FaChevronDown />}

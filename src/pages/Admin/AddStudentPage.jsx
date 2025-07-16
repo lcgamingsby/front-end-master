@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "../../AdminStudents.css";
 import axios from "axios";
 import { config } from "../../data/config";
+import Navbar from "../Components/Navbar";
 
 function AddStudentPage() {
   const navigate = useNavigate();
@@ -89,24 +90,7 @@ function AddStudentPage() {
 
   return (
     <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="logo-title">
-          <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-          <span>
-             <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
-          </span>
-        </div>
-        <nav className="admin-nav">
-          <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/exams")}>Exams</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/questions")}>Questions</button>
-          <button className="nav-btn active">Students</button>
-        </nav>
-        <div className="admin-info">
-          <strong>ADMIN</strong>
-          <span>JOHN DOE</span>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="admin-content">
         <button className="back-btn" onClick={() => navigate("/admin/students")}>&larr;</button>

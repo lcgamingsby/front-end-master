@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../AdminExams.css";
 import { FaFilter } from "react-icons/fa";
+import Navbar from "../Components/Navbar";
 
 function AddExamPage() {
   const navigate = useNavigate();
@@ -35,24 +36,7 @@ function AddExamPage() {
 
   return (
     <div className="admin-dashboard">
-      <header className="admin-header">
-        <div className="logo-title">
-          <img src="/logoukdc.png" alt="Logo" className="dashboard-logo" />
-          <span>
-              <span className="tec">TEC</span> <span className="ukdc">UKDC</span>
-           </span>
-        </div>
-        <nav className="admin-nav">
-          <button className="nav-btn" onClick={() => navigate("/admin")}>Home</button>
-          <button className="nav-btn active">Exams</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/questions")}>Questions</button>
-          <button className="nav-btn" onClick={() => navigate("/admin/students")}>Students</button>
-        </nav>
-        <div className="admin-info">
-          <strong>ADMIN</strong>
-          <span>JOHN DOE</span>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="admin-content">
         <div className="page-header">

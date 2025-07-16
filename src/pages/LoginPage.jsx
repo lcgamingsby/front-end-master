@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { students, admins } from "../data/users";
-import "../App_old.css";
 import axios from "axios";
 import { config } from "../data/config";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useUser } from "./Components/UserContext";
 
 function LoginPage() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  const { setUser } = useUser();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,16 +25,18 @@ function LoginPage() {
       if (response.status === 200 && response.data.token) {
         localStorage.setItem("jwtToken", response.data.token);
 
-        if (response.data.user) {
-          localStorage.setItem("loggedInUser", JSON.stringify(response.data.user));
-          // Redirect based on role
-          if (response.data.user.role === "admin") {
-            navigate("/admin");
-          } else if (response.data.user.role === "mahasiswa") {
-            navigate("/student");
-          } else {
-            navigate("/");
-          }
+        const userRes = await axios.get(`${config.backendUrl}/api/me`, {
+            headers: {
+                Authorization: `Bearer ${response.data.token}`,
+            },
+        });
+        
+        setUser(userRes.data);
+
+        if (userRes.data.role === "admin") {
+          navigate("/admin");
+        } else if (userRes.data.role === "mahasiswa") {
+          navigate("/student");
         } else {
           navigate("/");
         }
@@ -43,11 +46,6 @@ function LoginPage() {
       alert("Akun tidak ada atau belum terdaftar. Silakan coba lagi.");
     }
   };
-
-  // Redirect if already logged in
-  const loggedInUser = localStorage.getItem("loggedInUser");
-
-  console.log(loggedInUser);
 
   return (
     <div className="flex items-center justify-center w-screen h-screen bg-linear-135 from-tec-light to-tec-dark">

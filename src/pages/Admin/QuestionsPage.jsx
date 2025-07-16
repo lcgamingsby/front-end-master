@@ -19,8 +19,6 @@ function QuestionsPage() {
   const [toDelete, setToDelete] = useState(null);
   const [finishedLoading, setFinishedLoading] = useState(false);
 
-  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
-
   // Read-Delete Questions
   // Create-Update on AddQuestionPage.jsx
   const getQuestions = async () => {
