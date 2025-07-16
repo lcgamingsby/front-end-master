@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../../AdminStudents.css";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaTrash, FaSearch, FaFilter } from "react-icons/fa";
+import { FaEdit, FaTrash, FaSearch, FaFilter, FaAngleRight, FaAngleDoubleRight, FaAngleDoubleLeft, FaAngleLeft } from "react-icons/fa";
 import { config } from "../../data/config";
 import axios from "axios";
 import ModalConfirmDelete from "../Components/ModalConfirmDelete";
@@ -178,8 +178,12 @@ function StudentsPage() {
             Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} out of {students.length}
           </p>
           <div className="page-buttons">
-            <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>«</button>
-            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>‹</button>
+            <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+              <FaAngleDoubleLeft />
+            </button>
+            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
+              <FaAngleLeft />
+            </button>
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i + 1}
@@ -189,8 +193,12 @@ function StudentsPage() {
                 {i + 1}
               </button>
             ))}
-            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>›</button>
-            <button className="page-btn" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>»</button>
+            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>
+              <FaAngleRight />
+            </button>
+            <button className="page-btn" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
+              <FaAngleDoubleRight />
+            </button>
           </div>
         </div>
 

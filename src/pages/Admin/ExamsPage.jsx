@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../../AdminExams.css";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaTrash, FaFilter } from "react-icons/fa";
+import { FaEdit, FaTrash, FaFilter, FaAngleRight, FaAngleDoubleRight, FaAngleDoubleLeft, FaAngleLeft } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
 import { config } from "../../data/config";
 import axios from "axios";
@@ -41,11 +41,17 @@ function ExamsPage() {
     getExams();
   }, []);
 
-  const handleEdit = (index) => {
-    const exam = exams[index];
-    setFormData({ ...exam });
-    setEditIndex(index);
-    setShowForm(true);
+  const handleEdit = async (index) => {
+    const token = localStorage.getItem("jwtToken");
+
+    // needed for getting the student and questions IDs.
+    const response = await axios.get(`${config.backendUrl}/api/exams/${index}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    navigate("/admin/exams/edit", { state: { exam: response.data, isEdit: true } });
   };
 
   const handleDelete = (index) => {
@@ -157,8 +163,8 @@ function ExamsPage() {
                     <td>{exam.student_count}</td>
                     <td>{exam.question_count}</td>
                     <td>
-                      <button className="edit-btn yellow" onClick={() => handleEdit(index)}><FaEdit /></button>
-                      <button className="delete-btn red" onClick={() => handleDelete(index)}><FaTrash /></button>
+                      <button className="edit-btn yellow" onClick={() => handleEdit(exam.exam_id)}><FaEdit /></button>
+                      <button className="delete-btn red" onClick={() => handleDelete(exam.exam_id)}><FaTrash /></button>
                     </td>
                   </tr>
                 )
@@ -180,8 +186,12 @@ function ExamsPage() {
         </div>
 
         <div className="pagination">
-          <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>«</button>
-          <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>‹</button>
+          <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+            <FaAngleDoubleLeft />
+          </button>
+          <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
+            <FaAngleLeft />
+          </button>
           {Array.from({ length: totalPages }, (_, i) => (
             <button
               key={i + 1}
@@ -191,8 +201,12 @@ function ExamsPage() {
               {i + 1}
             </button>
           ))}
-          <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>›</button>
-          <button className="page-btn" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>»</button>
+          <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>
+            <FaAngleRight />
+          </button>
+          <button className="page-btn" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
+            <FaAngleDoubleRight />
+          </button>
         </div>
       </main>
     </div>

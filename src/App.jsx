@@ -29,6 +29,7 @@ function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="exams" element={<ExamsPage />} />
             <Route path="exams/add" element={<AddExamPage />} />
+            <Route path="exams/edit" element={<AddExamPage />} />
             <Route path="questions" element={<QuestionsPage />} />
             <Route path="questions/add" element={<AddQuestionPage />} />
             <Route path="questions/edit" element={<AddQuestionPage />} />
