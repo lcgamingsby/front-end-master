@@ -1,4 +1,5 @@
 import React from "react";
+import { FaCircleNotch } from "react-icons/fa";
 
 const Loading = ({ text }) => {
     return (
@@ -8,3 +9,5 @@ const Loading = ({ text }) => {
         </div>
     )
 }
+
+export default Loading;

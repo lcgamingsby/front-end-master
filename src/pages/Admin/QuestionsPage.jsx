@@ -189,7 +189,7 @@ function QuestionsPage() {
                   <td>{q.question_type[0].toUpperCase() + q.question_type.slice(1)}</td>
                   <td className="truncate" title={q.question_text}>
                     {q.audio_path ? (
-                      <audio controls src={`${config.audioUrl}/${q.audio_path}`} />
+                      <audio controls src={`${config.backendUrl}/audio/${q.audio_path}`} />
                     ) : null}
                     {q.question_text.length > 80 ? q.question_text.slice(0, 80).trim() + "..." : q.question_text}
                   </td>

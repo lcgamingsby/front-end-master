@@ -3,47 +3,43 @@ import "../../AdminExams.css";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaFilter } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
+import { config } from "../../data/config";
+import axios from "axios";
 
 function ExamsPage() {
   const [exams, setExams] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    id: "",
-    title: "",
-    date: "",
-    time: "",
-    students: "",
-  });
+
   const [editIndex, setEditIndex] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
+  const [finishedLoading, setFinishedLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newExam = {
-      id: Number(formData.id),
-      title: formData.title,
-      date: formData.date,
-      time: formData.time,
-      students: Number(formData.students),
-    };
+  const getExams = async () => {
+    try {
+      const token = localStorage.getItem("jwtToken");
 
-    if (editIndex !== null) {
-      const updatedExams = [...exams];
-      updatedExams[editIndex] = newExam;
-      setExams(updatedExams);
-    } else {
-      setExams([...exams, newExam]);
+      const response = await axios.get(`${config.backendUrl}/api/exams`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setExams(response.data);
+      setFinishedLoading(true);
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+      setFinishedLoading(true);
     }
+  }
 
-    setFormData({ id: "", title: "", date: "", time: "", students: "" });
-    setShowForm(false);
-    setEditIndex(null);
-  };
+  useEffect(() => {
+    // GET exams data
+    getExams();
+  }, []);
 
   const handleEdit = (index) => {
     const exam = exams[index];
@@ -62,15 +58,31 @@ function ExamsPage() {
 
   const filteredExams = exams.filter((exam) => {
     const search = searchTerm.toLowerCase();
-    const schedule = `${exam.date} ${exam.time}`.toLowerCase();
+    const startDatetime = new Date(exam.start_datetime);
+    const endDatetime = new Date(exam.end_datetime);
+
+    // JS date formatting is limited, can't use en-US for "d M Y"
+    const startDate = startDatetime.toLocaleString("en-GB", {dateStyle: "medium"});
+    const endDate = endDatetime.toLocaleString("en-GB", {dateStyle: "medium"});
+
+    const startTime = startDatetime.toLocaleString("en-GB", {timeStyle: "short"});
+    const endTime = endDatetime.toLocaleString("en-GB", {timeStyle: "short"});
+    
+    const schedule = (startDate == endDate 
+      ? `${startDate} (${startTime} - ${endTime})`.toLowerCase()
+      : `${startDate} (${startTime}) - ${endDate} (${endTime})`.toLowerCase()
+    );
+
     return (
-      exam.title.toLowerCase().includes(search) ||
+      exam.exam_title.toLowerCase().includes(search) ||
       schedule.includes(search) ||
-      exam.id.toString().includes(search)
+      exam.exam_id.toString().includes(search)
     );
   });
 
-  const displayedExams = filteredExams.slice(0, itemsPerPage);
+  const totalPages = Math.ceil(filteredExams.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentExams = filteredExams.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="admin-dashboard">
@@ -108,50 +120,6 @@ function ExamsPage() {
           </div>
         </div>
 
-        {showForm && (
-          <form className="exam-form" onSubmit={handleSubmit}>
-            <input
-              type="number"
-              placeholder="ID"
-              value={formData.id}
-              onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-              required
-              disabled={editIndex !== null}
-            />
-            <input
-              type="text"
-              placeholder="Title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-            />
-            <input
-              type="text"
-              placeholder="Date (e.g. 01 Jan 2024)"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-            />
-            <input
-              type="text"
-              placeholder="Time"
-              value={formData.time}
-              onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Students"
-              value={formData.students}
-              onChange={(e) => setFormData({ ...formData, students: e.target.value })}
-              required
-            />
-            <button type="submit" className="add-btn">
-              {editIndex !== null ? "Update" : "Simpan"}
-            </button>
-          </form>
-        )}
-
         <table className="exam-table">
           <thead>
             <tr>
@@ -159,37 +127,72 @@ function ExamsPage() {
               <th>Title</th>
               <th>Schedule</th>
               <th>Students</th>
+              <th>Questions</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {displayedExams.map((exam, index) => (
-              <tr key={exam.id}>
-                <td>{exam.id}</td>
-                <td>{exam.title}</td>
-                <td>{exam.date} ({exam.time})</td>
-                <td>{exam.students}</td>
-                <td>
-                  <button className="edit-btn yellow" onClick={() => handleEdit(index)}><FaEdit /></button>
-                  <button className="delete-btn red" onClick={() => handleDelete(index)}><FaTrash /></button>
+            {finishedLoading && currentExams.length > 0 ? (
+              currentExams.map((exam, index) => {
+                const startDatetime = new Date(exam.start_datetime);
+                const endDatetime = new Date(exam.end_datetime);
+
+                // JS date formatting is limited, can't use en-US for "d M Y"
+                const startDate = startDatetime.toLocaleString("en-GB", {dateStyle: "medium"});
+                const endDate = endDatetime.toLocaleString("en-GB", {dateStyle: "medium"});
+
+                const startTime = startDatetime.toLocaleString("en-GB", {timeStyle: "short"});
+                const endTime = endDatetime.toLocaleString("en-GB", {timeStyle: "short"});
+                
+                const dateString = (startDate == endDate 
+                  ? `${startDate} (${startTime} - ${endTime})`
+                  : `${startDate} (${startTime}) - ${endDate} (${endTime})`
+                );
+
+                return (
+                  <tr key={exam.exam_id}>
+                    <td>{exam.exam_id}</td>
+                    <td>{exam.exam_title}</td>
+                    <td>{dateString}</td>
+                    <td>{exam.student_count}</td>
+                    <td>{exam.question_count}</td>
+                    <td>
+                      <button className="edit-btn yellow" onClick={() => handleEdit(index)}><FaEdit /></button>
+                      <button className="delete-btn red" onClick={() => handleDelete(index)}><FaTrash /></button>
+                    </td>
+                  </tr>
+                )
+              })
+            ) : (
+              <tr>
+                <td colSpan="6" className="no-data text-center">
+                  {finishedLoading ? "No exams found." : "Loading exams..."}
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
 
         <div className="table-footer">
           <p>
-            Showing 1 to {Math.min(itemsPerPage, filteredExams.length)} out of {filteredExams.length}
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredExams.length)} out of {exams.length}
           </p>
         </div>
 
         <div className="pagination">
-          <button className="page-btn">«</button>
-          <button className="page-btn active">1</button>
-          <button className="page-btn">2</button>
-          <button className="page-btn">3</button>
-          <button className="page-btn">»</button>
+          <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>«</button>
+          <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>‹</button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              className={`page-btn ${currentPage === i + 1 ? "active" : ""}`}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>›</button>
+          <button className="page-btn" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>»</button>
         </div>
       </main>
     </div>

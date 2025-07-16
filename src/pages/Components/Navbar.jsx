@@ -67,7 +67,7 @@ function Navbar() {
                 onClick={() => setShowDropdown(!showDropdown)}
             >
                 <span>
-                    <strong>ADMIN</strong><br/>
+                    <strong>{user.role == 'mahasiswa' ? "STUDENT" : "ADMIN"}</strong><br/>
                     <span>{user.name.length > 50 ? user.name.slice(0, 50 + 1).trim() + "..." : user.name}
                     </span>
                 </span>

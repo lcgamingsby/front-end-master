@@ -19,8 +19,6 @@ function PrivateRoute({ role }) {
     const token = localStorage.getItem("jwtToken");
     const [loading, setLoading] = useState(false);
 
-    console.log(user, token);
-
     useEffect(() => {
         if (!user && token) {
             setLoading(true);

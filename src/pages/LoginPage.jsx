@@ -43,7 +43,7 @@ function LoginPage() {
       }
     } catch (error) {
       console.error("Login failed:", error);
-      alert("Akun tidak ada atau belum terdaftar. Silakan coba lagi.");
+      alert("Username/email atau password salah. Silakan coba lagi.");
     }
   };
 

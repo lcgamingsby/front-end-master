@@ -194,34 +194,15 @@ function StudentsPage() {
           </div>
         </div>
 
-        {showConfirm && (/*
-          <div className="confirm-overlay">
-            <div className="confirm-modal">
-              <div className="confirm-icon">
-                <FaTrash size={20} color="#fff" />
-              </div>
-              <div className="confirm-content">
-                <h3>Confirm Deletion</h3>
-                <p>Are you sure to delete this student?</p>
-              </div>
-              <div className="confirm-buttons">
-                <button className="confirm-delete" onClick={handleConfirmDelete}>
-                  <FaTrash /> Delete
-                </button>
-                <button className="confirm-cancel" onClick={() => setShowConfirm(false)}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        */
-        <ModalConfirmDelete
-          isOpen={showConfirm}
-          openModal={setShowConfirm}
-          onTrue={handleConfirmDelete}
-          title="Confirm Deletion"
-          message="Are you sure you want to delete this student? This action cannot be undone."
-        />)}
+        {showConfirm && (
+          <ModalConfirmDelete
+            isOpen={showConfirm}
+            openModal={setShowConfirm}
+            onTrue={handleConfirmDelete}
+            title="Confirm Deletion"
+            message="Are you sure you want to delete this student? This action cannot be undone."
+          />
+        )}
       </main>
     </div>
   );

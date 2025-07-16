@@ -1,27 +1,17 @@
 import React, { useEffect, useState } from "react";
 import "../App_old.css";
 import { useNavigate } from "react-router-dom";
-
-
+import Navbar from "./Components/Navbar";
 
 function StudentDashboard() {
-  const [userName, setUserName] = useState("");
   const [exams, setExams] = useState([]);
   const handleExamClick = (exam) => { 
     if (exam.status === "ongoing") {
       navigate(`/test1`); // arahkan ke halaman ujian
     }
   };
-  const handleLogout = () => {
-    localStorage.removeItem("jwtToken");
-    localStorage.removeItem("loggedInUser");
-    navigate("/login");
-  };
 
   const navigate = useNavigate();
-
-  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
-  
 
   useEffect(() => {
 
@@ -44,18 +34,7 @@ function StudentDashboard() {
 
   return (
     <div className="exam-dashboard">
-      <header className="dashboard-header">
-        <div className="logo-title">
-          <img src="/logoukdc.png" alt="" className="dashboard-logo" />
-          <h1>TEC UKDC</h1>
-        </div>
-        <div className="user-info">
-          <div>Halo</div>
-          <strong>{userData.name.length > 50 ? userData.name.slice(0, 50 + 1).trim() + "..." : userData.name}</strong><br />
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
-
+      <Navbar />
 
       <div className="exam-section">
         <h2>Upcoming Exams</h2>

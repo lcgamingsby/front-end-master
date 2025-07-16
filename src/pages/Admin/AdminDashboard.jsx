@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import axios from "axios";
 import { config } from "../../data/config";
-import { FaCircleNotch } from "react-icons/fa";
+import Loading from "../Components/Loading";
 
 function AdminDashboard() {
   const [adminName] = useState("");
@@ -87,10 +87,7 @@ function AdminDashboard() {
             </section>
           </>
         ): (
-          <div className="w-fit mx-auto text-tec-darker">
-            <FaCircleNotch className="w-12 h-12 mx-auto my-4 animate-spin motion-reduce:hidden" />
-            <p className="text-center font-semibold">Loading data...</p>
-          </div>
+          <Loading />
         )}
       </main>
     </div>
