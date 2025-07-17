@@ -60,7 +60,7 @@ function QuestionsPage() {
         );
       }
     } catch (error) {
-      console.error("Error deleting student:", error);
+      console.error("Error deleting question:", error);
     }
   }
 

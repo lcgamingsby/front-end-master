@@ -6,6 +6,7 @@ import Navbar from "../Components/Navbar";
 import { config } from "../../data/config";
 import axios from "axios";
 import Loading from "../Components/Loading";
+import ModalConfirmDelete from "../Components/ModalConfirmDelete";
 
 function ExamsPage() {
   const [exams, setExams] = useState([]);
@@ -13,6 +14,10 @@ function ExamsPage() {
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const [toDelete, setToDelete] = useState(null);
 
   const [finishedLoading, setFinishedLoading] = useState(false);
 
@@ -36,6 +41,30 @@ function ExamsPage() {
     }
   }
 
+  const deleteExams = async (examId) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+
+      const response = await axios.delete(`${config.backendUrl}/api/exams/${examId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (response.status === 200) {
+        // seamless update
+        // console.log("Successfully deleted student:", nim); // debug
+        setShowConfirm(false);
+
+        setExams((prevExams) =>
+          prevExams.filter((exam) => exam.exam_id !== examId)
+        );
+      }
+    } catch (e) {
+      console.error("Error deleting exam:", error);
+    }
+  }
+
   useEffect(() => {
     // GET exams data
     getExams();
@@ -54,13 +83,27 @@ function ExamsPage() {
     navigate("/admin/exams/edit", { state: { exam: response.data, isEdit: true } });
   };
 
-  const handleDelete = (index) => {
-    const confirm = window.confirm("Yakin ingin menghapus ujian ini?");
-    if (confirm) {
-      const updatedExams = exams.filter((_, i) => i !== index);
-      setExams(updatedExams);
-    }
-  };
+  const confirmDelete = (exam) => {
+    setToDelete(exam);
+    setShowConfirm(true);
+  }
+
+  const handleConfirmDelete = () => {
+    const examID = toDelete.exam_id;
+
+    console.log(toDelete);
+
+    deleteExams(examID);
+  }
+
+  const getDaysAway = (targetDate) => {
+    const currentDate = new Date();
+
+    const timeDifference = targetDate.getTime() - currentDate.getTime()
+    const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); // div by 1000 milliseconds, 60 seconds, 60 minutes, 24 hours
+    
+    return daysDifference;
+  }
 
   const filteredExams = exams.filter((exam) => {
     const search = searchTerm.toLowerCase();
@@ -153,6 +196,9 @@ function ExamsPage() {
                   : `${startDate} (${startTime}) - ${endDate} (${endTime})`
                 );
 
+                // Make the button unusable if the exam start date is at least 3 days away.
+                const daysAway = getDaysAway(startDatetime);
+
                 return (
                   <tr key={exam.exam_id}>
                     <td>{exam.exam_id}</td>
@@ -162,7 +208,23 @@ function ExamsPage() {
                     <td>{exam.question_count}</td>
                     <td>
                       <button className="edit-btn yellow" onClick={() => handleEdit(exam.exam_id)}><FaEdit /></button>
-                      <button className="delete-btn red" onClick={() => handleDelete(exam.exam_id)}><FaTrash /></button>
+                      <button
+                        className={`delete-btn ${daysAway > 3 ? "red" : ""}`}
+                        onClick={() => {
+                          if (daysAway > 3) {
+                            confirmDelete(exam)
+                          }
+                        }}
+                        title={
+                          daysAway < 0 ? (
+                            `This exam has already ended.`
+                          ) : daysAway < 3 ? (
+                            `This exam is ${daysAway} day(s) away from the scheduled start date.`
+                          ) : null
+                        }
+                      >
+                        <FaTrash />
+                      </button>
                     </td>
                   </tr>
                 )
@@ -210,6 +272,16 @@ function ExamsPage() {
           </button>
         </div>
       </main>
+
+      {showConfirm && (
+        <ModalConfirmDelete
+          isOpen={showConfirm}
+          openModal={setShowConfirm}
+          onTrue={handleConfirmDelete}
+          title="Confirm Deletion"
+          message="Are you sure you want to delete this exam? This action cannot be undone."
+        />
+      )}
     </div>
   );
 }

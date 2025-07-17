@@ -30,12 +30,22 @@ function AddExamPage() {
   const [questions, setQuestions] = useState([]);
   const [students, setStudents] = useState([]);
 
-  const [form, setForm] = useState(editExam || {
-    exam_title: "",
-    start_datetime: "",
-    end_datetime: "",
-    questions: [],
-    students: [],
+  const [form, setForm] = useState(() => {
+    if (editExam) {
+      return {
+        ...editExam,
+        questions: Array.isArray(editExam.questions) ? editExam.questions : [],
+        students: Array.isArray(editExam.students) ? editExam.students : [],
+      }
+    }
+    
+    return {
+      exam_title: "",
+      start_datetime: "",
+      end_datetime: "",
+      questions: [],
+      students: [],
+    };
   });
 
   const getQuestions = async (token) => {
@@ -56,7 +66,7 @@ function AddExamPage() {
 
   const getStudents = async (token) => {
     try {
-      const response = await axios.get(config.backendUrl + "/api/users", {
+      const response = await axios.get(`${config.backendUrl}/api/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -112,11 +122,13 @@ function AddExamPage() {
     getStudents(token);
   }, []);
 
+  //console.log(editExam, isEdit);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (isEdit) {
-      updateExam(editExam.id, form);
+      updateExam(editExam.exam_id, form);
     } else {
       createExam(form);
     }
