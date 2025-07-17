@@ -6,14 +6,15 @@ import { config } from "../../data/config";
 import axios from "axios";
 import ModalConfirmDelete from "../Components/ModalConfirmDelete";
 import Navbar from "../Components/Navbar";
+import Loading from "../Components/Loading";
 
 function QuestionsPage() {
   const navigate = useNavigate();
 
   const [questions, setQuestions] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("All Types");
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
@@ -120,9 +121,10 @@ function QuestionsPage() {
             </button>
 
             <div className="items-per-page">
-              <label>Show</label>
+              <label htmlFor="items_per_page">Show {" "}</label>
               <select
                 className="dropdown-medium"
+                id="items_per_page"
                 value={itemsPerPage}
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));
@@ -137,7 +139,7 @@ function QuestionsPage() {
                 <option value={20}>20</option>
                 <option value={50}>50</option>
               </select>
-              <label>items</label>
+              <label htmlFor="items_per_page">{" "} items</label>
             </div>
           </div>
 
@@ -204,7 +206,9 @@ function QuestionsPage() {
             )})) : (
               <tr>
                 <td colSpan="5" className="no-data text-center">
-                  {finishedLoading ? "No questions found." : "Loading questions..."}
+                  {finishedLoading ? "No questions found." : (
+                    <Loading text={"Loading questions..."} useSmall={true} />
+                  )}
                 </td>
               </tr>
             )}
@@ -213,7 +217,10 @@ function QuestionsPage() {
 
         <div className="pagination">
           <span className="pagination-info">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredQuestions.length)} out of {questions.length}
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredQuestions.length)} out of {" "}
+              {searchTerm === "" && selectedType === "All Types"
+                ? questions.length
+                : `${filteredQuestions.length} (filtered out of ${questions.length} total entries)`}
           </span>
           <div className="page-buttons">
             <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>

@@ -6,13 +6,14 @@ import { config } from "../../data/config";
 import axios from "axios";
 import ModalConfirmDelete from "../Components/ModalConfirmDelete";
 import Navbar from "../Components/Navbar";
+import Loading from "../Components/Loading";
 
 function StudentsPage() {
   const navigate = useNavigate();
 
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
@@ -67,7 +68,7 @@ function StudentsPage() {
     getStudents();
   }, []);
 
-  console.log(students, typeof students);
+  // console.log(students, typeof students);
 
   const filteredStudents = students.filter((student) =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,9 +108,10 @@ function StudentsPage() {
 
           <div className="filter-search">
             <div className="dropdown-container">
-              <label>Show</label>
+              <label htmlFor="items_per_page">Show {" "}</label>
               <select
                 value={itemsPerPage}
+                id="items_per_page"
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));
 
@@ -124,11 +126,8 @@ function StudentsPage() {
                 <option value={20}>20</option>
                 <option value={50}>50</option>
               </select>
-              <span>items</span>
+              <label htmlFor="items_per_page">{" "} items</label>
             </div>
-
-            <button className="filter-btn"><FaFilter /> <span>▼</span></button>
-
             <div className="search-container">
               <input
                 type="text"
@@ -166,7 +165,9 @@ function StudentsPage() {
             ) : (
               <tr>
                 <td colSpan="5" className="no-data text-center">
-                  {finishedLoading ? "No students found." : "Loading students..."}
+                  {finishedLoading ? "No students found." : (
+                    <Loading text={"Loading students..."} useSmall={true} />
+                  )}
                 </td>
               </tr>
             )}

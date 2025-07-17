@@ -6,6 +6,7 @@ import "../../AdminStudents.css";
 import axios from "axios";
 import { config } from "../../data/config";
 import Navbar from "../Components/Navbar";
+import { FaChevronLeft } from "react-icons/fa";
 
 function AddStudentPage() {
   const navigate = useNavigate();
@@ -93,8 +94,12 @@ function AddStudentPage() {
       <Navbar />
 
       <main className="admin-content">
-        <button className="back-btn" onClick={() => navigate("/admin/students")}>&larr;</button>
-        <h2 className="page-title">{isEdit ? "Edit Student" : "New Student"}</h2>
+        <div className="flex gap-2">
+          <button className="back-btn" onClick={() => navigate("/admin/students")}>
+            <FaChevronLeft />
+          </button>
+          <h2 className="page-title">{isEdit ? "Edit Student" : "New Student"}</h2>
+        </div>
 
         <form className="student-form-modern" onSubmit={handleSubmit}>
           <div className="form-group w-4/5">

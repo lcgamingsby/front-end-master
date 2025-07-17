@@ -5,13 +5,13 @@ import { FaEdit, FaTrash, FaFilter, FaAngleRight, FaAngleDoubleRight, FaAngleDou
 import Navbar from "../Components/Navbar";
 import { config } from "../../data/config";
 import axios from "axios";
+import Loading from "../Components/Loading";
 
 function ExamsPage() {
   const [exams, setExams] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [editIndex, setEditIndex] = useState(null);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [finishedLoading, setFinishedLoading] = useState(false);
@@ -103,19 +103,17 @@ function ExamsPage() {
           </button>
 
           <div className="actions-right">
-            <label className="show-label">
-              Show
-              <select
-                value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-              items
-            </label>
-            <button className="filter-btn"><FaFilter /></button>
+            <label className="show-label" htmlFor="items_per_page">Show {" "}</label>
+            <select
+              value={itemsPerPage}
+              id="items_per_page"
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <label className="show-label" htmlFor="items_per_page">{" "} items</label>
             <input
               type="text"
               className="search-bar"
@@ -150,7 +148,7 @@ function ExamsPage() {
                 const startTime = startDatetime.toLocaleString("en-GB", {timeStyle: "short"});
                 const endTime = endDatetime.toLocaleString("en-GB", {timeStyle: "short"});
                 
-                const dateString = (startDate == endDate 
+                const dateString = (startDate === endDate 
                   ? `${startDate} (${startTime} - ${endTime})`
                   : `${startDate} (${startTime}) - ${endDate} (${endTime})`
                 );
@@ -172,7 +170,9 @@ function ExamsPage() {
             ) : (
               <tr>
                 <td colSpan="6" className="no-data text-center">
-                  {finishedLoading ? "No exams found." : "Loading exams..."}
+                  {finishedLoading ? "No exams found." : (
+                    <Loading text={"Loading exams..."} useSmall={true} />
+                  )}
                 </td>
               </tr>
             )}
@@ -181,7 +181,8 @@ function ExamsPage() {
 
         <div className="table-footer">
           <p>
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredExams.length)} out of {exams.length}
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredExams.length)} out of {" "}
+            {searchTerm === "" ? exams.length : `${filteredExams.length} (filtered out of ${exams.length} total entries)`}
           </p>
         </div>
 

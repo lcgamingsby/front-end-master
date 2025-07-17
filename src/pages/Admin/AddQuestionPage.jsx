@@ -5,6 +5,7 @@ import axios from "axios";
 import { config } from "../../data/config";
 import ProgressBar from "../Components/ProgressBar";
 import Navbar from "../Components/Navbar";
+import { FaChevronLeft } from "react-icons/fa";
 
 function AddQuestionPage() {
   const navigate = useNavigate();
@@ -91,11 +92,14 @@ function AddQuestionPage() {
       <Navbar />
 
       <main className="admin-content">
-        <button className="back-btn" onClick={() => navigate("/admin/questions")}>← Back to Questions</button>
+        <div className="flex gap-2">
+          <button className="back-btn" onClick={() => navigate("/admin/questions")}>
+            <FaChevronLeft />
+          </button>
+          <h2 className="form-title">{isEdit ? "Edit Question" : "New Question"}</h2>
+        </div>
 
         <div className="form-section">
-          <h2 className="form-title">{isEdit ? "Edit Question" : "New Question"}</h2>
-
           <form onSubmit={handleSubmit}  encType="multipart/form-data">
             <div className="form-group">
               <label>QUESTION TYPE</label>

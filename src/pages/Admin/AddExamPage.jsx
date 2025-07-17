@@ -68,6 +68,42 @@ function AddExamPage() {
     }
   }
 
+  const createExam = async (exam) => {
+    const token = localStorage.getItem("jwtToken");
+
+    try {
+      await axios.post(`${config.backendUrl}/api/exams`, exam, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      navigate("/admin/exams");
+    } catch (e) {
+      console.error("Failed to create exam:", e);
+    }
+    
+    //console.log(exam);
+  }
+
+  const updateExam = async (id, exam) => {
+    const token = localStorage.getItem("jwtToken");
+
+    try {
+      await axios.put(`${config.backendUrl}/api/exams/${id}`, exam, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      navigate("/admin/exams");
+    } catch (e) {
+      console.error("Failed to update exam:", e);
+    }
+    
+    //console.log(id, exam);
+  } 
+
   // Ambil data pertanyaan & students dari localStorage
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
@@ -75,6 +111,16 @@ function AddExamPage() {
     getQuestions(token);
     getStudents(token);
   }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (isEdit) {
+      updateExam(editExam.id, form);
+    } else {
+      createExam(form);
+    }
+  }
 
   // Filter pertanyaan berdasarkan jenis soal dan kata kunci
   const filteredQuestions = questions.filter((q) => {
@@ -121,7 +167,7 @@ function AddExamPage() {
         </div>
 
         {/* FORM EXAM INFO */}
-        <form className="exam-form">
+        <form className="exam-form" onSubmit={handleSubmit}>
           <label className="form-label">Exam Title</label>
           <input
             type="text"
@@ -497,9 +543,9 @@ function AddExamPage() {
               </button>
             </div>
           </div>
+          
+          <button type="submit" className="add-btn">Add Exam</button>
         </form>
-        
-        <button className="add-btn">Add Exam</button>
       </main>
     </div>
   );
