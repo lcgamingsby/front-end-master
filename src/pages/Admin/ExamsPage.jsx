@@ -61,7 +61,7 @@ function ExamsPage() {
         );
       }
     } catch (e) {
-      console.error("Error deleting exam:", error);
+      console.error("Error deleting exam:", e);
     }
   }
 
