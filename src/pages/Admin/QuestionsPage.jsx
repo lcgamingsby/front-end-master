@@ -86,6 +86,27 @@ function QuestionsPage() {
     return matchSearch && matchType;
   });
 
+  const refilterQuestions = (search, type) => {
+    const s = search !== null ? search : searchTerm.toLowerCase();
+
+    const t = type !== null ? type : selectedType;
+
+    return questions.filter((q) => {
+      const search = s.toLowerCase();
+      
+      const matchType = t === "All Types" || q.question_type.toLowerCase() === t.toLowerCase();
+      const matchSearch =
+        q.question_type.toLowerCase().includes(search) ||
+        q.question_text.toLowerCase().includes(search) ||
+        q.choice_a.includes(search) ||
+        q.choice_b.includes(search) ||
+        q.choice_c.includes(search) ||
+        q.choice_d.includes(search);
+      
+      return matchType && matchSearch;
+    });
+  }
+
   const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentQuestions = filteredQuestions.slice(startIndex, startIndex + itemsPerPage);
@@ -148,7 +169,33 @@ function QuestionsPage() {
               <select
                 className="dropdown-medium"
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
+                onChange={(e) => {
+                  setSelectedType(e.target.value);
+
+                  const newFilteredQuestions = questions.filter((q) => {
+                    const search = searchTerm.toLowerCase();
+                    const matchSearch =
+                      q.question_id.toString().includes(search) ||
+                      q.question_type.toLowerCase().includes(search) ||
+                      q.question_text.toLowerCase().includes(search) ||
+                      q.choice_a.includes(search) ||
+                      q.choice_b.includes(search) ||
+                      q.choice_c.includes(search) ||
+                      q.choice_d.includes(search);
+
+                    const matchType =
+                      e.target.value === "All Types" || q.question_type.toLowerCase() === e.target.value.toLowerCase();
+
+                    return matchSearch && matchType;
+                  });
+
+                  // needs recalculated because filteredQuestions changed
+                  const newTotalPages = Math.ceil(newFilteredQuestions.length / itemsPerPage);
+
+                  if (currentPage > newTotalPages) {
+                    setCurrentPage(newTotalPages);
+                  }
+                }}
               >
                 <option value="All Types">All Types</option>
                 <option value="Grammar">Grammar</option>

@@ -150,7 +150,14 @@ function ExamsPage() {
             <select
               value={itemsPerPage}
               id="items_per_page"
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                const newTotalPages = Math.ceil(filteredExams.length / Number(e.target.value));
+
+                if (currentPage > newTotalPages) {
+                  setCurrentPage(newTotalPages);
+                }
+              }}
             >
               <option value={10}>10</option>
               <option value={20}>20</option>

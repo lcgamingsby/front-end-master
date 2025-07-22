@@ -140,7 +140,6 @@ function AddExamPage() {
 
     const matchType = selectedType === "All" || q.question_type.toLowerCase() === selectedType.toLowerCase();
     const matchSearch =
-      q.question_id.toString().includes(search) ||
       q.question_type.toLowerCase().includes(search) ||
       q.question_text.toLowerCase().includes(search) ||
       q.choice_a.includes(search) ||
@@ -149,6 +148,30 @@ function AddExamPage() {
       q.choice_d.includes(search);
     return matchType && matchSearch;
   });
+
+  const refilterQuestions = (search, type) => {
+    /*
+      Functions identically to initial filteredQuestions if no arguments were given.
+    */
+    const s = search !== null && search !== undefined ? search : navQuestions.searchTerm.toLowerCase();
+
+    const t = type !== null && type !== undefined ? type : selectedType;
+
+    return questions.filter((q) => {
+      const search = s.toLowerCase();
+      
+      const matchType = t === "All" || q.question_type.toLowerCase() === t.toLowerCase();
+      const matchSearch =
+        q.question_type.toLowerCase().includes(search) ||
+        q.question_text.toLowerCase().includes(search) ||
+        q.choice_a.includes(search) ||
+        q.choice_b.includes(search) ||
+        q.choice_c.includes(search) ||
+        q.choice_d.includes(search);
+      
+      return matchType && matchSearch;
+    });
+  }
 
   const totalPagesQ = Math.ceil(filteredQuestions.length / navQuestions.itemsPerPage);
   const startIndexQ = (navQuestions.currentPage - 1) * navQuestions.itemsPerPage;
@@ -236,13 +259,28 @@ function AddExamPage() {
             )}
           </h3>
           <div className="table-controls">
-            <label>Show
+            <label htmlFor="items-per-page-q">Show
               <select
                 value={navQuestions.itemsPerPage}
-                onChange={(e) => setNavQuestions({
-                  ...navQuestions,
-                  itemsPerPage: Number(e.target.value),
-                })}
+                id="items-per-page-q"
+                onChange={(e) => {
+                  let changes = {
+                    itemsPerPage: Number(e.target.value),
+                  }
+
+                  const newFilteredQuestions = refilterQuestions(null, null);
+
+                  const newTotalPages = Math.ceil(filteredQuestions.length / Number(e.target.value));
+
+                  if (navQuestions.currentPage > newTotalPages) {
+                    changes.currentPage = newTotalPages;
+                  }
+
+                  setNavQuestions({
+                    ...navQuestions,
+                    ...changes,
+                  });
+                }}
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -251,7 +289,21 @@ function AddExamPage() {
             </label>
 
             <label>
-              <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
+              <select value={selectedType} onChange={(e) => {
+                setSelectedType(e.target.value);
+
+                const newFilteredQuestions = refilterQuestions(null, e.target.value);
+
+                // needs recalculated because filteredQuestions changed
+                const newTotalPages = Math.ceil(newFilteredQuestions.length / navQuestions.itemsPerPage);
+
+                if (navQuestions.currentPage > newTotalPages) {
+                  setNavQuestions({
+                    ...navQuestions,
+                    currentPage: newTotalPages,
+                  });
+                }
+              }}>
                 <option value="All">All Types</option>
                 <option value="Grammar">Grammar</option>
                 <option value="Reading">Reading</option>
@@ -263,7 +315,25 @@ function AddExamPage() {
               type="text"
               placeholder="🔍 Search questions"
               value={navQuestions.searchTerm}
-              onChange={(e) => setNavQuestions({...navQuestions, searchTerm: e.target.value})}
+              onChange={(e) => {
+                let changes = {
+                  searchTerm: e.target.value,
+                }
+
+                const newFilteredQuestions = refilterQuestions(e.target.value, null);
+
+                // needs recalculated because filteredQuestions changed
+                const newTotalPages = Math.ceil(newFilteredQuestions.length / navQuestions.itemsPerPage);
+
+                if (navQuestions.currentPage > newTotalPages) {
+                  changes.currentPage = newTotalPages;
+                }
+
+                setNavQuestions({
+                  ...navQuestions,
+                  ...changes,
+                });
+              }}
             />
           </div>
 
@@ -413,10 +483,22 @@ function AddExamPage() {
             <label>Show
               <select
                 value={navStudents.itemsPerPage}
-                onChange={(e) => setNavStudents({
-                  ...navStudents,
-                  itemsPerPage: Number(e.target.value),
-                })}
+                onChange={(e) => {
+                  let changes = {
+                    itemsPerPage: Number(e.target.value),
+                  }
+
+                  const newTotalPages = Math.ceil(filteredStudents.length / Number(e.target.value));
+
+                  if (navStudents.currentPage > newTotalPages) {
+                    changes.currentPage = newTotalPages;
+                  }
+
+                  setNavStudents({
+                    ...navStudents,
+                    ...changes,
+                  });
+                }}
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -427,7 +509,32 @@ function AddExamPage() {
               type="text"
               placeholder="🔍 Search students"
               value={navStudents.searchTerm}
-              onChange={(e) => setNavStudents({...navStudents, searchTerm: e.target.value})}
+              onChange={(e) => {
+                let changes = {
+                  searchTerm: e.target.value
+                }
+
+                const newFilteredStudents = students.filter((s) => {
+                  const search = e.target.value.toLowerCase();
+                  
+                  return (
+                    s.name.toLowerCase().includes(search) ||
+                    s.nim.toLowerCase().includes(search) ||
+                    s.email.toLowerCase().includes(search)
+                  );
+                });
+
+                const newTotalPages = Math.ceil(newFilteredStudents.length / navStudents.itemsPerPage);
+
+                if (navStudents.currentPage > newTotalPages) {
+                  changes.currentPage = newTotalPages;
+                }
+
+                setNavStudents({
+                  ...navStudents,
+                  ...changes
+                });
+              }}
             />
           </div>
 

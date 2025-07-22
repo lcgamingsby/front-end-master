@@ -70,11 +70,15 @@ function StudentsPage() {
 
   // console.log(students, typeof students);
 
-  const filteredStudents = students.filter((student) =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.nim.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = students.filter((s) => {
+    const search = searchTerm.toLowerCase();
+
+    return (
+      s.name.toLowerCase().includes(search) ||
+      s.nim.toLowerCase().includes(search) ||
+      s.email.toLowerCase().includes(search)
+    );
+  });
 
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -114,7 +118,6 @@ function StudentsPage() {
                 id="items_per_page"
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));
-
                   const newTotalPages = Math.ceil(filteredStudents.length / Number(e.target.value));
 
                   if (currentPage > newTotalPages) {
@@ -134,7 +137,25 @@ function StudentsPage() {
                 className="search-bar"
                 placeholder="🔍Search students"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+
+                  const newFilteredStudents = students.filter((s) => {
+                    const search = e.target.value.toLowerCase();
+                    
+                    return (
+                      s.name.toLowerCase().includes(search) ||
+                      s.nim.toLowerCase().includes(search) ||
+                      s.email.toLowerCase().includes(search)
+                    );
+                  });
+
+                  const newTotalPages = Math.ceil(newFilteredStudents.length / itemsPerPage);
+
+                  if (currentPage > newTotalPages) {
+                    setCurrentPage(newTotalPages);
+                  }
+                }}
               />
             </div>
           </div>
