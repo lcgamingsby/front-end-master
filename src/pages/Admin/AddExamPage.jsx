@@ -172,7 +172,7 @@ function AddExamPage() {
     });
   }
 
-  const totalPagesQ = Math.ceil(filteredQuestions.length / navQuestions.itemsPerPage);
+  const totalPagesQ = Math.max(Math.ceil(filteredQuestions.length / navQuestions.itemsPerPage), 1);
   const startIndexQ = (navQuestions.currentPage - 1) * navQuestions.itemsPerPage;
   const currentQuestions = filteredQuestions.slice(startIndexQ, startIndexQ + navQuestions.itemsPerPage);
 
@@ -200,11 +200,9 @@ function AddExamPage() {
     });
   }
 
-  const totalPagesS = Math.ceil(filteredStudents.length / navStudents.itemsPerPage);
+  const totalPagesS = Math.max(Math.ceil(filteredStudents.length / navStudents.itemsPerPage), 1);
   const startIndexS = (navStudents.currentPage - 1) * navStudents.itemsPerPage;
   const currentStudents = filteredStudents.slice(startIndexS, startIndexS + navStudents.itemsPerPage);
-
-  console.log(totalPagesS);
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
@@ -538,7 +536,7 @@ function AddExamPage() {
 
                     const newTotalPages = Math.max(Math.ceil(newFilteredStudents.length / Number(e.target.value)), 1);
 
-                    if (navQuestions.currentPage > newTotalPages) {
+                    if (navStudents.currentPage > newTotalPages) {
                       changes.currentPage = newTotalPages;
                     }
 
@@ -641,8 +639,10 @@ function AddExamPage() {
           </table>
           <div className="flex justify-between">
             <p className="text-slate-600 font-semibold">
-              Showing {startIndexS + 1} to {Math.min(startIndexS + navStudents.itemsPerPage, filteredStudents.length)} {" "}
-              out of {students.length}
+              Showing {startIndexS + 1} to {Math.min(startIndexS + navStudents.itemsPerPage, filteredStudents.length)} out of {" "}
+              {navStudents.searchTerm === ""
+                ? students.length
+                : `${filteredStudents.length} (filtered out of ${students.length} total entries)`}
             </p>
             <div className="flex gap-2 justify-center">
               <button

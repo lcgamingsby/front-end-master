@@ -80,7 +80,7 @@ function StudentsPage() {
     );
   });
 
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const totalPages = Math.max(Math.ceil(filteredStudents.length / itemsPerPage), 1);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
 
@@ -197,7 +197,8 @@ function StudentsPage() {
 
         <div className="pagination">
           <p className="pagination-info">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} out of {students.length}
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} out of {" "}
+            {searchTerm === "" ? students.length : `${filteredStudents.length} (filtered out of ${students.length} total entries)`}
           </p>
           <div className="page-buttons">
             <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>

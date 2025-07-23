@@ -128,7 +128,7 @@ function ExamsPage() {
     );
   });
 
-  const totalPages = Math.ceil(filteredExams.length / itemsPerPage);
+  const totalPages = Math.max(Math.ceil(filteredExams.length / itemsPerPage), 1);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentExams = filteredExams.slice(startIndex, startIndex + itemsPerPage);
 

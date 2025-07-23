@@ -107,7 +107,7 @@ function QuestionsPage() {
     });
   }
 
-  const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
+  const totalPages = Math.max(Math.ceil(filteredQuestions.length / itemsPerPage), 1);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentQuestions = filteredQuestions.slice(startIndex, startIndex + itemsPerPage);
 
