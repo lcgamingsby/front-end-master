@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "../../App_old.css"; // pastikan file CSS diimpor
-import { useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import axios from "axios";
 import { config } from "../../data/config";
@@ -49,40 +47,47 @@ function AdminDashboard() {
   }, []);
 
   return (
-    <div className="admin-dashboard">
+    <div className="absolute bg-slate-50 w-full min-h-full h-auto text-tec-darker">
       <Navbar />
 
-      <main className="admin-content">
+      <main className="px-8 py-12">
         {finishedLoading ? (
           <>
-            <div className="admin-stats">
-              <div className="stat-card">
-                <div className="stat-title">Questions Made</div>
-                <div className="stat-value">{dashboardNumbers.questions_made}</div>
+            <div className="flex gap-8 mb-10">
+              <div className="flex-1 border-4 border-solid border-tec-darker rounded-2xl p-8 text-center">
+                <div className="font-bold mb-2">Questions Made</div>
+                <div className="text-4xl font-extrabold">{dashboardNumbers.questions_made}</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-title">Unpublished Exam Scores</div>
-                <div className="stat-value">{dashboardNumbers.unpublished_scores}</div>
+              <div className="flex-1 border-4 border-solid border-tec-darker rounded-2xl p-8 text-center">
+                <div className="font-bold mb-2">Unpublished Exam Scores</div>
+                <div className="text-4xl font-extrabold">{dashboardNumbers.unpublished_scores}</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-title">Upcoming Exams</div>
-                <div className="stat-value">{dashboardNumbers.upcoming_exams}</div>
+              <div className="flex-1 border-4 border-solid border-tec-darker rounded-2xl p-8 text-center">
+                <div className="font-bold mb-2">Upcoming Exams</div>
+                <div className="text-4xl font-extrabold">{dashboardNumbers.upcoming_exams}</div>
               </div>
             </div>
 
-            <section className="exam-section">
-              <h2>Ongoing Exams</h2>
-              <p>Lorem ipsum dolor sit amet consectetur adipiscing elit.</p>
-              <div className="exam-cards">
-                {ongoingExams.map((exam) => (
-                  <div key={exam.id} className="exam-card dark">
-                    <strong>{exam.title}</strong>
-                    <div>
-                      {exam.date} ({exam.time})
+            <section className="mt-5 mb-10 py-5 px-10">
+              <h2 className="text-xl font-bold mb-1">Ongoing Exams</h2>
+              <p className="text-slate-700">Keep track of students currently taking an exam.</p>
+              <div className="flex flex-wrap gap-5 mt-5">
+                {ongoingExams.length > 0 ? (
+                  ongoingExams.map((exam) => (
+                    <div key={exam.id} className="bg-tec-darker text-white rounded-xl p-5 w-70 shadow-lg">
+                      <strong>{exam.title}</strong>
+                      <div>
+                        {exam.date} ({exam.time})
+                      </div>
+                      <div className="exam-status">Ongoing ({exam.remaining} left)</div>
                     </div>
-                    <div className="exam-status">Ongoing ({exam.remaining} left)</div>
+                  ))
+                ) : (
+                  <div className="text-tec-darker rounded-xl p-5 w-full text-center">
+                    <h3 className="text-2xl font-bold">- No Ongoing Exams -</h3>
+                    <p>Check back later.</p>
                   </div>
-                ))}
+                )}
               </div>
             </section>
           </>

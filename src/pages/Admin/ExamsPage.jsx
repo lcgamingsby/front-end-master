@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "../../AdminExams.css";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaTrash, FaFilter, FaAngleRight, FaAngleDoubleRight, FaAngleDoubleLeft, FaAngleLeft } from "react-icons/fa";
+import { FaEdit, FaTrash, FaFilter, FaAngleRight, FaAngleDoubleRight, FaAngleDoubleLeft, FaAngleLeft, FaPlus } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
 import { config } from "../../data/config";
 import axios from "axios";
@@ -134,55 +133,66 @@ function ExamsPage() {
   const currentExams = filteredExams.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="admin-dashboard">
+    <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
 
-      <main className="admin-content">
-        <h2 className="page-title">All Exams</h2>
+      <main className="p-8">
+        <h2 className="text-4xl mb-5 text-tec-darker font-bold">All Exams</h2>
 
-        <div className="exam-actions">
-          <button className="add-btn" onClick={() => navigate("/admin/exams/add")}>
-            + Add an Exam
+        <div className="flex justify-between mb-5">
+          <button
+            className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
+            rounded-lg flex items-center gap-2"
+            onClick={() => navigate("/admin/exams/add")}
+          >
+            <FaPlus /> Add an Exam
           </button>
 
-          <div className="actions-right">
-            <label className="show-label" htmlFor="items_per_page">Show {" "}</label>
-            <select
-              value={itemsPerPage}
-              id="items_per_page"
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                const newTotalPages = Math.ceil(filteredExams.length / Number(e.target.value));
+          <div className="flex gap-2">
+            <div>
+              <label htmlFor="items_per_page" className="font-medium">
+                Show
+              </label>
+              <select
+                value={itemsPerPage}
+                id="items_per_page"
+                className="text-tec-darker border-2 border-tec-darker hover:border-tec-light focus:outline-none
+               focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium"
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  const newTotalPages = Math.ceil(filteredExams.length / Number(e.target.value));
 
-                if (currentPage > newTotalPages) {
-                  setCurrentPage(newTotalPages);
-                }
-              }}
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-            <label className="show-label" htmlFor="items_per_page">{" "} items</label>
+                  if (currentPage > newTotalPages) {  
+                    setCurrentPage(newTotalPages);
+                  }
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <label htmlFor="items_per_page" className="font-medium">items</label>
+            </div>
             <input
               type="text"
-              className="search-bar"
-              placeholder="🔍Search exams"
+              className="py-1 px-3 border-2 border-tec-darker rounded-lg w-60 hover:border-tec-light focus:outline-none
+               focus:border-tec-light"
+              placeholder="🔍 Search exams"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
 
-        <table className="exam-table">
+        <table className="w-full border-collapse mb-4">
           <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Schedule</th>
-              <th>Students</th>
-              <th>Questions</th>
-              <th>Actions</th>
+            <tr className="bg-tec-darker text-white text-center font-bold">
+              <th className="w-1/12 px-4 py-3 border-x-2 border-white border-l-tec-darker">ID</th>
+              <th className="w-4/12 px-4 py-3 border-x-2 border-white">Title</th>
+              <th className="w-4/12 px-4 py-3 border-x-2 border-white">Schedule</th>
+              <th className="w-1/12 px-4 py-3 border-x-2 border-white">Students</th>
+              <th className="w-1/12 px-4 py-3 border-x-2 border-white">Questions</th>
+              <th className="w-1/12 px-4 py-3 border-x-2 border-white border-r-tec-darker">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -206,31 +216,43 @@ function ExamsPage() {
                 // Make the button unusable if the exam start date is at least 3 days away.
                 const daysAway = getDaysAway(startDatetime);
 
+                const isOdd = index % 2 === 1;
+
                 return (
-                  <tr key={exam.exam_id}>
-                    <td>{exam.exam_id}</td>
-                    <td>{exam.exam_title}</td>
-                    <td>{dateString}</td>
-                    <td>{exam.student_count}</td>
-                    <td>{exam.question_count}</td>
-                    <td>
-                      <button className="edit-btn yellow" onClick={() => handleEdit(exam.exam_id)}><FaEdit /></button>
+                  <tr
+                    key={exam.exam_id}
+                    className={`${isOdd ? "bg-slate-200" : "bg-white"} hover:bg-slate-300`}
+                  >
+                    <td className="px-4 py-2 border-2 border-slate-400 text-center">{exam.exam_id}</td>
+                    <td className="px-4 py-2 border-2 border-slate-400">{exam.exam_title}</td>
+                    <td className="px-4 py-2 border-2 border-slate-400">{dateString}</td>
+                    <td className="px-4 py-2 border-2 border-slate-400 text-center">{exam.student_count}</td>
+                    <td className="px-4 py-2 border-2 border-slate-400 text-center">{exam.question_count}</td>
+                    <td className="px-4 py-2 border-2 border-slate-400 text-center">
                       <button
-                        className={`delete-btn ${daysAway > 3 ? "red" : ""}`}
+                        className="bg-amber-500 hover:bg-orange-600 mr-1 p-2 rounded-lg cursor-pointer"
+                        onClick={() => handleEdit(exam.exam_id)}
+                        title={`Edit this exam (ID ${exam.exam_id})`}
+                      >
+                        <FaEdit className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        className="bg-red-500 hover:bg-red-600 cursor-pointer disabled:cursor-not-allowed p-2 rounded-lg disabled:bg-slate-500"
                         onClick={() => {
                           if (daysAway > 3) {
                             confirmDelete(exam)
                           }
                         }}
+                        disabled={!(daysAway > 3)}
                         title={
                           daysAway < 0 ? (
                             `This exam has already ended.`
                           ) : daysAway < 3 ? (
                             `This exam is ${daysAway} day(s) away from the scheduled start date.`
-                          ) : null
+                          ) : `Delete this exam (ID ${exam.exam_id})`
                         }
                       >
-                        <FaTrash />
+                        <FaTrash className="w-4 h-4 text-white" />
                       </button>
                     </td>
                   </tr>
@@ -238,7 +260,7 @@ function ExamsPage() {
               })
             ) : (
               <tr>
-                <td colSpan="6" className="no-data text-center">
+                <td colSpan="6" className="px-4 py-3 border-2 border-slate-400 text-center">
                   {finishedLoading ? "No exams found." : (
                     <Loading text={"Loading exams..."} useSmall={true} />
                   )}
@@ -248,35 +270,59 @@ function ExamsPage() {
           </tbody>
         </table>
 
-        <div className="table-footer">
-          <p>
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredExams.length)} out of {" "}
-            {searchTerm === "" ? exams.length : `${filteredExams.length} (filtered out of ${exams.length} total entries)`}
-          </p>
-        </div>
+        <div className="flex justify-between">
+            <div className="text-slate-600 font-semibold">
+              <p>
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredExams.length)} out of {" "}
+                {searchTerm === "" ? exams.length : `${filteredExams.length} (filtered out of ${exams.length} total entries)`}
+              </p>
+            </div>
 
-        <div className="pagination">
-          <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-            <FaAngleDoubleLeft />
-          </button>
-          <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
-            <FaAngleLeft />
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              className={`page-btn ${currentPage === i + 1 ? "active" : ""}`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>
-            <FaAngleRight />
-          </button>
-          <button className="page-btn" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
-            <FaAngleDoubleRight />
-          </button>
+            <div className="flex gap-2 justify-center">
+              <button
+                className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                  flex items-center justify-center"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+              >
+                <FaAngleDoubleLeft className="w-5 h-5" />
+              </button>
+              <button
+                className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                  flex items-center justify-center"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                <FaAngleLeft className="w-5 h-5" />
+              </button>
+              {Array.from({ length: Math.max(totalPages, 1) }, (_, i) => (
+                <button
+                  key={i + 1}
+                  className={`${currentPage === i + 1 ?
+                    "bg-tec-darker text-white font-bold" : "text-tec-darker font-semibold"} p-2 rounded-full
+                    w-8 h-8 text-sm flex items-center justify-center`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                  flex items-center justify-center"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                <FaAngleRight className="w-5 h-5" />
+              </button>
+              <button
+                className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                  flex items-center justify-center"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+              >
+                <FaAngleDoubleRight className="w-5 h-5" />
+              </button>
+            </div>
         </div>
       </main>
 
