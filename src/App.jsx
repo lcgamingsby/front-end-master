@@ -10,11 +10,12 @@ import StudentsPage from "./pages/Admin/StudentsPage";
 import AddStudentPage from "./pages/Admin/AddStudentPage";
 
 import StudentDashboard from "./pages/StudentDashboard";
-import ListeningTest from "./pages/listeningtest";
+import ListeningTest from "./pages/ListeningTest";
 
 import PublicRoute from "./pages/Components/PublicRoute";
 import PrivateRoute from "./pages/Components/PrivateRoute";
 import { UserProvider } from "./pages/Components/UserContext";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   return (
@@ -36,10 +37,12 @@ function App() {
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/add" element={<AddStudentPage />} />
             <Route path="students/edit" element={<AddStudentPage />} />
+            <Route path="reset" element={<ResetPasswordPage />} />
           </Route>
           <Route path="/student" element={<PrivateRoute role="mahasiswa" />}>
             <Route index element={<StudentDashboard/>} />
             <Route path="test" element={<ListeningTest/>} />
+            <Route path="reset" element={<ResetPasswordPage />} />
           </Route>
         </Routes>
       </Router>

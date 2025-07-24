@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaChevronDown, FaChevronUp, FaSignOutAlt } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaKey, FaSignOutAlt } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
 
@@ -15,6 +15,12 @@ function Navbar() {
         localStorage.removeItem("jwtToken");
         setUser(null);
         navigate("/login");
+    }
+
+    const handleResetPassword = () => {
+        const role = user.role === "mahasiswa" ? "student" : user.role;
+
+        navigate(`/${role}/reset`);
     }
 
     return (
@@ -76,7 +82,15 @@ function Navbar() {
 
             {showDropdown ? (
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-xl py-1 z-20">
-                    <button className="block px-4 py-2 text-red-600 hover:bg-red-200 w-full text-left font-semibold" onClick={handleLogout}>
+                    <button
+                        className="block px-4 py-2 text-slate-600 hover:bg-slate-200 w-full text-left font-semibold"
+                        onClick={handleResetPassword}
+                    >
+                        <FaKey className="inline" /> Reset Password
+                    </button>
+                    <button
+                        className="block px-4 py-2 text-red-600 hover:bg-red-200 w-full text-left font-semibold"
+                        onClick={handleLogout}>
                         <FaSignOutAlt className="inline" /> Sign Out
                     </button>
                 </div>

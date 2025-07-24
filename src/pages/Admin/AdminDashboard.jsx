@@ -47,28 +47,40 @@ function AdminDashboard() {
   }, []);
 
   return (
-    <div className="absolute bg-slate-50 w-full min-h-full h-auto text-tec-darker">
+    <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
 
       <main className="px-8 py-12">
         {finishedLoading ? (
           <>
-            <div className="flex gap-8 mb-10">
-              <div className="flex-1 border-4 border-solid border-tec-darker rounded-2xl p-8 text-center">
+            <div className="flex gap-8 mb-10 text-tec-darker">
+              <div
+                className="flex-1 border-4 border-solid border-tec-darker motion-safe:transition-colors
+                  motion-safe:duration-150 motion-safe:ease-out hover:bg-tec-darker hover:text-white
+                  rounded-2xl p-6 text-center"
+              >
                 <div className="font-bold mb-2">Questions Made</div>
-                <div className="text-4xl font-extrabold">{dashboardNumbers.questions_made}</div>
+                <div className="text-5xl font-extrabold">{dashboardNumbers.questions_made}</div>
               </div>
-              <div className="flex-1 border-4 border-solid border-tec-darker rounded-2xl p-8 text-center">
+              <div
+                className="flex-1 border-4 border-solid border-tec-darker motion-safe:transition-colors
+                  motion-safe:duration-150 motion-safe:ease-out hover:bg-tec-darker hover:text-white
+                  rounded-2xl p-6 text-center"
+              >
                 <div className="font-bold mb-2">Unpublished Exam Scores</div>
-                <div className="text-4xl font-extrabold">{dashboardNumbers.unpublished_scores}</div>
+                <div className="text-5xl font-extrabold">{dashboardNumbers.unpublished_scores}</div>
               </div>
-              <div className="flex-1 border-4 border-solid border-tec-darker rounded-2xl p-8 text-center">
+              <div
+                className="flex-1 border-4 border-solid border-tec-darker motion-safe:transition-colors
+                  motion-safe:duration-150 motion-safe:ease-out hover:bg-tec-darker hover:text-white
+                  rounded-2xl p-6 text-center"
+              >
                 <div className="font-bold mb-2">Upcoming Exams</div>
-                <div className="text-4xl font-extrabold">{dashboardNumbers.upcoming_exams}</div>
+                <div className="text-5xl font-extrabold">{dashboardNumbers.upcoming_exams}</div>
               </div>
             </div>
 
-            <section className="mt-5 mb-10 py-5 px-10">
+            <section className="mt-5 mb-10 py-5 px-10 text-tec-darker">
               <h2 className="text-xl font-bold mb-1">Ongoing Exams</h2>
               <p className="text-slate-700">Keep track of students currently taking an exam.</p>
               <div className="flex flex-wrap gap-5 mt-5">

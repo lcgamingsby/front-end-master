@@ -1,4 +1,3 @@
-// src/pages/AddExamPage.js
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight, FaChevronLeft, FaFilter } from "react-icons/fa";
@@ -210,7 +209,10 @@ function AddExamPage() {
 
       <main className="p-8">
         <div className="flex gap-2 items-baseline">
-          <button className="text-tec-darker cursor-pointer" onClick={() => navigate("/admin/exams")}>
+          <button
+            className="text-tec-darker hover:text-tec-light cursor-pointer"
+            onClick={() => navigate("/admin/exams")}
+          >
             <FaChevronLeft className="w-6 h-6" />
           </button>
           <h2 className="text-4xl mb-5 text-tec-darker font-bold">{isEdit ? "Edit Exam" : "New Exam"}</h2>
@@ -227,6 +229,7 @@ function AddExamPage() {
             className="w-full px-3 py-2 mb-4 border-2 border-slate-300 focus:outline-none hover:border-tec-light
               focus:border-tec-light rounded-lg"
             value={form.exam_title}
+            required
             onChange={(e) => {
               setForm({
                 ...form,
@@ -244,6 +247,7 @@ function AddExamPage() {
                 id="start_datetime"
                 className="w-full p-2.5 mb-4 border-2 border-slate-300 focus:outline-none hover:border-tec-light
                 focus:border-tec-light rounded-lg"
+                required
                 value={form.start_datetime}
                 onChange={(e) => {
                   setForm({
@@ -261,6 +265,7 @@ function AddExamPage() {
                 id="end_datetime"
                 className="w-full p-2.5 mb-4 border-2 border-slate-300 focus:outline-none hover:border-tec-light
                 focus:border-tec-light rounded-lg"
+                required
                 value={form.end_datetime}
                 onChange={(e) => {
                   setForm({
@@ -721,7 +726,7 @@ function AddExamPage() {
             className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
               rounded-lg flex items-center gap-2 mt-5"
           >
-            Add Exam
+            {isEdit ? "Save Changes" : "Add Exam"}
           </button>
         </form>
       </main>

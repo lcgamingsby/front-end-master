@@ -7,7 +7,7 @@ function StudentDashboard() {
   const [exams, setExams] = useState([]);
   const handleExamClick = (exam) => { 
     if (exam.status === "ongoing") {
-      navigate(`/test1`); // arahkan ke halaman ujian
+      navigate(`/student/test`); // arahkan ke halaman ujian
     }
   };
 
@@ -20,7 +20,7 @@ function StudentDashboard() {
       {
         title: "Session 1 TEC Exam",
         date: "12 Jan 2024",
-        time: "14:00–16:30",
+        time: "14:00-16:30",
         status: "ongoing",
       },
     ]);

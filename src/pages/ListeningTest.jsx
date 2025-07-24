@@ -167,7 +167,7 @@ const ListeningTest = () => {
   };
 
   const formatAudioTime = (duration) => {
-    roundedDuration = Math.round(duration);
+    const roundedDuration = Math.round(duration);
 
     const minutes = Math.floor(roundedDuration / 60);
     const seconds = Math.floor(roundedDuration % 60);

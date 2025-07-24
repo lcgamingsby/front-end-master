@@ -1,12 +1,10 @@
-// AddStudentPage.js
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../AdminStudents.css";
 import axios from "axios";
 import { config } from "../../data/config";
 import Navbar from "../Components/Navbar";
-import { FaChevronLeft } from "react-icons/fa";
+import { FaChevronLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 
 function AddStudentPage() {
   const navigate = useNavigate();
@@ -25,18 +23,13 @@ function AddStudentPage() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
   // Create-Update Students
   // Read-Delete on StudentsPage.jsx
   const createStudent = async (student) => {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.post(`${config.backendUrl}/api/users/`, student, {
+      await axios.post(`${config.backendUrl}/api/users`, student, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -90,80 +83,103 @@ function AddStudentPage() {
   };
 
   return (
-    <div className="admin-dashboard">
+    <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
 
-      <main className="admin-content">
-        <div className="flex gap-2">
-          <button className="back-btn" onClick={() => navigate("/admin/students")}>
-            <FaChevronLeft />
+      <main className="p-8">
+        <div className="flex gap-2 items-baseline">
+          <button
+            className="text-tec-darker hover:text-tec-light cursor-pointer"
+            onClick={() => navigate("/admin/students")}
+          >
+            <FaChevronLeft className="w-6 h-6" />
           </button>
-          <h2 className="page-title">{isEdit ? "Edit Student" : "New Student"}</h2>
+          <h2 className="text-4xl mb-5 text-tec-darker font-bold">{isEdit ? "Edit Student" : "New Student"}</h2>
         </div>
 
-        <form className="student-form-modern" onSubmit={handleSubmit}>
-          <div className="form-group w-4/5">
-            <label>STUDENT NIM</label>
-            <input
-              type="text"
-              name="nim"
-              value={form.nim}
-              onChange={handleChange}
-              disabled={isEdit}
-              placeholder="Enter NIM"
-              required
-              className="full-input"
-            />
-          </div>
+        <form className="mb-10" onSubmit={handleSubmit}>
+          <label className="text-sm text-tec-darker font-semibold select-none" htmlFor="nim">STUDENT NIM</label>
+          <input
+            type="number"
+            name="nim"
+            id="nim"
+            className="w-full px-3 py-2 mb-4 border-2 border-slate-300 focus:outline-none hover:border-tec-light
+              focus:border-tec-light rounded-lg appearance-none"
+            value={form.nim}
+            onChange={(e) => setForm({
+              ...form,
+              nim: e.target.value,
+            })}
+            disabled={isEdit}
+            placeholder="Enter NIM"
+            required
+          />
 
-          <div className="form-group w-4/5">
-            <label>STUDENT NAME</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Enter full name"
-              required
-              className="full-input"
-            />
-          </div>
+          <label className="text-sm text-tec-darker font-semibold select-none" htmlFor="name">STUDENT NAME</label>
+          <input
+            type="text"
+            name="name"
+            id="name"
+            className="w-full px-3 py-2 mb-4 border-2 border-slate-300 focus:outline-none hover:border-tec-light
+              focus:border-tec-light rounded-lg"
+            value={form.name}
+            onChange={(e) => setForm({
+              ...form,
+              name: e.target.value,
+            })}
+            placeholder="Enter full name"
+            required
+          />
 
-          <div className="form-group w-4/5">
-            <label>EMAIL</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Enter email"
-              required
-              className="full-input"
-            />
-          </div>
+          <label className="text-sm text-tec-darker font-semibold select-none" htmlFor="email">EMAIL</label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            className="w-full px-3 py-2 mb-4 border-2 border-slate-300 focus:outline-none hover:border-tec-light
+              focus:border-tec-light rounded-lg"
+            value={form.email}
+            onChange={(e) => setForm({
+              ...form,
+              email: e.target.value,
+            })}
+            placeholder="Enter email"
+            required
+          />
 
-          <div className="form-group ">
-            <label>PASSWORD</label>
-            <div className="password-wrapper flex gap-2 justify-between items-center w-4/5">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Enter password"
-                required={!isEdit}
-                className="full-input grow w-full"
-              />
-              <span
-                onClick={() => setShowPassword(!showPassword)}
-                className="password-toggle w-8 h-8"
-              >
-                {showPassword ? <EyeOff size={32} /> : <Eye size={32} />}
-              </span>
-            </div>
-          </div>
+          {isEdit ? null : (
+            <>
+              <label className="text-sm text-tec-darker font-semibold select-none" htmlFor="password">PASSWORD</label>
+              <div className="flex gap-2 justify-between items-center mb-4">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  id="password"
+                  className="w-full px-3 py-2 border-2 border-slate-300 focus:outline-none hover:border-tec-light
+                  focus:border-tec-light rounded-lg grow"
+                  value={form.password}
+                  onChange={(e) => setForm({
+                    ...form,
+                    password: e.target.value,
+                  })}
+                  placeholder="Enter password"
+                  required={!isEdit}
+                />
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="w-8 h-8"
+                >
+                  {showPassword ? <FaEyeSlash className="w-8 h-8 text-tec-darker" /> : <FaEye className="w-8 h-8 text-tec-darker" />}
+                </span>
+              </div>
+            </>
+          )}
 
-          <button type="submit" className="submit-btn">
+          <button
+            type="submit"
+            className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
+              rounded-lg flex items-center gap-2 mt-5"
+          >
             {isEdit ? "Save Changes" : "Add Student"}
           </button>
         </form>

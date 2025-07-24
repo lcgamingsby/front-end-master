@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "../../AdminQuestions.css";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaTrash, FaFilter, FaAngleDoubleLeft, FaAngleLeft, FaAngleRight, FaAngleDoubleRight } from "react-icons/fa";
+import { FaEdit, FaTrash, FaFilter, FaAngleDoubleLeft, FaAngleLeft, FaAngleRight, FaAngleDoubleRight, FaPlus } from "react-icons/fa";
 import { config } from "../../data/config";
 import axios from "axios";
 import ModalConfirmDelete from "../Components/ModalConfirmDelete";
@@ -87,7 +86,7 @@ function QuestionsPage() {
   });
 
   const refilterQuestions = (search, type) => {
-    const s = search !== null ? search : searchTerm.toLowerCase();
+    const s = search !== null ? search : searchTerm;
 
     const t = type !== null ? type : selectedType;
 
@@ -129,27 +128,58 @@ function QuestionsPage() {
   };
 
   return (
-    <div className="admin-dashboard">
+    <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
 
-      <main className="admin-content">
-        <h2 className="page-title">All Questions</h2>
+      <main className="p-8">
+        <h2 className="text-4xl mb-5 text-tec-darker font-bold">All Questions</h2>
 
-        <div className="exam-actions">
-          <div className="left-actions-column">
-            <button className="add-btn" onClick={() => navigate("/admin/questions/add")}>
-              + Add a Question
-            </button>
+        <div className="flex justify-between items-center mb-5">
+          <button
+            className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
+              rounded-lg flex items-center gap-2"
+            onClick={() => navigate("/admin/questions/add")}
+          >
+            <FaPlus /> Add a Question
+          </button>
 
-            <div className="items-per-page">
-              <label htmlFor="items_per_page">Show {" "}</label>
+          <div className="flex items-center flex-wrap gap-2">
+            <select
+              className="text-tec-darker border-2 border-tec-darker hover:border-tec-light focus:outline-none
+                focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium"
+              value={selectedType}
+              onChange={(e) => {
+                setSelectedType(e.target.value);
+
+                const newFilteredQuestions = refilterQuestions(null, e.target.value);
+
+                // needs recalculated because filteredQuestions changed
+                const newTotalPages = Math.max(Math.ceil(newFilteredQuestions.length / itemsPerPage), 1);
+
+                if (currentPage > newTotalPages) {
+                  setCurrentPage(newTotalPages);
+                }
+              }}
+            >
+              <option value="All Types">All Types</option>
+              <option value="Grammar">Grammar</option>
+              <option value="Reading">Reading</option>
+              <option value="Listening">Listening</option>
+            </select>
+
+            <div>
+              <label htmlFor="items_per_page" className="font-medium">Show</label>
               <select
-                className="dropdown-medium"
                 id="items_per_page"
+                className="text-tec-darker border-2 border-tec-darker hover:border-tec-light focus:outline-none
+                focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium"
                 value={itemsPerPage}
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));
-                  const newTotalPages = Math.ceil(filteredStudents.length / Number(e.target.value));
+
+                  const newFilteredQuestions = refilterQuestions(null, null);
+
+                  const newTotalPages = Math.max(Math.ceil(newFilteredQuestions.length / Number(e.target.value)), 1);
 
                   if (currentPage > newTotalPages) {
                     setCurrentPage(newTotalPages);
@@ -160,71 +190,38 @@ function QuestionsPage() {
                 <option value={20}>20</option>
                 <option value={50}>50</option>
               </select>
-              <label htmlFor="items_per_page">{" "} items</label>
-            </div>
-          </div>
-
-          <div className="right-actions horizontal-group">
-            <div className="type-filter">
-              <select
-                className="dropdown-medium"
-                value={selectedType}
-                onChange={(e) => {
-                  setSelectedType(e.target.value);
-
-                  const newFilteredQuestions = questions.filter((q) => {
-                    const search = searchTerm.toLowerCase();
-                    const matchSearch =
-                      q.question_id.toString().includes(search) ||
-                      q.question_type.toLowerCase().includes(search) ||
-                      q.question_text.toLowerCase().includes(search) ||
-                      q.choice_a.includes(search) ||
-                      q.choice_b.includes(search) ||
-                      q.choice_c.includes(search) ||
-                      q.choice_d.includes(search);
-
-                    const matchType =
-                      e.target.value === "All Types" || q.question_type.toLowerCase() === e.target.value.toLowerCase();
-
-                    return matchSearch && matchType;
-                  });
-
-                  // needs recalculated because filteredQuestions changed
-                  const newTotalPages = Math.ceil(newFilteredQuestions.length / itemsPerPage);
-
-                  if (currentPage > newTotalPages) {
-                    setCurrentPage(newTotalPages);
-                  }
-                }}
-              >
-                <option value="All Types">All Types</option>
-                <option value="Grammar">Grammar</option>
-                <option value="Reading">Reading</option>
-                <option value="Listening">Listening</option>
-              </select>
+              <label htmlFor="items_per_page" className="font-medium">items</label>
             </div>
 
+            <input
+              type="text"
+              className="py-1 px-3 border-2 border-tec-darker rounded-lg w-60 hover:border-tec-light focus:outline-none
+              focus:border-tec-light"
+              placeholder="🔍 Search questions"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
 
-            <div className="search-container">
-              <input
-                type="text"
-                className="search-bar"
-                placeholder="🔍 Search questions"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+                const newFilteredQuestions = refilterQuestions(e.target.value, null);
+
+                const newTotalPages = Math.max(Math.ceil(newFilteredQuestions.length / itemsPerPage), 1);
+
+                if (currentPage > newTotalPages) {
+                  setCurrentPage(newTotalPages);
+                }
+              }}
+            />
           </div>
         </div>
 
-        <table className="exam-table">
+        <table className="w-full border-collapse mb-4">
           <thead>
-            <tr>
-              <th>ID</th>
-              <th>Type</th>
-              <th>Question</th>
-              <th>Answer Choices</th>
-              <th>Actions</th>
+            <tr className="bg-tec-darker text-white text-center font-bold">
+              <th className="w-1/12 px-4 py-3 border-x-2 border-white border-l-tec-darker">ID</th>
+              <th className="w-1/12 px-4 py-3 border-x-2 border-white">Type</th>
+              <th className="w-5/12 px-4 py-3 border-x-2 border-white">Question</th>
+              <th className="w-4/12 px-4 py-3 border-x-2 border-white">Answer Choices</th>
+              <th className="w-1/12 px-4 py-3 border-x-2 border-white border-r-tec-darker">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -232,27 +229,43 @@ function QuestionsPage() {
               currentQuestions.map((q, idx) => {
               let answerText = q.answers.join(", ");
 
+              const isOdd = idx % 2 === 1;
+
               return (
-                <tr key={q.question_id}>
-                  <td>{q.question_id}</td>
-                  <td>{q.question_type[0].toUpperCase() + q.question_type.slice(1)}</td>
-                  <td className="truncate" title={q.question_text}>
+                <tr
+                  key={q.question_id}
+                  className={`${isOdd ? "bg-slate-200" : "bg-white"} hover:bg-slate-300`}
+                >
+                  <td className="px-4 py-2 border-2 border-slate-400 text-center">{q.question_id}</td>
+                  <td className="px-4 py-2 border-2 border-slate-400">{q.question_type[0].toUpperCase() + q.question_type.slice(1)}</td>
+                  <td className="px-4 py-2 border-2 border-slate-400 text-justify text-ellipsis" title={q.question_text}>
                     {q.audio_path ? (
                       <audio controls src={`${config.backendUrl}/audio/${q.audio_path}`} />
                     ) : null}
-                    {q.question_text.length > 80 ? q.question_text.slice(0, 80).trim() + "..." : q.question_text}
+                    {q.question_text.length > 115 ? q.question_text.slice(0, 115).trim() + "..." : q.question_text}
                   </td>
-                  <td className="truncate" title={answerText}>
-                    {answerText.length > 60 ? answerText.slice(0, 60).trim() + "..." : answerText}
+                  <td className="px-4 py-2 border-2 border-slate-400 text-justify text-ellipsis" title={answerText}>
+                    {answerText.length > 85 ? answerText.slice(0, 85).trim() + "..." : answerText}
                   </td>
-                  <td>
-                    <button className="edit-btn yellow" onClick={() => handleEdit(q)}><FaEdit /></button>
-                    <button className="delete-btn red" onClick={() => confirmDelete(q)}><FaTrash /></button>
+                  <td className="px-4 py-2 border-2 border-slate-400 text-center">
+                    <button
+                      className="bg-amber-500 hover:bg-orange-600 mr-1 p-2 rounded-lg cursor-pointer"
+                      onClick={() => handleEdit(q)}
+                    >
+                      <FaEdit className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 cursor-pointer disabled:cursor-not-allowed
+                        p-2 rounded-lg disabled:bg-slate-500"
+                      onClick={() => confirmDelete(q)}
+                    >
+                      <FaTrash className="w-4 h-4 text-white" />
+                    </button>
                   </td>
                 </tr>
             )})) : (
               <tr>
-                <td colSpan="5" className="no-data text-center">
+                <td colSpan="5" className="px-4 py-3 border-2 border-slate-400 text-center">
                   {finishedLoading ? "No questions found." : (
                     <Loading text={"Loading questions..."} useSmall={true} />
                   )}
@@ -262,34 +275,57 @@ function QuestionsPage() {
           </tbody>
         </table>
 
-        <div className="pagination">
-          <span className="pagination-info">
+        <div className="flex justify-between">
+          <p className="text-slate-600 font-semibold">
             Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredQuestions.length)} out of {" "}
               {searchTerm === "" && selectedType === "All Types"
                 ? questions.length
                 : `${filteredQuestions.length} (filtered out of ${questions.length} total entries)`}
-          </span>
-          <div className="page-buttons">
-            <button className="page-btn" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-              <FaAngleDoubleLeft />
+          </p>
+
+          <div className="flex gap-2 justify-center">
+            <button
+              className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                flex items-center justify-center"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              <FaAngleDoubleLeft className="w-5 h-5" />
             </button>
-            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
-              <FaAngleLeft />
+            <button
+              className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                flex items-center justify-center"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <FaAngleLeft className="w-5 h-5" />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+            {Array.from({ length: Math.max(totalPages, 1) }, (_, i) => (
               <button
                 key={i + 1}
-                className={`page-btn ${currentPage === i + 1 ? "active" : ""}`}
+                className={`${currentPage === i + 1 ?
+                  "bg-tec-darker text-white font-bold" : "text-tec-darker font-semibold"} p-2 rounded-full
+                  w-8 h-8 text-sm flex items-center justify-center`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
-            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>
-              <FaAngleRight />
+            <button
+              className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                flex items-center justify-center"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              <FaAngleRight className="w-5 h-5" />
             </button>
-            <button className="page-btn" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
-              <FaAngleDoubleRight />
+            <button
+              className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                flex items-center justify-center"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              <FaAngleDoubleRight className="w-5 h-5" />
             </button>
           </div>
         </div>
