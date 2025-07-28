@@ -17,6 +17,7 @@ import PrivateRoute from "./pages/Components/PrivateRoute";
 import { UserProvider } from "./pages/Components/UserContext";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import StudentExam from "./pages/Student/StudentExam";
+import StudentFinish from "./pages/Student/StudentFinish";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="/student" element={<PrivateRoute role="mahasiswa" />}>
             <Route index element={<StudentDashboard />} />
             <Route path="exam" element={<StudentExam />} />
+            <Route path="exam/finish" element={<StudentFinish />} />
             <Route path="listeningtest" element={<ListeningTest />} />
             <Route path="reset" element={<ResetPasswordPage />} />
           </Route>

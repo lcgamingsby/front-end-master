@@ -4,14 +4,33 @@ import Navbar from "../Components/Navbar";
 import axios from "axios";
 import { config } from "../../data/config";
 import Loading from "../Components/Loading";
+import { useUser } from "../Components/UserContext";
 
 function StudentDashboard() {
+  const { user } = useUser();
+
   const [exams, setExams] = useState([]);
   const [finishedLoading, setFinishedLoading] = useState(false);
 
   const handleExamClick = async (exam) => { 
     try {
       const token = localStorage.getItem("jwtToken");
+
+      const startRes = await axios.put(`${config.backendUrl}/api/student/exam/start`, {
+        nim: user.id,
+        exam_id: exam.exam_id,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (startRes.status !== 200) {
+        console.log("Unable to start exam");
+        return
+      }
+
+      console.log("start exam passed");
 
       const response = await axios.get(`${config.backendUrl}/api/student/exam/${exam.exam_id}`, {
         headers: {
@@ -42,11 +61,11 @@ function StudentDashboard() {
               listening: listening,
             },
             endDatetime: exam.end_datetime,
-          } 
+          }
         }); // arahkan ke halaman ujian
       }
     } catch (e) {
-      console.error("Error starting exams:", e);
+      console.error("Error starting exam:", e);
     }
   };
 

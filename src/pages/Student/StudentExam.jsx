@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import { useLocation, useNavigate } from "react-router-dom";
-import "../../App_old.css";
 import Navbar from "../Components/Navbar";
 import { config } from "../../data/config";
 import { FaCheck, FaChevronLeft, FaChevronRight, FaFlag, FaPlay } from "react-icons/fa";
@@ -16,6 +15,10 @@ const StudentExam = () => {
     const examID = location.state?.examID || 0;
     const examQuestions = location.state?.questions || [];
     const endDatetime = location.state?.endDatetime || "";
+    const flagged = location.state?.flagged || [];
+    const played = location.state?.hasPlayed || [];
+
+    const navigate = useNavigate();
 
     const recalculateTimeLeft = (dt) => {
         const currentDate = new Date();
@@ -28,7 +31,7 @@ const StudentExam = () => {
 
     const endDate = new Date(endDatetime);
 
-    const [flaggedQuestions, setFlaggedQuestions] = useState([]);
+    const [flaggedQuestions, setFlaggedQuestions] = useState(flagged);
     const [answeredQuestions, setAnsweredQuestions] = useState([]);
 
     const [currentQuestion, setCurrentQuestion] = useState({
@@ -36,7 +39,7 @@ const StudentExam = () => {
         type: "grammar",
     });
     const [selectedOption, setSelectedOption] = useState("");
-    const [hasPlayed, setHasPlayed] = useState([]);
+    const [hasPlayed, setHasPlayed] = useState(played);
     const [playing, setPlaying] = useState(false);
     const [timeLeft, setTimeLeft] = useState(recalculateTimeLeft(endDate));
 
@@ -56,6 +59,41 @@ const StudentExam = () => {
         setPlaying(false);
     }, [currentQuestion]);
 
+    const recoverExistingAnswers = async () => {
+        const token = localStorage.getItem("jwtToken");
+        
+        const answerResponse = await axios.get(`${config.backendUrl}/api/student/answers/${examID}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        const answerArray = (answerResponse.status === 200 && answerResponse.data.message === undefined)
+            ? answerResponse.data.map((v, i) => {
+                return {
+                    question_id: v.question_id,
+                    answer: v.answer,
+                };
+            })
+            : [];
+        
+        setAnsweredQuestions(answerArray);
+    }
+
+    useEffect(() => {
+        recoverExistingAnswers();
+
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                console.log("Page is hidden.");
+
+                // todo: send to backend
+            } else {
+                console.log("Page is visible.");
+            }
+        });
+    }, []);
+
     useEffect(() => {
         const timer = setInterval(() => {
             setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
@@ -63,6 +101,30 @@ const StudentExam = () => {
 
         return () => clearInterval(timer);
     }, []);
+
+    useEffect(() => {
+        if (timeLeft === 0) {
+            finishExam();
+
+            alert("Time's up!");
+
+            navigate("/student");
+        }
+    }, [timeLeft]);
+
+    const finishExam = async (e) => {
+        // used only when time's up
+        const token = localStorage.getItem("jwtToken");
+
+        const endRes = await axios.put(`${config.backendUrl}/api/student/exam/finish`, {
+            nim: user.id,
+            exam_id: examID,
+        }, {
+            headers: {
+            Authorization: `Bearer ${token}`,
+            },
+        });
+    }
 
     const handleFlag = () => {
         if (!flaggedQuestions.includes(examQuestions[currentQuestion.type][currentQuestion.index].question_id)) {
@@ -92,11 +154,13 @@ const StudentExam = () => {
             const token = localStorage.getItem("jwtToken");
 
             const answerData = {
-                "answer": index,
+                "answer": (index === selectedOption ? "" : index),
                 "question_id": q.question_id,
                 "nim": user.id,
                 "exam_id": examID,
             }
+
+            console.log(answerData);
 
             await axios.post(`${config.backendUrl}/api/student/exam/${examID}`, answerData, {
                 headers: {
@@ -248,7 +312,15 @@ const StudentExam = () => {
                     audioRef.current.pause();
                 }
             } else {
-                
+                navigate("/student/exam/finish", {
+                    state: { 
+                        examID: examID, 
+                        questions: examQuestions,
+                        endDatetime: endDatetime,
+                        flagged: flaggedQuestions,
+                        hasPlayed: hasPlayed,
+                    }
+                });
             }
         }
     };
@@ -288,7 +360,14 @@ const StudentExam = () => {
     ];
 
     return (
-        <div className="absolute bg-slate-50 w-full min-h-full h-auto">
+        <div
+            className="absolute bg-slate-50 w-full min-h-full h-auto"
+            onContextMenu={(e) => {
+                e.preventDefault();
+
+                alert("Right clicking is disabled.");
+            }}
+        >
             <Navbar examMode={true} />
 
             <div className="flex flex-1">
@@ -511,7 +590,7 @@ const StudentExam = () => {
                         </>
                     ) : null}
 
-                    <p className="text-justify">
+                    <p className="text-justify select-none">
                         {examQuestions[currentQuestion.type][currentQuestion.index].question_text}
                     </p>
 

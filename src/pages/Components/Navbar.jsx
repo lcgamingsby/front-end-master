@@ -86,12 +86,14 @@ function Navbar({ examMode = false }) {
 
             {showDropdown && !examMode ? (
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-xl py-1 z-20">
+                    {/*
                     <button
                         className="block px-4 py-2 text-slate-600 hover:bg-slate-200 w-full text-left font-semibold"
                         onClick={handleResetPassword}
                     >
                         <FaKey className="inline" /> Reset Password
                     </button>
+                    */}
                     <button
                         className="block px-4 py-2 text-red-600 hover:bg-red-200 w-full text-left font-semibold"
                         onClick={handleLogout}>
