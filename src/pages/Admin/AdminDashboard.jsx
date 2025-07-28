@@ -86,7 +86,7 @@ function AdminDashboard() {
               <div className="flex flex-wrap gap-5 mt-5">
                 {ongoingExams.length > 0 ? (
                   ongoingExams.map((exam) => (
-                    <div key={exam.id} className="bg-tec-darker text-white rounded-xl p-5 w-70 shadow-lg">
+                    <div key={exam.id} className="bg-tec-darker text-white rounded-xl p-5 w-80 shadow-lg">
                       <strong>{exam.title}</strong>
                       <div>
                         {exam.date} ({exam.time})

@@ -3,7 +3,7 @@ import { FaChevronDown, FaChevronUp, FaKey, FaSignOutAlt } from "react-icons/fa"
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
 
-function Navbar() {
+function Navbar({ examMode = false }) {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -38,7 +38,7 @@ function Navbar() {
                             duration-150 cursor-pointer`}
                         onClick={() => navigate("/admin")}
                     >
-                    Home
+                        Home
                     </button>
                     <button
                         className={`${location.pathname == "/admin/exams" ? "bg-tec-dark hover:bg-tec-light text-white"
@@ -46,7 +46,7 @@ function Navbar() {
                             duration-150 cursor-pointer`}
                         onClick={() => navigate("/admin/exams")}
                     >
-                    Exams
+                        Exams
                     </button>
                     <button
                         className={`${location.pathname == "/admin/questions" ? "bg-tec-dark hover:bg-tec-light text-white"
@@ -54,7 +54,7 @@ function Navbar() {
                             duration-150 cursor-pointer`}
                         onClick={() => navigate("/admin/questions")}
                     >
-                    Questions
+                        Questions
                     </button>
                     <button
                         className={`${location.pathname == "/admin/students" ? "bg-tec-dark hover:bg-tec-light text-white"
@@ -62,7 +62,7 @@ function Navbar() {
                             duration-150 cursor-pointer`}
                         onClick={() => navigate("/admin/students")}
                     >
-                    Students
+                        Students
                     </button>
                 </div>
             ) : null}
@@ -70,17 +70,21 @@ function Navbar() {
         <div className="relative">
             <button
                 className="text-right text-sm hover:bg-slate-200 py-3 px-2 text-tec-darker flex items-center gap-2"
-                onClick={() => setShowDropdown(!showDropdown)}
+                onClick={() => {
+                    if (!examMode) {
+                        setShowDropdown(!showDropdown)
+                    }
+                }}
             >
                 <span>
                     <strong>{user.role == 'mahasiswa' ? "STUDENT" : "ADMIN"}</strong><br/>
                     <span>{user.name.length > 50 ? user.name.slice(0, 50 + 1).trim() + "..." : user.name}
                     </span>
                 </span>
-            {showDropdown ? <FaChevronUp /> : <FaChevronDown />}
+            {!examMode ? (showDropdown ? <FaChevronUp /> : <FaChevronDown />) : null}
             </button>
 
-            {showDropdown ? (
+            {showDropdown && !examMode ? (
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-xl py-1 z-20">
                     <button
                         className="block px-4 py-2 text-slate-600 hover:bg-slate-200 w-full text-left font-semibold"

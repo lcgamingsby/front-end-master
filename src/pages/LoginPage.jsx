@@ -80,7 +80,7 @@ function LoginPage() {
             
           </div>
 
-          <button type="submit" className="w-full p-3 bg-tec-light text-white text-lg font-semibold rounded-lg cursor-pointer transition mt-3 hover:bg-tec-light-hover">Masuk</button>
+          <button type="submit" className="w-full p-3 bg-tec-light text-white text-lg font-semibold rounded-lg cursor-pointer transition mt-3 hover:bg-sky-400">Masuk</button>
         </form>
         <p className="note mt-3 text-sm text-slate-500">Gunakan akun yang telah terdaftar.</p>
       </div>

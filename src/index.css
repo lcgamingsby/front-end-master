@@ -17,10 +17,15 @@
 @theme {
   --font-sans: "Poppins", sans-serif;
 
-  --color-tec-light: #0097DA;
-  --color-tec-light-hover: #0077B6;
+  --color-tec-light: #0EA5E9;
+  --color-tec-light-hover: #7DD3FC;
+  --color-tec-lighter: #BAE6FD;
+
+  --color-tec-card: #C8CCFF;
+  
   --color-tec-dark: #003366;
   --color-tec-darker: #000046;
+  --color-tec-darker-hover: #A4ACFF;
 
   --default-font-family: var(--font-sans);
 }

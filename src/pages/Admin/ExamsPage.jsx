@@ -35,7 +35,7 @@ function ExamsPage() {
       setExams(response.data);
       setFinishedLoading(true);
     } catch (error) {
-      console.error("Error fetching questions:", error);
+      console.error("Error fetching exams:", error);
       setFinishedLoading(true);
     }
   }

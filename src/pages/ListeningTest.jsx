@@ -131,6 +131,7 @@ const ListeningTest = () => {
   
 
   const handleFinishTest = () => {
+    /*
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     const testResult = {
       username: loggedInUser.name,
@@ -155,6 +156,7 @@ const ListeningTest = () => {
     a.href = url;
     a.download = `test_result_${testResult.username}.csv`;
     a.click();
+    */
 
     navigate("/student");
   };  
