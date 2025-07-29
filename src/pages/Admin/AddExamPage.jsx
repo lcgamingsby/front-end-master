@@ -48,7 +48,7 @@ function AddExamPage() {
 
   const getQuestions = async (token) => {
     try {
-      const response = await axios.get(`${config.backendUrl}/api/questions`, {
+      const response = await axios.get(`${config.backendUrl}/api/admin/questions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -64,7 +64,7 @@ function AddExamPage() {
 
   const getStudents = async (token) => {
     try {
-      const response = await axios.get(`${config.backendUrl}/api/users`, {
+      const response = await axios.get(`${config.backendUrl}/api/admin/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,7 +80,7 @@ function AddExamPage() {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.post(`${config.backendUrl}/api/exams`, exam, {
+      await axios.post(`${config.backendUrl}/api/admin/exams`, exam, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -98,7 +98,7 @@ function AddExamPage() {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.put(`${config.backendUrl}/api/exams/${id}`, exam, {
+      await axios.put(`${config.backendUrl}/api/admin/exams/${id}`, exam, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

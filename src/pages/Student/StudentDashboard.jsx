@@ -75,7 +75,7 @@ function StudentDashboard() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(`${config.backendUrl}/api/student`, {
+      const response = await axios.get(`${config.backendUrl}/api/student/home`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

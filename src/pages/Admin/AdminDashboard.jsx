@@ -5,7 +5,6 @@ import { config } from "../../data/config";
 import Loading from "../Components/Loading";
 
 function AdminDashboard() {
-  const [adminName] = useState("");
   const [ongoingExams, setOngoingExams] = useState([]);
   const [dashboardNumbers, setDashboardNumbers] = useState({
     questions_made: 0,
@@ -17,7 +16,7 @@ function AdminDashboard() {
   const getDashboardNumbers = async () => {
     const token = localStorage.getItem("jwtToken");
 
-    const response = await axios.get(`${config.backendUrl}/api/admin`, {
+    const response = await axios.get(`${config.backendUrl}/api/admin/home`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -26,6 +25,39 @@ function AdminDashboard() {
     setDashboardNumbers(response.data);
 
     setFinishedLoading(true);
+  }
+
+  const getOngoingExams = async () => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+
+      const response = await axios.get(`${config.backendUrl}/api/admin/home/ongoing`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // console.log(response.data, typeof response.data);
+
+      setOngoingExams(response.data.map((e, index) => {
+        const start = new Date(e.start_datetime);
+        const end = new Date(e.end_datetime);
+        const now = new Date();
+
+        const isOngoing = now >= start && now <= end;
+
+        // console.log(e.exam_id, isOngoing, now >= start, now <= end);
+
+        return {
+          ...e,
+          status: isOngoing ? "ongoing" : "pending",
+        }
+      }));
+      setFinishedLoading(true);
+    } catch (error) {
+      console.error("Error fetching exams:", error);
+      setFinishedLoading(true);
+    }
   }
 
   useEffect(() => {
@@ -44,6 +76,7 @@ function AdminDashboard() {
     */
 
     getDashboardNumbers();
+    getOngoingExams();
   }, []);
 
   return (
@@ -85,18 +118,46 @@ function AdminDashboard() {
               <p className="text-slate-700">Keep track of students currently taking an exam.</p>
               <div className="flex flex-wrap gap-5 mt-5">
                 {ongoingExams.length > 0 ? (
-                  ongoingExams.map((exam) => (
-                    <div key={exam.id} className="bg-tec-darker text-white rounded-xl p-5 w-80 shadow-lg">
-                      <strong>{exam.title}</strong>
-                      <div>
-                        {exam.date} ({exam.time})
+                  ongoingExams.map((exam, idx) => {
+                    const startDatetime = new Date(exam.start_datetime);
+                    const endDatetime = new Date(exam.end_datetime);
+
+                    // JS date formatting is limited, can't use en-US for "d M Y"
+                    const startDate = startDatetime.toLocaleString("en-GB", {dateStyle: "medium"});
+                    const endDate = endDatetime.toLocaleString("en-GB", {dateStyle: "medium"});
+
+                    const startTime = startDatetime.toLocaleString("en-GB", {timeStyle: "short"});
+                    const endTime = endDatetime.toLocaleString("en-GB", {timeStyle: "short"});
+
+                    const dateString = (startDate === endDate 
+                      ? `${startDate} (${startTime} - ${endTime})`
+                      : `${startDate} (${startTime}) - ${endDate} (${endTime})`
+                    );
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`rounded-xl p-5 w-80 shadow-lg  ${exam.status === "ongoing"
+                          ? "bg-tec-darker text-white cursor-pointer"
+                          : "bg-tec-card text-tec-darker"}
+                        `}
+                        onClick={() => {
+                          if (exam.status === "ongoing") {
+                            handleExamClick(exam)
+                          }
+                        }}
+                      >
+                        <h3 className="font-bold">{exam.exam_title}</h3>
+                        <p>{dateString}</p>
+                        <p className="mt-2.5 font-semibold">
+                          {exam.status === "ongoing" ? "Ongoing" : "Pending"}
+                        </p>
                       </div>
-                      <div className="exam-status">Ongoing ({exam.remaining} left)</div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-tec-darker rounded-xl p-5 w-full text-center">
-                    <h3 className="text-2xl font-bold">- No Ongoing Exams -</h3>
+                    <h3 className="text-2xl font-bold">- No Upcoming Exams -</h3>
                     <p>Check back later.</p>
                   </div>
                 )}

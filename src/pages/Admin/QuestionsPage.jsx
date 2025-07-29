@@ -25,7 +25,7 @@ function QuestionsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(`${config.backendUrl}/api/questions`, {
+      const response = await axios.get(`${config.backendUrl}/api/admin/questions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -45,7 +45,7 @@ function QuestionsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.delete(`${config.backendUrl}/api/questions/${questionId}`, {
+      const response = await axios.delete(`${config.backendUrl}/api/admin/questions/${questionId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
