@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { config } from "../data/config";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -80,9 +80,14 @@ function LoginPage() {
             
           </div>
 
-          <button type="submit" className="w-full p-3 bg-tec-light text-white text-lg font-semibold rounded-lg cursor-pointer transition mt-3 hover:bg-sky-400">Masuk</button>
+          <button type="submit" className="w-9/10 p-3 bg-tec-light text-white text-lg font-semibold rounded-lg cursor-pointer transition mt-3 hover:bg-sky-400">Masuk</button>
         </form>
-        <p className="note mt-3 text-sm text-slate-500">Gunakan akun yang telah terdaftar.</p>
+        <p className="note mt-3 text-sm text-slate-500">
+          Belum punya akun?{" "}
+          <Link to="/register" className="text-tec-light font-semibold hover:opacity-90">
+            Daftar di sini
+          </Link>
+        </p>
       </div>
     </div>
   );

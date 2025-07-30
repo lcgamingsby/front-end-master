@@ -1,4 +1,5 @@
 import React from "react";
+import TecSchedule from "../TecSchedule";
 import { useNavigate } from "react-router-dom";
 
 function HomePage() {
@@ -20,12 +21,11 @@ function HomePage() {
         </button>
       </div>
 
-      <div className="max-w-xl mx-auto my-15 bg-white p-10 rounded-xl shadow-lg text-slate-700 text-center">
-        <h2 className="font-bold text-tec-dark mb-5 text-2xl">Informasi Tes TEC</h2>
-        <p className="text-lg my-3">🗓 Jadwal: Setiap Senin & Kamis</p>
-        <p className="text-lg my-3">💰 Biaya: Rp 150.000</p>
-        <p className="text-lg my-3">👩‍🏫 Pengajar: Dosen Bahasa Inggris Berpengalaman</p>
-        <p className="text-lg my-3">📍 Lokasi: Ruang Lab Bahasa 2</p>
+      <div className="max-w-255 mx-auto my-25 bg-white p-10 rounded-xl shadow-lg text-slate-700 text-center">
+        <h2 className="font-bold text-tec-dark mb-5 text-2xl">INFORMASI TEC UKDC</h2>
+        <p className="text-lg my-3">Kursus ini dirancang untuk membantu peserta dan mahasiswa untuk mempelajari strategi dalam mengerjakan soal-soal TEC (Test of English Competence)</p>
+        <br></br>
+        <TecSchedule />   
       </div>
     </div>
   );

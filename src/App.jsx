@@ -8,7 +8,7 @@ import QuestionsPage from "./pages/Admin/QuestionsPage";
 import AddQuestionPage from "./pages/Admin/AddQuestionPage";
 import StudentsPage from "./pages/Admin/StudentsPage";
 import AddStudentPage from "./pages/Admin/AddStudentPage";
-
+import RegisterPage from "./pages/RegisterPage";
 import StudentDashboard from "./pages/Student/StudentDashboard";
 import ListeningTest from "./pages/ListeningTest";
 
@@ -24,6 +24,7 @@ function App() {
     <UserProvider>
       <Router>
         <Routes>
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<PublicRoute />}>
             <Route index element={<LoginPage />} />

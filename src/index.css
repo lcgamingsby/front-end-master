@@ -9,6 +9,9 @@
     margin: 0;
   }
 
+  background: url('../dist/vite.svg');
+
+
   input[type='number'] {
     -moz-appearance: textfield;
   }
@@ -29,3 +32,4 @@
 
   --default-font-family: var(--font-sans);
 }
+
