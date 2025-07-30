@@ -1,3 +1,4 @@
+/*
 import React, { useState, useEffect, useRef } from "react";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -131,7 +132,6 @@ const ListeningTest = () => {
   
 
   const handleFinishTest = () => {
-    /*
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     const testResult = {
       username: loggedInUser.name,
@@ -156,7 +156,6 @@ const ListeningTest = () => {
     a.href = url;
     a.download = `test_result_${testResult.username}.csv`;
     a.click();
-    */
 
     navigate("/student");
   };  
@@ -180,15 +179,12 @@ const ListeningTest = () => {
 
   return (
     <div className="app-container">
-      {/* App Bar */}
-
       <div className="app-bar">
         <div className="logo-container">
           <img src="/logoukdc.png" alt="Logo" className="logo" />
           <h1 className="test-title">Listening Test</h1>
         </div>
         <span className="timer">⏳ {formatTime(timeLeft)}</span>
-        {/* Menampilkan nama pengguna */}
         <span className="username">{loggedInUser ? loggedInUser.name : "Guest"}</span>
       </div>
 
@@ -260,7 +256,6 @@ const ListeningTest = () => {
         </Card>
       </div>
 
-      {/* Pop-up konfirmasi */}
       <Dialog open={showConfirmDialog} onClose={() => setShowConfirmDialog(false)}>
         <DialogTitle>Yakin ingin menyelesaikan tes?</DialogTitle>
         <DialogActions>
@@ -273,7 +268,6 @@ const ListeningTest = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Pop-up hasil akhir */}
       <Dialog open={showResultDialog} onClose={() => setShowResultDialog(false)}>
         <DialogTitle>Hasil Tes</DialogTitle>
         <DialogContent>
@@ -293,5 +287,14 @@ const ListeningTest = () => {
     </div>
   );
 };
+
+export default ListeningTest;
+*/
+
+const ListeningTest = () => {
+  return (
+    <div>Temp</div>
+  )
+}
 
 export default ListeningTest;

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../../AdminStudents.css";
 import axios from "axios";
 import { config } from "../../data/config";
 import Navbar from "../Components/Navbar";

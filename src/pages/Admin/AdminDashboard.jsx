@@ -61,20 +61,6 @@ function AdminDashboard() {
   }
 
   useEffect(() => {
-    // Dummy data exam
-    /*
-    setOngoingExams([
-      {
-        id: 1,
-        title: "Session 1 TEC Exam",
-        date: "12 Jan 2024",
-        time: "14:00-16:30",
-        remaining: "00:45:00",
-        status: "ongoing",
-      },
-    ]);
-    */
-
     getDashboardNumbers();
     getOngoingExams();
   }, []);
@@ -86,7 +72,7 @@ function AdminDashboard() {
       <main className="px-8 py-12">
         {finishedLoading ? (
           <>
-            <div className="flex gap-8 mb-10 text-tec-darker">
+            <div className="flex gap-8 mb-5 text-tec-darker">
               <div
                 className="flex-1 border-4 border-solid border-tec-darker motion-safe:transition-colors
                   motion-safe:duration-150 motion-safe:ease-out hover:bg-tec-darker hover:text-white
@@ -113,7 +99,7 @@ function AdminDashboard() {
               </div>
             </div>
 
-            <section className="mt-5 mb-10 py-5 px-10 text-tec-darker">
+            <section className="mt-2 mb-5 py-5 px-10 text-tec-darker">
               <h2 className="text-xl font-bold mb-1">Ongoing Exams</h2>
               <p className="text-slate-700">Keep track of students currently taking an exam.</p>
               <div className="flex flex-wrap gap-5 mt-5">

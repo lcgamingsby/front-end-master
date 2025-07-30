@@ -45,7 +45,6 @@ function App() {
             <Route index element={<StudentDashboard />} />
             <Route path="exam" element={<StudentExam />} />
             <Route path="exam/finish" element={<StudentFinish />} />
-            <Route path="listeningtest" element={<ListeningTest />} />
             <Route path="reset" element={<ResetPasswordPage />} />
           </Route>
         </Routes>
