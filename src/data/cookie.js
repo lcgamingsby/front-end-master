@@ -11,5 +11,14 @@ export function setJWTCookie(token) {
 }
 
 export function getJWTCookie() {
-    
+    let ca = document.cookie.split(';');
+
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf("jwtToken=") === 0) {
+            return c.substring("jwtToken=".length, c.length);
+        }
+    }
+
+    return "";
 }

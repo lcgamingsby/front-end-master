@@ -724,7 +724,7 @@ function AddExamPage() {
           <button
             type="submit"
             className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
-              rounded-lg flex items-center gap-2 mt-5"
+              rounded-lg flex items-center gap-2 mt-5 cursor-pointer"
           >
             {isEdit ? "Save Changes" : "Add Exam"}
           </button>
