@@ -193,18 +193,20 @@ function AddQuestionPage() {
             </li>
           </div>
 
-          <div className="mb-2">
-            <label className="text-sm text-slate-600 font-semibold select-none">FORMATTING PREVIEW</label>
-            <div>
-              {questionText ? (
-                <div className="text-base text-black font-medium p-2">
-                  {displayFormattingExample()}
-                </div>
-              ) : (
-                <p className="text-slate-400">-</p>
-              )}
+          {type === "grammar" && (
+            <div className="mb-2">
+              <label className="text-sm text-slate-600 font-semibold select-none">FORMATTING PREVIEW</label>
+              <div>
+                {questionText ? (
+                  <div className="text-base text-black font-medium p-2">
+                    {displayFormattingExample()}
+                  </div>
+                ) : (
+                  <p className="text-slate-400">-</p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="mb-2">
             <label className="text-sm text-tec-darker font-semibold select-none">ANSWERS</label>
