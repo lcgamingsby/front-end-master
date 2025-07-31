@@ -7,6 +7,7 @@ import { config } from "../../data/config";
 import { FaCheck, FaChevronLeft, FaChevronRight, FaFlag, FaPlay } from "react-icons/fa";
 import axios from "axios";
 import { useUser } from "../Components/UserContext";
+import GrammarUnderline from "../Components/GrammarUnderline";
 
 const StudentExam = () => {
     const { user } = useUser();
@@ -358,6 +359,38 @@ const StudentExam = () => {
             text: examQuestions[currentQuestion.type][currentQuestion.index].choice_d,
         },
     ];
+    
+    const displayFormattingExample = () => {
+        const letters = ["A", "B", "C", "D"];
+        let letterIndex = 0;
+
+        const regex = /__([^_]+?)__/g;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
+
+        while ((match = regex.exec(examQuestions[currentQuestion.type][currentQuestion.index].question_text)) !== null) {
+            if (match.index > lastIndex) {
+            parts.push(<span>{examQuestions[currentQuestion.type][currentQuestion.index].question_text.slice(lastIndex, match.index)}</span>);
+            }
+
+            const letter = letters[letterIndex++] || "?";
+            
+            parts.push(
+            <GrammarUnderline contentLetter={letter} text={match[1]} />
+            )
+
+            lastIndex = regex.lastIndex;
+        }
+
+        if (lastIndex < examQuestions[currentQuestion.type][currentQuestion.index].question_text.length) {
+            parts.push(<span>{examQuestions[currentQuestion.type][currentQuestion.index].question_text.slice(lastIndex)}</span>);
+        }
+
+        return (<>
+            {parts}
+        </>);
+    }
 
     return (
         <div
@@ -590,8 +623,10 @@ const StudentExam = () => {
                         </>
                     ) : null}
 
-                    <p className="text-justify select-none">
-                        {examQuestions[currentQuestion.type][currentQuestion.index].question_text}
+                    <p className="text-justify font-medium select-none">
+                        {currentQuestion.type !== "grammar"
+                            ? examQuestions[currentQuestion.type][currentQuestion.index].question_text
+                            : displayFormattingExample()}
                     </p>
 
                     <div className="flex flex-col gap-2.5 my-5">
