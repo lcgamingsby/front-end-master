@@ -17,7 +17,7 @@ function LoginPage() {
     e.preventDefault();
 
     try {
-      const response = await axios.post(config.backendUrl + "/login", {
+      const response = await axios.post(`${config.BACKEND_URL}/login`, {
         username: name,
         password: password,
       });
@@ -25,7 +25,7 @@ function LoginPage() {
       if (response.status === 200 && response.data.token) {
         localStorage.setItem("jwtToken", response.data.token);
 
-        const userRes = await axios.get(`${config.backendUrl}/api/me`, {
+        const userRes = await axios.get(`${config.BACKEND_URL}/api/me`, {
             headers: {
                 Authorization: `Bearer ${response.data.token}`,
             },

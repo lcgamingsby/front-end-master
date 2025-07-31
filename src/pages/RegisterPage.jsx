@@ -48,7 +48,7 @@ function RegisterPage() {
       };
 
       // Dummy register endpoint — ganti sesuai backend kamu
-      const res = await axios.post(`${config.backendUrl}register`, payload);
+      const res = await axios.post(`${config.BACKEND_URL}/register`, payload);
 
       if (res.status === 201 || res.status === 200) {
         alert("Akun berhasil dibuat. Silakan login.");
@@ -58,9 +58,16 @@ function RegisterPage() {
       }
     } catch (err) {
       console.error("Register failed:", err);
-      const msg =
+      const msg = err?.response?.data?.message === "409 - User with this NIM already exists"
+        ? ("Akun dengan NIM ini sudah ada. Silakan gunakan NIM lain atau masuk menggunakan NIM ini.") : (
+          err?.response?.data?.message === "409 - User with this email already exists" ? (
+            "Akun dengan email ini sudah ada. Silakan gunakan email lain atau masuk menggunakan email ini."
+          ) : (
         err?.response?.data?.message ||
-        "Terjadi kesalahan saat membuat akun. Coba lagi.";
+        "Terjadi kesalahan saat membuat akun. Coba lagi."
+      ));
+      
+
       alert(msg);
     }
   };
@@ -68,7 +75,7 @@ function RegisterPage() {
   return (
     <div className="flex items-center justify-center w-screen min-h-screen bg-linear-135 from-tec-light to-tec-dark">
       <div className="bg-white py-10 px-8 rounded-xl shadow-lg w-full max-w-md text-center">
-        <h2 className="mb-5 text-2xl text-tec-dark font-bold">Buat Akun</h2>
+        <h2 className="mb-5 text-2xl text-tec-dark font-bold">Daftar</h2>
 
         <form onSubmit={handleSubmit} className="text-left">
           {/* Nama */}
@@ -121,12 +128,12 @@ function RegisterPage() {
 
           {/* Password */}
           <label className="block mt-4 text-sm font-semibold text-slate-700">Password</label>
-          <div className="w-full flex items-center justify-between border border-gray-300 rounded-lg my-2 px-4">
+          <div className="w-full flex items-center justify-between border border-gray-300 rounded-lg my-2 py-3 px-4 hover:border-tec-light">
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              placeholder="6–12 karakter"
-              className="flex-grow py-3 text-lg outline-none"
+              placeholder="6-12 karakter"
+              className="flex-grow text-lg outline-none"
               onChange={(e) => setPassword(e.target.value)}
               minLength={6}
               maxLength={12}
@@ -134,12 +141,11 @@ function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="p-2"
             >
               {showPassword ? (
-                <FaEyeSlash className="text-tec-dark w-5 h-5" />
+                <FaEyeSlash className="text-tec-dark w-6 h-6" />
               ) : (
-                <FaEye className="text-tec-dark w-5 h-5" />
+                <FaEye className="text-tec-dark w-6 h-6" />
               )}
             </button>
           </div>
@@ -157,7 +163,7 @@ function RegisterPage() {
             className={`w-full p-3 text-white text-lg font-semibold rounded-lg cursor-pointer transition mt-4
               ${formValid ? "bg-tec-light hover:bg-sky-400" : "bg-slate-300 cursor-not-allowed"}`}
           >
-            Bikin Akun
+            Buat Akun
           </button>
 
           {/* Link ke login */}
