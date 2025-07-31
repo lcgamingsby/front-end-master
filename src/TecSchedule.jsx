@@ -16,8 +16,8 @@ const schedules = [
   { month: "Desember 2025",  date: "Jumat, 12 Desember 2025" },
 ];
 
-const S1 = "14.00–16.30";
-const S2 = "16.30–19.00";
+const S1 = "14.00-16.30";
+const S2 = "16.30-19.00";
 
 const styles = {
   root: { width: "100%", maxWidth: 1000, margin: "0 auto" },
@@ -113,13 +113,13 @@ export default function TecSchedule() {
     <div style={styles.root}>
       <h3 style={styles.title}>Jadwal Tes TEC 2025</h3>
       <p style={styles.note}>
-        Tes TEC akan dilaksanakan pada hari Jumat setiap bulannya. Setiap bulan terdiri dari 2 sesi:
+        Tes TEC akan dilaksanakan pada hari Jumat setiap bulannya. Setiap bulan terdiri dari 2 sesi: {" "}
         <strong>Sesi 1</strong> pukul {S1} dan <strong>Sesi 2</strong> pukul {S2}.
       </p>
 
       <div style={styles.grid}>
-        <ScheduleTable title="Januari – Juni" rows={firstHalf} />
-        <ScheduleTable title="Juli – Desember" rows={secondHalf} />
+        <ScheduleTable title="Januari - Juni" rows={firstHalf} />
+        <ScheduleTable title="Juli - Desember" rows={secondHalf} />
       </div>
     </div>
   );

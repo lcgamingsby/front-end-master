@@ -24,7 +24,7 @@ function StudentsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(config.backendUrl + "/api/admin/users", {
+      const response = await axios.get(config.BACKEND_URL + "/api/admin/users", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -42,7 +42,7 @@ function StudentsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.delete(config.backendUrl + "/api/admin/users/" + nim, {
+      const response = await axios.delete(config.BACKEND_URL + "/api/admin/users/" + nim, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

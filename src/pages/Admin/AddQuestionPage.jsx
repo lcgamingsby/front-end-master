@@ -26,7 +26,7 @@ function AddQuestionPage() {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.post(`${config.backendUrl}/api/admin/questions`, question, {
+      await axios.post(`${config.BACKEND_URL}/api/admin/questions`, question, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -50,7 +50,7 @@ function AddQuestionPage() {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.put(`${config.backendUrl}/api/admin/questions/${id}`, question, {
+      await axios.put(`${config.BACKEND_URL}/api/admin/questions/${id}`, question, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

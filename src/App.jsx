@@ -24,10 +24,12 @@ function App() {
     <UserProvider>
       <Router>
         <Routes>
-          <Route path="/register" element={<RegisterPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<PublicRoute />}>
             <Route index element={<LoginPage />} />
+          </Route>
+          <Route path="/register" element={<PublicRoute />}>
+            <Route index element={<RegisterPage />} />
           </Route>
           <Route path="/admin" element={<PrivateRoute role="admin" />}>
             <Route index element={<AdminDashboard />} />

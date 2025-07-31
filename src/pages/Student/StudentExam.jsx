@@ -48,7 +48,7 @@ const StudentExam = () => {
     useEffect(() => {
         if (currentQuestion.type === "listening") {
             const newAudio = new Audio(`
-                ${config.backendUrl}/audio/${examQuestions[currentQuestion.type][currentQuestion.index].audio_path}
+                ${config.BACKEND_URL}/audio/${examQuestions[currentQuestion.type][currentQuestion.index].audio_path}
             `);
             audioRef.current = newAudio;
             audioRef.current.load();
@@ -62,7 +62,7 @@ const StudentExam = () => {
     const recoverExistingAnswers = async () => {
         const token = localStorage.getItem("jwtToken");
         
-        const answerResponse = await axios.get(`${config.backendUrl}/api/student/answers/${examID}`, {
+        const answerResponse = await axios.get(`${config.BACKEND_URL}/api/student/answers/${examID}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -116,7 +116,7 @@ const StudentExam = () => {
         // used only when time's up
         const token = localStorage.getItem("jwtToken");
 
-        const endRes = await axios.put(`${config.backendUrl}/api/student/exam/finish`, {
+        const endRes = await axios.put(`${config.BACKEND_URL}/api/student/exam/finish`, {
             nim: user.id,
             exam_id: examID,
         }, {
@@ -162,7 +162,7 @@ const StudentExam = () => {
 
             console.log(answerData);
 
-            await axios.post(`${config.backendUrl}/api/student/exam/${examID}`, answerData, {
+            await axios.post(`${config.BACKEND_URL}/api/student/exam/${examID}`, answerData, {
                 headers: {
                 Authorization: `Bearer ${token}`,
                 },

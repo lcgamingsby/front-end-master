@@ -5,7 +5,7 @@ import axios from "axios";
 import { config } from "../../data/config";
 
 const RestoreUserFromToken = async (token, setUser) => {
-    const userRes = await axios.get(`${config.backendUrl}/api/me`, {
+    const userRes = await axios.get(`${config.BACKEND_URL}/api/me`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

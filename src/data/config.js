@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 export const config = {
-    backendUrl: "http://localhost:8080", // For no authentication request
+    BACKEND_URL: process.env.BACKEND_URL,
 }
