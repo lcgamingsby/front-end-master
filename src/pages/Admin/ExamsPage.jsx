@@ -26,7 +26,7 @@ function ExamsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(`${config.backendUrl}/api/admin/exams`, {
+      const response = await axios.get(`${config.BACKEND_URL}/api/admin/exams`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -44,7 +44,7 @@ function ExamsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.delete(`${config.backendUrl}/api/admin/exams/${examId}`, {
+      const response = await axios.delete(`${config.BACKEND_URL}/api/admin/exams/${examId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,7 +73,7 @@ function ExamsPage() {
     const token = localStorage.getItem("jwtToken");
 
     // needed for getting the student and questions IDs.
-    const response = await axios.get(`${config.backendUrl}/api/admin/exams/${index}`, {
+    const response = await axios.get(`${config.BACKEND_URL}/api/admin/exams/${index}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

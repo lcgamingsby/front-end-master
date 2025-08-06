@@ -16,7 +16,7 @@ function AdminDashboard() {
   const getDashboardNumbers = async () => {
     const token = localStorage.getItem("jwtToken");
 
-    const response = await axios.get(`${config.backendUrl}/api/admin/home`, {
+    const response = await axios.get(`${config.BACKEND_URL}/api/admin/home`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -31,7 +31,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(`${config.backendUrl}/api/admin/home/ongoing`, {
+      const response = await axios.get(`${config.BACKEND_URL}/api/admin/home/ongoing`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

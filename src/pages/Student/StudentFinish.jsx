@@ -38,7 +38,7 @@ const StudentFinish = () => {
     const recoverExistingAnswers = async () => {
         const token = localStorage.getItem("jwtToken");
         
-        const answerResponse = await axios.get(`${config.backendUrl}/api/student/answers/${examID}`, {
+        const answerResponse = await axios.get(`${config.BACKEND_URL}/api/student/answers/${examID}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -65,7 +65,7 @@ const StudentFinish = () => {
         if (confirm("Are you sure to end this exam now?")) {
             const token = localStorage.getItem("jwtToken");
 
-            const endRes = await axios.put(`${config.backendUrl}/api/student/exam/finish`, {
+            const endRes = await axios.put(`${config.BACKEND_URL}/api/student/exam/finish`, {
                 nim: user.id,
                 exam_id: examID,
             }, {

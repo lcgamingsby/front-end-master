@@ -25,7 +25,7 @@ function QuestionsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(`${config.backendUrl}/api/admin/questions`, {
+      const response = await axios.get(`${config.BACKEND_URL}/api/admin/questions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -45,7 +45,7 @@ function QuestionsPage() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.delete(`${config.backendUrl}/api/admin/questions/${questionId}`, {
+      const response = await axios.delete(`${config.BACKEND_URL}/api/admin/questions/${questionId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -240,7 +240,7 @@ function QuestionsPage() {
                   <td className="px-4 py-2 border-2 border-slate-400">{q.question_type[0].toUpperCase() + q.question_type.slice(1)}</td>
                   <td className="px-4 py-2 border-2 border-slate-400 text-justify text-ellipsis" title={q.question_text}>
                     {q.audio_path ? (
-                      <audio controls src={`${config.backendUrl}/audio/${q.audio_path}`} />
+                      <audio controls src={`${config.BACKEND_URL}/audio/${q.audio_path}`} />
                     ) : null}
                     {q.question_text.length > 115 ? q.question_text.slice(0, 115).trim() + "..." : q.question_text}
                   </td>

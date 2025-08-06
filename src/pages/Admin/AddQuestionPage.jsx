@@ -5,6 +5,7 @@ import { config } from "../../data/config";
 import ProgressBar from "../Components/ProgressBar";
 import Navbar from "../Components/Navbar";
 import { FaChevronLeft } from "react-icons/fa";
+import GrammarUnderline from "../Components/GrammarUnderline";
 
 function AddQuestionPage() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ function AddQuestionPage() {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.post(`${config.backendUrl}/api/admin/questions`, question, {
+      await axios.post(`${config.BACKEND_URL}/api/admin/questions`, question, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -50,7 +51,7 @@ function AddQuestionPage() {
     const token = localStorage.getItem("jwtToken");
 
     try {
-      await axios.put(`${config.backendUrl}/api/admin/questions/${id}`, question, {
+      await axios.put(`${config.BACKEND_URL}/api/admin/questions/${id}`, question, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -85,6 +86,40 @@ function AddQuestionPage() {
       createQuestion(formData, setUploadProgress);
     }
   };
+
+  const displayFormattingExample = () => {
+    const letters = ["A", "B", "C", "D"];
+    let letterIndex = 0;
+
+    const regex = /__([^_]+?)__/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(questionText)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(<span>{questionText.slice(lastIndex, match.index)}</span>);
+      }
+
+      const letter = letters[letterIndex++] || "?";
+      
+      parts.push(
+        <GrammarUnderline contentLetter={letter} text={match[1]} />
+      )
+
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < questionText.length) {
+      parts.push(<span>{questionText.slice(lastIndex)}</span>);
+    }
+
+    console.log(parts);
+
+    return (<>
+      {parts}
+    </>);
+  }
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
@@ -145,14 +180,33 @@ function AddQuestionPage() {
             <label className="text-sm text-tec-darker font-semibold select-none">QUESTION TEXT</label>
             <textarea
               placeholder="Text of the question"
-              className="resize-y min-h-25 w-full px-3 py-2 mb-4 border-2 border-slate-300
+              className="resize-y min-h-25 w-full px-3 py-2 mb-2 border-2 border-slate-300
                 focus:outline-none hover:border-tec-light focus:border-tec-light rounded-lg"
               name="question_text"
               required
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
             />
+
+            <li className="text-sm text-slate-600 font-semibold list-disc list-outside ml-4 mb-4">
+              <ul>Use two underscores (__) to create an underline formatting for the grammar section (includes the letters from A to D).</ul>
+            </li>
           </div>
+
+          {type === "grammar" && (
+            <div className="mb-2">
+              <label className="text-sm text-slate-600 font-semibold select-none">FORMATTING PREVIEW</label>
+              <div>
+                {questionText ? (
+                  <div className="text-base text-black font-medium p-2">
+                    {displayFormattingExample()}
+                  </div>
+                ) : (
+                  <p className="text-slate-400">-</p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="mb-2">
             <label className="text-sm text-tec-darker font-semibold select-none">ANSWERS</label>
@@ -191,7 +245,11 @@ function AddQuestionPage() {
             )})}
           </div>
 
-          <button className="add-btn">
+          <button
+            className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold rounded-lg flex
+              items-center gap-2 mt-5 cursor-pointer"
+            type="submit"
+          >
             {isEdit ? "Save Changes" : "Add Question"}
           </button>
         </form>

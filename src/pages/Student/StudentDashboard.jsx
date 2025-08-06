@@ -16,7 +16,7 @@ function StudentDashboard() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const startRes = await axios.put(`${config.backendUrl}/api/student/exam/start`, {
+      const startRes = await axios.put(`${config.BACKEND_URL}/api/student/exam/start`, {
         nim: user.id,
         exam_id: exam.exam_id,
       }, {
@@ -32,7 +32,7 @@ function StudentDashboard() {
 
       console.log("start exam passed");
 
-      const response = await axios.get(`${config.backendUrl}/api/student/exam/${exam.exam_id}`, {
+      const response = await axios.get(`${config.BACKEND_URL}/api/student/exam/${exam.exam_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -75,7 +75,7 @@ function StudentDashboard() {
     try {
       const token = localStorage.getItem("jwtToken");
 
-      const response = await axios.get(`${config.backendUrl}/api/student/home`, {
+      const response = await axios.get(`${config.BACKEND_URL}/api/student/home`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
