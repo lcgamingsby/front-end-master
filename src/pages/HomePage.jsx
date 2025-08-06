@@ -1,5 +1,5 @@
 import React from "react";
-import TecSchedule from "../TecSchedule";
+import TecSchedule from "./Components/TecSchedule";
 import { useNavigate } from "react-router-dom";
 
 function HomePage() {
@@ -21,9 +21,9 @@ function HomePage() {
         </button>
       </div>
 
-      <div className="max-w-255 mx-auto my-25 bg-white p-10 rounded-xl shadow-lg text-slate-700 text-center">
-        <h2 className="font-bold text-tec-dark mb-5 text-2xl">INFORMASI TEC UKDC</h2>
-        <p className="text-lg my-3">Kursus ini dirancang untuk membantu peserta dan mahasiswa untuk mempelajari strategi dalam mengerjakan soal-soal TEC (Test of English Competence)</p>
+      <div className="w-23/24 sm:max-w-5xl mx-auto my-25 bg-white py-10 rounded-xl shadow-lg text-slate-600 text-center">
+        <h2 className="font-bold text-tec-darker mb-5 text-2xl px-4 sm:px-10">INFORMASI TEC UKDC</h2>
+        <p className="text-lg my-3 px-4 sm:px-10">Kursus ini dirancang untuk membantu peserta dan mahasiswa untuk mempelajari strategi dalam mengerjakan soal-soal TEC (Test of English Competence)</p>
         <br></br>
         <TecSchedule />   
       </div>
