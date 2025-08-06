@@ -1,3 +1,4 @@
+/*
 import React, { useState, useEffect, useRef } from "react";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -6,7 +7,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import { useNavigate } from "react-router-dom";
-import "../App.css";
+import "../App_old.css";
 
 //pertanyaan
 const questions = [
@@ -22,7 +23,7 @@ const questions = [
   },
 ];
 //pertanyaan
-const App = () => {
+const ListeningTest = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [playing, setPlaying] = useState(false);
@@ -163,22 +164,28 @@ const App = () => {
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const formatAudioTime = (duration) => {
+    const roundedDuration = Math.round(duration);
+
+    const minutes = Math.floor(roundedDuration / 60);
+    const seconds = Math.floor(roundedDuration % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
 
   const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
 
   return (
     <div className="app-container">
-      {/* App Bar */}
-
       <div className="app-bar">
         <div className="logo-container">
           <img src="/logoukdc.png" alt="Logo" className="logo" />
           <h1 className="test-title">Listening Test</h1>
         </div>
         <span className="timer">⏳ {formatTime(timeLeft)}</span>
-        <span className="username">{loggedInUser ? loggedInUser.name : "Guest"}</span> {/* Menampilkan nama pengguna */}
+        <span className="username">{loggedInUser ? loggedInUser.name : "Guest"}</span>
       </div>
 
       <div className="content">
@@ -211,7 +218,7 @@ const App = () => {
             <Button variant="contained" className="play-button" onClick={handlePlayPause}>
               {playing ? "Pause" : "Play"}
             </Button>
-            <span className="audio-timer">0:00/0:10</span>
+            <span className="audio-timer">{formatAudioTime(audioRef.current.currentTime)}/{formatAudioTime(audioRef.current.duration)}</span>
           </div>
 
           <p>{`Soal ${currentQuestion+1}: Lorem ipsum dolor sit amet consectetur?`}</p>
@@ -249,7 +256,6 @@ const App = () => {
         </Card>
       </div>
 
-      {/* Pop-up konfirmasi */}
       <Dialog open={showConfirmDialog} onClose={() => setShowConfirmDialog(false)}>
         <DialogTitle>Yakin ingin menyelesaikan tes?</DialogTitle>
         <DialogActions>
@@ -262,7 +268,6 @@ const App = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Pop-up hasil akhir */}
       <Dialog open={showResultDialog} onClose={() => setShowResultDialog(false)}>
         <DialogTitle>Hasil Tes</DialogTitle>
         <DialogContent>
@@ -283,4 +288,13 @@ const App = () => {
   );
 };
 
-export default App;
+export default ListeningTest;
+*/
+
+const ListeningTest = () => {
+  return (
+    <div>Temp</div>
+  )
+}
+
+export default ListeningTest;
