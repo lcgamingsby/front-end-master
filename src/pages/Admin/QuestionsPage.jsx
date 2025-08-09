@@ -6,6 +6,7 @@ import axios from "axios";
 import ModalConfirmDelete from "../Components/ModalConfirmDelete";
 import Navbar from "../Components/Navbar";
 import Loading from "../Components/Loading";
+import GrammarUnderline from "../Components/GrammarUnderline";
 
 function QuestionsPage() {
   const navigate = useNavigate();
@@ -127,20 +128,52 @@ function QuestionsPage() {
     navigate("/admin/questions/edit", { state: { question: question, isEdit: true } });
   };
 
+  const formatText = (questionText) => {
+    const letters = ["A", "B", "C", "D"];
+    let letterIndex = 0;
+
+    const regex = /__([^_]+?)__/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(questionText)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(<span>{questionText.slice(lastIndex, match.index)}</span>);
+      }
+
+      const letter = letters[letterIndex++] || "?";
+      
+      parts.push(
+        <GrammarUnderline contentLetter={letter} text={match[1]} />
+      )
+
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < questionText.length) {
+      parts.push(<span>{questionText.slice(lastIndex)}</span>);
+    }
+
+    return (<>
+      {parts}
+    </>);
+  }
+
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
 
       <main className="p-8">
-        <h2 className="text-4xl mb-5 text-tec-darker font-bold">All Questions</h2>
+        <h2 className="text-4xl mb-5 text-tec-darker font-bold">All Question Batches</h2>
 
         <div className="flex justify-between items-center mb-5">
           <button
             className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
-              rounded-lg flex items-center gap-2"
+              rounded-lg flex items-center gap-2 cursor-pointer"
             onClick={() => navigate("/admin/questions/add")}
           >
-            <FaPlus /> Add a Question
+            <FaPlus /> Add a Question Batch
           </button>
 
           <div className="flex items-center flex-wrap gap-2">
@@ -228,8 +261,33 @@ function QuestionsPage() {
             {finishedLoading && currentQuestions.length > 0 ? (
               currentQuestions.map((q, idx) => {
               let answerText = q.answers.join(", ");
+              let limit = 112;
 
               const isOdd = idx % 2 === 1;
+
+              const regex = /__([^_]+?)__/g;
+
+              // This will be used to determine the length of the question text
+              const questionText = q.question_text.replace(regex, (match, extract) => {
+                return `${extract}`;
+              }).trim();
+
+              // Get the number of characters removed by the regex up to a certain point
+              let removedChars = 0;
+              let match;
+
+              while ((match = regex.exec(q.question_text)) !== null) {
+                console.log(match, match.index);
+                if (match.index <= limit + removedChars) {
+                  if (match.index + match[0].length > limit + removedChars) {
+                    removedChars += match[0].length - (limit + removedChars - match.index);
+                  } else {
+                    removedChars += match[0].length - match[1].length;
+                  }
+                } else {
+                  break;
+                }
+              }
 
               return (
                 <tr
@@ -238,11 +296,20 @@ function QuestionsPage() {
                 >
                   <td className="px-4 py-2 border-2 border-slate-400 text-center">{q.question_id}</td>
                   <td className="px-4 py-2 border-2 border-slate-400">{q.question_type[0].toUpperCase() + q.question_type.slice(1)}</td>
-                  <td className="px-4 py-2 border-2 border-slate-400 text-justify text-ellipsis" title={q.question_text}>
+                  <td className="px-4 py-2 border-2 border-slate-400 text-justify text-ellipsis text-base/8" title={questionText}>
                     {q.audio_path ? (
                       <audio controls src={`${config.BACKEND_URL}/audio/${q.audio_path}`} />
                     ) : null}
-                    {q.question_text.length > 115 ? q.question_text.slice(0, 115).trim() + "..." : q.question_text}
+                    {
+                      questionText.length > limit ? (
+                        <>
+                          {formatText(q.question_text.slice(0, limit + removedChars).trim())}
+                          <span>...</span>
+                        </>
+                      ) : (
+                        formatText(q.question_text)
+                      )
+                    }
                   </td>
                   <td className="px-4 py-2 border-2 border-slate-400 text-justify text-ellipsis" title={answerText}>
                     {answerText.length > 85 ? answerText.slice(0, 85).trim() + "..." : answerText}

@@ -173,7 +173,7 @@ function ExamsPage() {
         <div className="flex justify-between items-center mb-5">
           <button
             className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
-              rounded-lg flex items-center gap-2"
+              rounded-lg flex items-center gap-2 cursor-pointer"
             onClick={() => navigate("/admin/exams/add")}
           >
             <FaPlus /> Add an Exam

@@ -13,7 +13,7 @@ const GrammarUnderline = ({ text, contentLetter }) => {
     }
 
     return (
-        <span className="relative">
+        <span className="relative mb-4">
             <u>{text}</u>
             <span className="absolute left-1/2 -translate-x-1/2 top-4.5 text-xs select-none">{contentLetter}</span>
         </span>
