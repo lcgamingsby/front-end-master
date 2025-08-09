@@ -69,16 +69,16 @@ function StudentsPage() {
 
   // console.log(students, typeof students);
 
-  const filteredStudents = students.filter((s) => {
-    const search = searchTerm.toLowerCase();
-
+  const filteredStudents = (students || []).filter((s) => {
+    const search = (searchTerm || "").toLowerCase();
+  
     return (
-      s.name.toLowerCase().includes(search) ||
-      s.nim.toLowerCase().includes(search) ||
-      s.email.toLowerCase().includes(search)
+      (s.name || "").toLowerCase().includes(search) ||
+      (s.nim || "").toLowerCase().includes(search) ||
+      (s.email || "").toLowerCase().includes(search)
     );
   });
-
+  
   const refilterStudents = (search) => {
     const s = search !== null && search !== undefined ? search : searchTerm;
 
