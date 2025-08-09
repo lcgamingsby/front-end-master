@@ -179,10 +179,10 @@ function AddExamPage() {
     const search = navStudents.searchTerm.toLowerCase();
     
     return (
-      s.name.toLowerCase().includes(search) ||
-      s.nim.toLowerCase().includes(search) ||
-      s.email.toLowerCase().includes(search)
-    );
+      (s.name || "").toLowerCase().includes(search) ||
+      (s.nim || "").toLowerCase().includes(search) ||
+      (s.email || "").toLowerCase().includes(search)
+    );  
   });
 
   const refilterStudents = (search) => {

@@ -41,10 +41,10 @@ function RegisterPage() {
 
     try {
       const payload = {
-        name: name.trim(),
+        nama: name.trim(),
         nim: nim.trim(),
         email: email.trim().toLowerCase(),
-        password, // min 6, max 12
+        password, // min 6, max 12q
       };
 
       // Dummy register endpoint — ganti sesuai backend kamu

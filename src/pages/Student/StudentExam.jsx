@@ -11,7 +11,13 @@ import GrammarUnderline from "../Components/GrammarUnderline";
 
 const StudentExam = () => {
     const { user } = useUser();
-
+    const [currentSection, setCurrentSection] = useState("listening");
+    const sectionTimes = {
+        listening: 35 * 60,
+        grammar: 25 * 60,
+        reading: 55 * 60,
+      };
+    
     const location = useLocation();
     const examID = location.state?.examID || 0;
     const examQuestions = location.state?.questions || [];
@@ -31,20 +37,45 @@ const StudentExam = () => {
     }
 
     const endDate = new Date(endDatetime);
-
+    
     const [flaggedQuestions, setFlaggedQuestions] = useState(flagged);
     const [answeredQuestions, setAnsweredQuestions] = useState([]);
+    const [listeningDone, setListeningDone] = useState(false);
+    const [grammarDone, setGrammarDone] = useState(false);
 
     const [currentQuestion, setCurrentQuestion] = useState({
         index: 0,
-        type: "grammar",
+        type: "listening",
     });
     const [selectedOption, setSelectedOption] = useState("");
     const [hasPlayed, setHasPlayed] = useState(played);
     const [playing, setPlaying] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(recalculateTimeLeft(endDate));
-
+    const [listeningTime, setListeningTime] = useState(sectionTimes.listening);
+    const [grammarTime, setGrammarTime] = useState(sectionTimes.grammar);
+    const [readingTime, setReadingTime] = useState(sectionTimes.reading);
+ 
     const audioRef = useRef(null);
+
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Blok F5
+            if (e.key === "F5") {
+                e.preventDefault();
+            }
+            // Blok Ctrl+R dan Ctrl+Shift+R
+            if ((e.ctrlKey && e.key.toLowerCase() === "r") || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "r")) {
+                e.preventDefault();
+            }
+        };
+    
+        window.addEventListener("keydown", handleKeyDown);
+    
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
+    
 
     useEffect(() => {
         if (currentQuestion.type === "listening") {
@@ -82,6 +113,18 @@ const StudentExam = () => {
     }
 
     useEffect(() => {
+        // Batasi gesture refresh di mobile
+        document.documentElement.style.overscrollBehaviorY = "contain";
+        document.body.style.overscrollBehaviorY = "contain";
+      
+        return () => {
+          // Reset ke default saat keluar halaman
+          document.documentElement.style.overscrollBehaviorY = "";
+          document.body.style.overscrollBehaviorY = "";
+        };
+      }, []);
+
+    useEffect(() => {
         recoverExistingAnswers();
 
         document.addEventListener("visibilitychange", function() {
@@ -97,21 +140,65 @@ const StudentExam = () => {
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+            if (currentQuestion.type === "listening") {
+                setListeningTime(prev => (prev > 0 ? prev - 1 : 0));
+            } else if (currentQuestion.type === "grammar") {
+                setGrammarTime(prev => (prev > 0 ? prev - 1 : 0));
+            } else if (currentQuestion.type === "reading") {
+                setReadingTime(prev => (prev > 0 ? prev - 1 : 0));
+            }
         }, 1000);
-
+    
         return () => clearInterval(timer);
-    }, []);
-
+    }, [currentQuestion.type]);
+    
     useEffect(() => {
-        if (timeLeft === 0) {
+        if (
+            (currentQuestion.type === "listening" && listeningTime === 0) ||
+            (currentQuestion.type === "grammar" && grammarTime === 0) ||
+            (currentQuestion.type === "reading" && readingTime === 0)
+        ) {
             finishExam();
-
             alert("Time's up!");
-
             navigate("/student");
         }
-    }, [timeLeft]);
+    }, [listeningTime, grammarTime, readingTime, currentQuestion.type]);
+    
+
+    // Saat masuk section baru
+    useEffect(() => {
+        const storageKey = `endTime_${currentQuestion.type}`;
+        let endTime = localStorage.getItem(storageKey);
+
+        if (!endTime) {
+            // Hitung endTime baru jika belum ada
+            endTime = Date.now() + sectionTimes[currentQuestion.type] * 1000;
+            localStorage.setItem(storageKey, endTime);
+        }
+
+        // Hitung sisa waktu
+
+        const timeRemaining = Math.floor((endTime - Date.now()) / 1000);
+
+        if (currentQuestion.type === "listening") {
+            setListeningTime(timeRemaining > 0 ? timeRemaining : 0);
+        } else if (currentQuestion.type === "grammar") {
+            setGrammarTime(timeRemaining > 0 ? timeRemaining : 0);
+        } else if (currentQuestion.type === "reading") {
+            setReadingTime(timeRemaining > 0 ? timeRemaining : 0);
+        }
+    }, [currentQuestion.type]);
+
+    useEffect(() => {
+        if (currentQuestion.type === "listening") {
+            setListeningTime(prev => prev === sectionTimes.listening ? prev : sectionTimes.listening);
+        } else if (currentQuestion.type === "grammar") {
+            setGrammarTime(prev => prev === sectionTimes.grammar ? prev : sectionTimes.grammar);
+        } else if (currentQuestion.type === "reading") {
+            setReadingTime(prev => prev === sectionTimes.reading ? prev : sectionTimes.reading);
+        }
+    }, [currentQuestion.type]);
+    
 
     const finishExam = async (e) => {
         // used only when time's up
@@ -198,133 +285,154 @@ const StudentExam = () => {
 
     const handlePrev = () => {
         // send student's answer to the backend
-
+    
         if (currentQuestion.index > 0) {
             const q = examQuestions[currentQuestion.type][currentQuestion.index - 1];
-            const answered = answeredQuestions.map((v, i) => (
-                v.question_id
-            ));
+            const answered = answeredQuestions.map(v => v.question_id);
             
             setCurrentQuestion({
                 ...currentQuestion,
                 index: currentQuestion.index - 1,
             });
-
+    
             if (answered.includes(q.question_id)) {
-                const answer = answeredQuestions.filter((v, i) => (
-                    v.question_id === q.question_id
-                ))[0];
-
+                const answer = answeredQuestions.find(v => v.question_id === q.question_id);
                 setSelectedOption(answer.answer);
             } else {
                 setSelectedOption("");
             }
-
+    
             if (audioRef.current) {
                 audioRef.current.pause();
             }
-        } else if (currentQuestion.index == 0) {
-            if (currentQuestion.type != "grammar") {
-                const type = currentQuestion.type === "listening"
-                    ? "reading"
-                    : "grammar";
-                
+        } else if (currentQuestion.index === 0) {
+            if (currentQuestion.type === "reading") {
+                // Jika grammar belum selesai, tidak boleh mundur
+                if (!grammarDone) return;
+    
+                // Pindah ke grammar soal terakhir
+                const type = "grammar";
                 const q = examQuestions[type][examQuestions[type].length - 1];
-                const answered = answeredQuestions.map((v, i) => (
-                    v.question_id
-                ));
-
+                const answered = answeredQuestions.map(v => v.question_id);
+    
                 setCurrentQuestion({
                     type: type,
                     index: examQuestions[type].length - 1,
                 });
-
+    
                 if (answered.includes(q.question_id)) {
-                    const answer = answeredQuestions.filter((v, i) => (
-                        v.question_id === q.question_id
-                    ))[0];
-
+                    const answer = answeredQuestions.find(v => v.question_id === q.question_id);
                     setSelectedOption(answer.answer);
                 } else {
                     setSelectedOption("");
                 }
-                
-                if (audioRef.current) {
-                    audioRef.current.pause();
+            } 
+            else if (currentQuestion.type === "grammar") {
+                // Jika listening belum selesai, tidak boleh mundur
+                if (!listeningDone) return;
+    
+                // Pindah ke listening soal terakhir
+                const type = "listening";
+                const q = examQuestions[type][examQuestions[type].length - 1];
+                const answered = answeredQuestions.map(v => v.question_id);
+    
+                setCurrentQuestion({
+                    type: type,
+                    index: examQuestions[type].length - 1,
+                });
+    
+                if (answered.includes(q.question_id)) {
+                    const answer = answeredQuestions.find(v => v.question_id === q.question_id);
+                    setSelectedOption(answer.answer);
+                } else {
+                    setSelectedOption("");
                 }
             }
+            // Kalau listening pertama, tetap di listening pertama (tidak pindah section)
         }
     }
+    
 
     const handleNext = () => {
         // send student's answer to the backend
     
         if (currentQuestion.index < examQuestions[currentQuestion.type].length - 1) {
             const q = examQuestions[currentQuestion.type][currentQuestion.index + 1];
-            const answered = answeredQuestions.map((v, i) => (
-                v.question_id
-            ));
-
+            const answered = answeredQuestions.map((v) => v.question_id);
+    
             setCurrentQuestion({
                 ...currentQuestion,
                 index: currentQuestion.index + 1,
             });
-
+    
             if (answered.includes(q.question_id)) {
-                const answer = answeredQuestions.filter((v, i) => (
-                    v.question_id === q.question_id
-                ))[0];
-
+                const answer = answeredQuestions.find((v) => v.question_id === q.question_id);
                 setSelectedOption(answer.answer);
             } else {
                 setSelectedOption("");
             }
-            
+    
             if (audioRef.current) {
                 audioRef.current.pause();
             }
-        } else if (currentQuestion.index == examQuestions[currentQuestion.type].length - 1) {
-            if (currentQuestion.type != "listening") {
-                const type = currentQuestion.type === "grammar"
-                    ? "reading"
-                    : "listening";
-                
+        } else if (currentQuestion.index === examQuestions[currentQuestion.type].length - 1) {
+            // sudah soal terakhir di bagian ini
+            if (currentQuestion.type === "listening") {
+                // lanjut ke grammar
+                const type = "grammar";
                 const q = examQuestions[type][0];
-                const answered = answeredQuestions.map((v, i) => (
-                    v.question_id
-                ));
-
+                const answered = answeredQuestions.map((v) => v.question_id);
+    
                 setCurrentQuestion({
                     type: type,
                     index: 0,
                 });
-
+    
                 if (answered.includes(q.question_id)) {
-                    const answer = answeredQuestions.filter((v, i) => (
-                        v.question_id === q.question_id
-                    ))[0];
-
+                    const answer = answeredQuestions.find((v) => v.question_id === q.question_id);
                     setSelectedOption(answer.answer);
                 } else {
                     setSelectedOption("");
                 }
-                
+    
                 if (audioRef.current) {
                     audioRef.current.pause();
                 }
-            } else {
+            } else if (currentQuestion.type === "grammar") {
+                // lanjut ke reading
+                const type = "reading";
+                const q = examQuestions[type][0];
+                const answered = answeredQuestions.map((v) => v.question_id);
+    
+                setCurrentQuestion({
+                    type: type,
+                    index: 0,
+                });
+    
+                if (answered.includes(q.question_id)) {
+                    const answer = answeredQuestions.find((v) => v.question_id === q.question_id);
+                    setSelectedOption(answer.answer);
+                } else {
+                    setSelectedOption("");
+                }
+    
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                }
+            } else if (currentQuestion.type === "reading") {
+                // sudah di bagian reading terakhir, navigasi finish exam
                 navigate("/student/exam/finish", {
-                    state: { 
-                        examID: examID, 
+                    state: {
+                        examID: examID,
                         questions: examQuestions,
                         endDatetime: endDatetime,
                         flagged: flaggedQuestions,
                         hasPlayed: hasPlayed,
-                    }
+                    },
                 });
             }
         }
-    };
+    };    
 
     const formatTime = (seconds) => {
         const hours = Math.floor(seconds / 3600);
@@ -407,193 +515,135 @@ const StudentExam = () => {
                 <div className="w-55 m-4 flex flex-col gap-2">
                     <div className="bg-tec-card p-2 rounded-xl flex justify-between text-tec-darker">
                         <span className="text-left">Time Remaining:</span>
-                        <b className="text-right">{formatTime(timeLeft)}</b>
+                        <b className="text-right">
+                            {formatTime(
+                                currentQuestion.type === "listening"
+                                    ? listeningTime
+                                    : currentQuestion.type === "grammar"
+                                    ? grammarTime
+                                    : readingTime
+                            )}
+                        </b>
                     </div>
                     <div className="bg-slate-200 p-2 rounded-xl">
-                        <div className="font-bold pb-2 text-tec-darker">Grammar</div>
-                        <div className="grid grid-cols-5 gap-2">
-                            {examQuestions.grammar.map((v, i) => {
-                                const flagged = flaggedQuestions.includes(v.question_id);
-                                const answered = answeredQuestions.map((v, i) => (
-                                    v.question_id
-                                )).includes(v.question_id);
-
-                                const current = currentQuestion.index === i && currentQuestion.type === "grammar";
-
-                                const cssState = current ? (
-                                    flagged ? "bg-amber-500 text-white"
-                                    : (answered ? "bg-sky-500 text-white"
-                                    : "bg-tec-darker text-white")
-                                ) : (
-                                    flagged ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                                    : (answered ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                                    : "bg-white text-tec-darker hover:bg-tec-card")
-                                )
-
-                                return (
-                                    <button
-                                        type="button"
-                                        key={i}
-                                        className={`flex w-8 h-8 items-center justify-center text-center rounded-lg 
-                                            cursor-pointer font-bold ${cssState}`}
-                                        onClick={() => {
-                                            const q = examQuestions["grammar"][i];
-                                            const answered = answeredQuestions.map((v, i) => (
-                                                v.question_id
-                                            ));
-
-                                            setCurrentQuestion({
-                                                type: "grammar",
-                                                index: i,
-                                            })
-
-                                            if (answered.includes(q.question_id)) {
-                                                const answer = answeredQuestions.filter((v, i) => (
-                                                    v.question_id === q.question_id
-                                                ))[0];
-
-                                                setSelectedOption(answer.answer);
-                                            } else {
-                                                setSelectedOption("");
-                                            }
-                                            
-                                            if (audioRef.current) {
-                                                audioRef.current.pause();
-                                            }
-                                        }}
-                                    >
-                                        {answered ? (
-                                            <FaCheck className="w-5 h-5 text-current" />
-                                        ) : (
-                                            <span>{i + 1}</span>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        <div className="font-bold pb-2 text-tec-darker">Reading</div>
-                        <div className="grid grid-cols-5 gap-2">
-                            {examQuestions.reading.map((v, i) => {
-                                const flagged = flaggedQuestions.includes(v.question_id);
-                                const answered = answeredQuestions.map((v, i) => (
-                                    v.question_id
-                                )).includes(v.question_id);
-
-                                const current = currentQuestion.index === i && currentQuestion.type === "reading";
-
-                                const cssState = current ? (
-                                    flagged ? "bg-amber-500 text-white"
-                                    : (answered ? "bg-sky-500 text-white"
-                                    : "bg-tec-darker text-white")
-                                ) : (
-                                    flagged ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                                    : (answered ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                                    : "bg-white text-tec-darker hover:bg-tec-card")
-                                )
-
-                                return (
-                                    <button
-                                        type="button"
-                                        key={i}
-                                        className={`flex w-8 h-8 items-center justify-center text-center rounded-lg 
-                                            cursor-pointer font-bold ${cssState}`}
-                                        onClick={() => {
-                                            const q = examQuestions["reading"][i];
-                                            const answered = answeredQuestions.map((v, i) => (
-                                                v.question_id
-                                            ));
-
-                                            setCurrentQuestion({
-                                                type: "reading",
-                                                index: i,
-                                            })
-
-                                            if (answered.includes(q.question_id)) {
-                                                const answer = answeredQuestions.filter((v, i) => (
-                                                    v.question_id === q.question_id
-                                                ))[0];
-
-                                                setSelectedOption(answer.answer);
-                                            } else {
-                                                setSelectedOption("");
-                                            }
-                                            
-                                            if (audioRef.current) {
-                                                audioRef.current.pause();
-                                            }
-                                        }}
-                                    >
-                                        {answered ? (
-                                            <FaCheck className="w-5 h-5 text-current" />
-                                        ) : (
-                                            <span>{i + 1}</span>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        {/* Listening selalu aktif */}
                         <div className="font-bold pb-2 text-tec-darker">Listening</div>
                         <div className="grid grid-cols-5 gap-2">
                             {examQuestions.listening.map((v, i) => {
-                                const flagged = flaggedQuestions.includes(v.question_id);
-                                const answered = answeredQuestions.map((v, i) => (
-                                    v.question_id
-                                )).includes(v.question_id);
+                            const flagged = flaggedQuestions.includes(v.question_id);
+                            const answered = answeredQuestions.some(a => a.question_id === v.question_id);
+                            const current = currentQuestion.index === i && currentQuestion.type === "listening";
 
-                                const current = currentQuestion.index === i && currentQuestion.type === "listening";
-
-                                const cssState = current ? (
-                                    flagged ? "bg-amber-500 text-white"
-                                    : (answered ? "bg-sky-500 text-white"
+                            const cssState = current ? (
+                                flagged ? "bg-amber-500 text-white"
+                                : (answered ? "bg-sky-500 text-white"
                                     : "bg-tec-darker text-white")
-                                ) : (
-                                    flagged ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                                    : (answered ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                            ) : (
+                                flagged ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                                : (answered ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
                                     : "bg-white text-tec-darker hover:bg-tec-card")
-                                )
+                            );
 
-                                return (
-                                    <button
-                                        type="button"
-                                        key={i}
-                                        className={`flex w-8 h-8 items-center justify-center text-center rounded-lg 
-                                            cursor-pointer font-bold ${cssState}`}
-                                        onClick={() => {
-                                            const q = examQuestions["listening"][i];
-                                            const answered = answeredQuestions.map((v, i) => (
-                                                v.question_id
-                                            ));
-
-                                            setCurrentQuestion({
-                                                type: "listening",
-                                                index: i,
-                                            })
-
-                                            if (answered.includes(q.question_id)) {
-                                                const answer = answeredQuestions.filter((v, i) => (
-                                                    v.question_id === q.question_id
-                                                ))[0];
-
-                                                setSelectedOption(answer.answer);
-                                            } else {
-                                                setSelectedOption("");
-                                            }
-                                            
-                                            if (audioRef.current) {
-                                                audioRef.current.pause();
-                                            }
-                                        }}
-                                    >
-                                        {answered ? (
-                                            <FaCheck className="w-5 h-5 text-current" />
-                                        ) : (
-                                            <span>{i + 1}</span>
-                                        )}
-                                    </button>
-                                );
+                            return (
+                                <button
+                                key={i}
+                                disabled={false} // Listening selalu aktif
+                                className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold cursor-pointer
+                                    ${cssState} ${false ? "cursor-not-allowed opacity-50" : ""}`}
+                                onClick={() => {
+                                    setCurrentQuestion({ type: "listening", index: i });
+                                    const answer = answeredQuestions.find(a => a.question_id === v.question_id);
+                                    setSelectedOption(answer ? answer.answer : "");
+                                    if (audioRef.current) audioRef.current.pause();
+                                }}
+                                >
+                                {answered ? <FaCheck className="w-5 h-5 text-current" /> : <span>{i + 1}</span>}
+                                </button>
+                            );
                             })}
                         </div>
-                    </div>
+
+                        {/* Grammar aktif hanya jika Listening selesai */}
+                        <div className="font-bold pb-2 pt-4 text-tec-darker">Grammar</div>
+                        <div className="grid grid-cols-5 gap-2">
+                            {examQuestions.grammar.map((v, i) => {
+                            const flagged = flaggedQuestions.includes(v.question_id);
+                            const answered = answeredQuestions.some(a => a.question_id === v.question_id);
+                            const current = currentQuestion.index === i && currentQuestion.type === "grammar";
+
+                            const disabled = !listeningDone;
+
+                            const cssState = current ? (
+                                flagged ? "bg-amber-500 text-white"
+                                : (answered ? "bg-sky-500 text-white"
+                                    : "bg-tec-darker text-white")
+                            ) : (
+                                flagged ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                                : (answered ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                                    : "bg-white text-tec-darker hover:bg-tec-card")
+                            );
+
+                            return (
+                                <button
+                                key={i}
+                                disabled={disabled}
+                                className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold cursor-pointer
+                                    ${cssState} ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+                                onClick={() => {
+                                    if (disabled) return;
+                                    setCurrentQuestion({ type: "grammar", index: i });
+                                    const answer = answeredQuestions.find(a => a.question_id === v.question_id);
+                                    setSelectedOption(answer ? answer.answer : "");
+                                    if (audioRef.current) audioRef.current.pause();
+                                }}
+                                >
+                                {answered ? <FaCheck className="w-5 h-5 text-current" /> : <span>{i + 1}</span>}
+                                </button>
+                            );
+                            })}
+                        </div>
+
+                        {/* Reading aktif hanya jika Grammar selesai */}
+                        <div className="font-bold pb-2 pt-4 text-tec-darker">Reading</div>
+                        <div className="grid grid-cols-5 gap-2">
+                            {examQuestions.reading.map((v, i) => {
+                            const flagged = flaggedQuestions.includes(v.question_id);
+                            const answered = answeredQuestions.some(a => a.question_id === v.question_id);
+                            const current = currentQuestion.index === i && currentQuestion.type === "reading";
+
+                            const disabled = !grammarDone;
+
+                            const cssState = current ? (
+                                flagged ? "bg-amber-500 text-white"
+                                : (answered ? "bg-sky-500 text-white"
+                                    : "bg-tec-darker text-white")
+                            ) : (
+                                flagged ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                                : (answered ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                                    : "bg-white text-tec-darker hover:bg-tec-card")
+                            );
+
+                            return (
+                                <button
+                                key={i}
+                                disabled={disabled}
+                                className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold cursor-pointer
+                                    ${cssState} ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+                                onClick={() => {
+                                    if (disabled) return;
+                                    setCurrentQuestion({ type: "reading", index: i });
+                                    const answer = answeredQuestions.find(a => a.question_id === v.question_id);
+                                    setSelectedOption(answer ? answer.answer : "");
+                                    if (audioRef.current) audioRef.current.pause();
+                                }}
+                                >
+                                {answered ? <FaCheck className="w-5 h-5 text-current" /> : <span>{i + 1}</span>}
+                                </button>
+                            );
+                            })}
+                        </div>
+                        </div>
+
                 </div>
 
                 <Card className="flex-1 m-5 p-5">
@@ -669,12 +719,14 @@ const StudentExam = () => {
                         </button>
 
                         <button
-                            className="bg-tec-card text-tec-darker font-semibold px-2 py-1 rounded-full cursor-pointer
-                                hover:bg-tec-darker hover:text-white"
+                            className="bg-tec-card text-tec-darker font-semibold px-2 py-1 rounded-full cursor-pointer hover:bg-tec-darker hover:text-white"
                             onClick={handleNext}
-                        >
-                            {currentQuestion.index === examQuestions["listening"].length - 1 && currentQuestion.type === "listening"
-                            ? "Finish" : "Next"} {" "}
+                            >
+                            { (currentQuestion.index === examQuestions[currentSection].length - 1)
+                                ? "Finish"
+                                : "Next"
+                            }
+                            {" "}
                             <FaChevronRight className="inline" />
                         </button>
                     </div>
