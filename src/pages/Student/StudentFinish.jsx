@@ -8,6 +8,15 @@ import { useUser } from "../Components/UserContext";
 
 const StudentFinish = () => {
     const { user } = useUser();
+    useEffect(() => {
+        // Reset semua data ujian
+        localStorage.removeItem(`exam_session_${location.state?.examID}`);
+        localStorage.removeItem("currentQuestion");
+        localStorage.removeItem("remainingTime_listening");
+        localStorage.removeItem("remainingTime_grammar");
+        localStorage.removeItem("remainingTime_reading");
+      }, []);
+      
 
     const location = useLocation();
     const examID = location.state?.examID || 0;
@@ -63,7 +72,7 @@ const StudentFinish = () => {
         };
 
         if (confirm("Are you sure to end this exam now?")) {
-            const token = localStorage.getItem("jwtToken");
+            const token = localStorage.getItem("jwtToken");         
 
             const endRes = await axios.put(`${config.BACKEND_URL}/api/student/exam/finish`, {
                 nim: user.id,
@@ -105,20 +114,6 @@ const StudentFinish = () => {
 
             <main className="px-8 py-12">
                 <div className="flex gap-2 items-baseline">
-                    <button
-                    className="text-tec-darker hover:text-tec-light cursor-pointer"
-                    onClick={() => navigate("/student/exam", {
-                        state: { 
-                            examID: examID, 
-                            questions: examQuestions,
-                            endDatetime: endDatetime,
-                            flagged: flaggedQuestions,
-                            hasPlayed: hasPlayed,
-                        }
-                    })}
-                    >
-                    <FaChevronLeft className="w-6 h-6" />
-                    </button>
                     <h2 className="text-4xl mb-5 text-tec-darker font-bold">Confirm Finishing Exam</h2>
                 </div>
                 <div className="bg-tec-card p-2 rounded-xl flex justify-between text-tec-darker w-55">

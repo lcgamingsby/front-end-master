@@ -40,16 +40,16 @@ function StudentDashboard() {
 
       // filter questions for each category than randomly sort them
       const grammar = response.data.filter((q) => {
-        return q.question_type.toLowerCase() === "grammar";
-      }).sort(() => (0.5 - Math.random()));
+        return q.batch_type.toLowerCase() === "grammar";
+      });
 
       const reading = response.data.filter((q) => {
-        return q.question_type.toLowerCase() === "reading";
-      }).sort(() => (0.5 - Math.random()));
+        return q.batch_type.toLowerCase() === "reading";
+      });
 
       const listening = response.data.filter((q) => {
-        return q.question_type.toLowerCase() === "listening";
-      }).sort(() => (0.5 - Math.random()));
+        return q.batch_type.toLowerCase() === "listening";
+      });
 
       if (response.status === 200) {
         navigate(`/student/exam`, { 

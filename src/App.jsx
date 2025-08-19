@@ -18,6 +18,7 @@ import { UserProvider } from "./pages/Components/UserContext";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import StudentExam from "./pages/Student/StudentExam";
 import StudentFinish from "./pages/Student/StudentFinish";
+import ExamTrackingPage from "./pages/Admin/ExamTrackingPage";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
             <Route path="students/add" element={<AddStudentPage />} />
             <Route path="students/edit" element={<AddStudentPage />} />
             <Route path="reset" element={<ResetPasswordPage />} />
+            <Route path="track" element={<ExamTrackingPage />} />
           </Route>
           <Route path="/student" element={<PrivateRoute role="mahasiswa" />}>
             <Route index element={<StudentDashboard />} />

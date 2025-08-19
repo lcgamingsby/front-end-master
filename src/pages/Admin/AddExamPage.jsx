@@ -474,7 +474,7 @@ function AddExamPage() {
                           {b.batch_type[0].toUpperCase() + b.batch_type.slice(1)}
                         </td>
                         <td
-                          className="w-5/12 px-4 py-3 border-x-2 border-t-2 border-white cursor-pointer"
+                          className="w-5/12 px-4 py-3 border-x-2 border-t-2 border-white cursor-pointer text-left"
                           onClick={() => {
                             if (openedBatch.includes(b.batch_id)) {
                               const newOpened = openedBatch.filter((v, i) => v !== b.batch_id);
@@ -489,7 +489,13 @@ function AddExamPage() {
                           colSpan="2">
                           <div className="flex flex-1 justify-between">
                             <div>
-                              <div className={`${b.batch_text.trim().length > 0 ? "" : "italic"}`}>{batchText}</div>
+                              <div className={`${b.batch_text.trim().length > 0 ? "" : "italic"}`}>
+                                {openedBatch.includes(b.batch_id) ? (
+                                  batchText
+                                ) : (
+                                  batchText.length > 200 ? batchText.slice(0, 260).trim() + "..." : batchText
+                                )}
+                              </div>
                               {b.audio_path ? (
                                 <audio controls src={`${config.BACKEND_URL}/audio/${b.audio_path}`} />
                               ) : null}

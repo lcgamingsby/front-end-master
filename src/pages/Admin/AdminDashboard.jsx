@@ -3,8 +3,11 @@ import Navbar from "../Components/Navbar";
 import axios from "axios";
 import { config } from "../../data/config";
 import Loading from "../Components/Loading";
+import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
+  const navigate = useNavigate();
+
   const [ongoingExams, setOngoingExams] = useState([]);
   const [dashboardNumbers, setDashboardNumbers] = useState({
     questions_made: 0,
@@ -58,6 +61,10 @@ function AdminDashboard() {
       console.error("Error fetching exams:", error);
       setFinishedLoading(true);
     }
+  }
+
+  const handleExamClick = (e) => {
+    navigate("/admin/track", { state: {exam_id: e.exam_id} });
   }
 
   useEffect(() => {
