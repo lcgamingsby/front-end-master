@@ -13,11 +13,13 @@ function AddQuestionPage() {
   const isEdit = location.state?.isEdit || false;
   const editQuestion = location.state?.question || null;
 
-  const [type, setType] = useState(editQuestion != null ? editQuestion.question_type : "");
-  const [batchText, setBatchText] = useState(editQuestion != null ? editQuestion.question_text : "");
+  const [type, setType] = useState(editQuestion != null ? editQuestion.batch_type : "");
+  const [batchText, setBatchText] = useState(editQuestion != null ? editQuestion.batch_text : "");
   const [audioFile, setAudioFile] = useState(null);
 
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState(editQuestion != null ? editQuestion.questions : []);
+
+  console.log(questions);
 
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -86,7 +88,7 @@ function AddQuestionPage() {
     }
 
     if (isEdit) {
-      updateQuestionBatch(editQuestion.question_id, formData, setUploadProgress);
+      updateQuestionBatch(editQuestion.batch_id, formData, setUploadProgress);
     } else {
       createQuestionBatch(formData, setUploadProgress);
     }

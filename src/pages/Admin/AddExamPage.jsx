@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight, FaChevronLeft, FaFilter } from "react-icons/fa";
+import { FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight, FaChevronDown, FaChevronLeft, FaFilter } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
 import axios from "axios";
 import { config } from "../../data/config";
+import GrammarUnderline from "../Components/GrammarUnderline";
 
 function AddExamPage() {
   const navigate = useNavigate();
@@ -27,6 +28,8 @@ function AddExamPage() {
 
   const [questions, setQuestions] = useState([]);
   const [students, setStudents] = useState([]);
+
+  const [openedBatch, setOpenedBatch] = useState([]);
 
   const [form, setForm] = useState(() => {
     if (editExam) {
@@ -54,9 +57,16 @@ function AddExamPage() {
         },
       });
 
-      setQuestions(response.data.map((q, index) => ({
-        ...q, answers: [q.choice_a, q.choice_b, q.choice_c, q.choice_d]})
-      ));
+      setQuestions(response.data.map((b, index) => {
+        const batchQuestions = b.questions.map((q, idx) => {
+          return {
+            ...q,
+            answers: [q.choice_a, q.choice_b, q.choice_c, q.choice_d],
+          };
+        });
+
+        return {...b, questions: batchQuestions};
+      }));
     } catch (error) {
       console.error("Error fetching questions:", error);
     }
@@ -137,6 +147,8 @@ function AddExamPage() {
     const search = navQuestions.searchTerm.toLowerCase();
 
     const matchType = selectedType === "All" || q.question_type.toLowerCase() === selectedType.toLowerCase();
+
+    /*
     const matchSearch =
       q.question_type.toLowerCase().includes(search) ||
       q.question_text.toLowerCase().includes(search) ||
@@ -144,7 +156,9 @@ function AddExamPage() {
       q.choice_b.includes(search) ||
       q.choice_c.includes(search) ||
       q.choice_d.includes(search);
-    return matchType && matchSearch;
+    */
+
+    return matchType;
   });
 
   const refilterQuestions = (search, type) => {
@@ -159,6 +173,8 @@ function AddExamPage() {
       const search = s.toLowerCase();
       
       const matchType = t === "All" || q.question_type.toLowerCase() === t.toLowerCase();
+
+      /*
       const matchSearch =
         q.question_type.toLowerCase().includes(search) ||
         q.question_text.toLowerCase().includes(search) ||
@@ -166,8 +182,9 @@ function AddExamPage() {
         q.choice_b.includes(search) ||
         q.choice_c.includes(search) ||
         q.choice_d.includes(search);
+      */
       
-      return matchType && matchSearch;
+      return matchType;
     });
   }
 
@@ -202,6 +219,38 @@ function AddExamPage() {
   const totalPagesS = Math.max(Math.ceil(filteredStudents.length / navStudents.itemsPerPage), 1);
   const startIndexS = (navStudents.currentPage - 1) * navStudents.itemsPerPage;
   const currentStudents = filteredStudents.slice(startIndexS, startIndexS + navStudents.itemsPerPage);
+
+  const formatText = (questionText) => {
+    const letters = ["A", "B", "C", "D"];
+    let letterIndex = 0;
+
+    const regex = /__([^_]+?)__/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(questionText)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(<span>{questionText.slice(lastIndex, match.index)}</span>);
+      }
+
+      const letter = letters[letterIndex++] || "?";
+      
+      parts.push(
+        <GrammarUnderline contentLetter={letter} text={match[1]} />
+      )
+
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < questionText.length) {
+      parts.push(<span>{questionText.slice(lastIndex)}</span>);
+    }
+
+    return (<>
+      {parts}
+    </>);
+  }
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
@@ -395,48 +444,122 @@ function AddExamPage() {
                 <th className="w-5/12 px-4 py-3 border-x-2 border-white border-r-tec-darker">Answer Choices</th>
               </tr>
             </thead>
-            <tbody>
-              {currentQuestions.length > 0 ? (
-                currentQuestions.map((q, idx) => {
-                  let answerText = q.answers.join(", ");
+            {currentQuestions.length > 0 ? (
+              currentQuestions.map((b, idx) => {
+                const batchText = b.batch_text.trim().length > 0 ? b.batch_text.trim() : "- No question batch text -"
 
-                  const isOdd = idx % 2 === 1;
-                  
-                  return (
-                    <tr key={q.question_id} className={`${isOdd ? "bg-slate-200" : "bg-white"} hover:bg-slate-300`}>
-                      <td className="px-4 py-2 border-2 border-slate-400 text-center">
-                        <input
-                          type="checkbox"
-                          checked={form.questions.includes(q.question_id)}
-                          onChange={() => {
-                            setForm((prevForm) => {
-                              const alreadySelected = prevForm.questions.includes(q.question_id);
+                return (
+                  <>
+                    <thead key={`batch-${b.batch_id}`}>
+                      <tr className="bg-tec-dark text-white text-center font-semibold">
+                        <td className="w-1/12 px-4 py-3 border-x-2 border-t-2 border-white border-l-tec-darker">
+                          <input
+                            type="checkbox"
+                            checked={form.questions.includes(b.batch_id)}
+                            onChange={() => {
+                              setForm((prevForm) => {
+                                const alreadySelected = prevForm.questions.includes(b.batch_id);
 
-                              return {
-                              ...form,
-                              questions: alreadySelected
-                                ? prevForm.questions.filter((id) => id !== q.question_id)
-                                : [...prevForm.questions, q.question_id],
-                              };
-                            });
+                                return {
+                                ...form,
+                                questions: alreadySelected
+                                  ? prevForm.questions.filter((id) => id !== b.batch_id)
+                                  : [...prevForm.questions, b.batch_id],
+                                };
+                              });
+                            }}
+                          />
+                        </td>
+                        <td className="w-1/12 px-4 py-3 border-x-2 border-t-2 border-white">
+                          {b.batch_type[0].toUpperCase() + b.batch_type.slice(1)}
+                        </td>
+                        <td
+                          className="w-5/12 px-4 py-3 border-x-2 border-t-2 border-white cursor-pointer"
+                          onClick={() => {
+                            if (openedBatch.includes(b.batch_id)) {
+                              const newOpened = openedBatch.filter((v, i) => v !== b.batch_id);
+
+                              setOpenedBatch(newOpened);
+                            } else {
+                              const newOpened = [...openedBatch, b.batch_id].sort((a, b) => (a - b));
+
+                              setOpenedBatch(newOpened);
+                            }
                           }}
-                        />
-                      </td>
-                      <td className="px-4 py-2 border-2 border-slate-400">{q.question_type[0].toUpperCase() + q.question_type.slice(1)}</td>
-                      <td className="px-4 py-2 border-2 border-slate-400 text-ellipsis" title={q.question_text}>
-                        {q.audio_path ? (
-                          <audio controls src={`${config.BACKEND_URL}/audio/${q.audio_path}`} />
-                        ) : null}
-                        {q.question_text.length > 128 ? q.question_text.slice(0, 128).trim() + "..." : q.question_text}
-                      </td>
-                      <td className="px-4 py-2 border-2 border-slate-400 text-ellipsis" title={answerText}>
-                        {answerText.length > 128 ? answerText.slice(0, 128).trim() + "..." : answerText}
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : null}
-            </tbody>
+                          colSpan="2">
+                          <div className="flex flex-1 justify-between">
+                            <div>
+                              <div className={`${b.batch_text.trim().length > 0 ? "" : "italic"}`}>{batchText}</div>
+                              {b.audio_path ? (
+                                <audio controls src={`${config.BACKEND_URL}/audio/${b.audio_path}`} />
+                              ) : null}
+                            </div>
+                            <div className="mx-1">
+                              <FaChevronDown className={`w-6 h-6 ${openedBatch.includes(b.batch_id) ? "rotate-180" : ""}`} />
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </thead>
+                    {openedBatch.includes(b.batch_id) ? (
+                      b.questions.map((q, i) => {
+                        let answerText = q.answers.join(", ");
+                        let limit = 140;
+
+                        const isOdd = i % 2 === 1;
+
+                        const regex = /__([^_]+?)__/g;
+
+                        // This will be used to determine the length of the question text
+                        const questionText = q.question_text.replace(regex, (match, extract) => {
+                          return `${extract}`;
+                        }).trim();
+
+                        // Get the number of characters removed by the regex up to a certain point
+                        let removedChars = 0;
+                        let match;
+
+                        while ((match = regex.exec(q.question_text)) !== null) {
+                          // console.log(match, match.index);
+                          if (match.index <= limit + removedChars) {
+                            if (match.index + match[0].length > limit + removedChars) {
+                              removedChars += match[0].length - (limit + removedChars - match.index);
+                            } else {
+                              removedChars += match[0].length - match[1].length;
+                            }
+                          } else {
+                            break;
+                          }
+                        }
+
+                        return (
+                          <tbody key={`question-${q.question_id}`}>
+                            <tr className={`${isOdd ? "bg-slate-200" : "bg-white"} hover:bg-slate-300 text-sm`}>
+                              <td className="px-4 py-1 border-2 border-slate-400 text-center">{q.question_id}</td>
+                              <td className="px-4 py-1 border-2 border-slate-400 text-sm/8" colSpan="2">
+                                {
+                                  questionText.length > limit ? (
+                                    <>
+                                      {formatText(q.question_text.slice(0, limit + removedChars).trim())}
+                                      <span>...</span>
+                                    </>
+                                  ) : (
+                                    formatText(q.question_text)
+                                  )
+                                }
+                              </td>
+                              <td className="px-4 py-1 border-2 border-slate-400" colSpan="2">
+                                {answerText.length > limit ? answerText.slice(0, limit).trim() + "..." : answerText}
+                              </td>
+                            </tr>
+                          </tbody>
+                        )
+                      }
+                    )) : null}
+                  </>
+                );
+              })
+            ) : null}
           </table>
           <div className="flex justify-between">
             <p className="text-slate-600 font-semibold">
