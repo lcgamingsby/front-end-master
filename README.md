@@ -3,6 +3,7 @@
 ### ✅ Selesai
 - [x] 🎧 Halaman Exam audio listening ganti section ke grammar audio otomatis terhenti  
 - [x] ☑️ Disable checkbox add semua question di halaman exam  
+      _Sudah diperbaiki, sudah bisa pilih semua atau pilih tidak semua atau pilih sebagian_
 - [x] 👨‍🎓 Halaman hasil Add student (hapus tombol yang mengarahkan ke sana)  
 - [x] 📊 Penambahan fitur halaman penilaian otomatis per akun dan bisa ekspor ke CSV  
       _Sudah ada halamannya tinggal ubah sedikit dan sambung ke backend_  
