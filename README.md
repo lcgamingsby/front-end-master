@@ -27,7 +27,7 @@
 # 📝 CATATAN
 
 1. Beberapa data yang masih dipakai (seperti data question/batch question, akun) harus kasih notifikasi seperti:  
-   > "data bisa dihapus karena data sedang dipakai"  
+   > "data* tidak bisa dihapus karena data sedang dipakai"  
    atau bagaimana jika ingin menghapusnya.  
 
 ---
