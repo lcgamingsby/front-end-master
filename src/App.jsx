@@ -10,8 +10,8 @@ import StudentsPage from "./pages/Admin/StudentsPage";
 import AddStudentPage from "./pages/Admin/AddStudentPage";
 import RegisterPage from "./pages/RegisterPage";
 import StudentDashboard from "./pages/Student/StudentDashboard";
-import ListeningTest from "./pages/ListeningTest";
-
+import ExamScoresPage from "./pages/Admin/ExamScorePage";
+import ExamScoreDetailPage from "./pages/Admin/ExamScoreDetailPage";
 import PublicRoute from "./pages/Components/PublicRoute";
 import PrivateRoute from "./pages/Components/PrivateRoute";
 import { UserProvider } from "./pages/Components/UserContext";
@@ -45,6 +45,8 @@ function App() {
             <Route path="students/edit" element={<AddStudentPage />} />
             <Route path="reset" element={<ResetPasswordPage />} />
             <Route path="track" element={<ExamTrackingPage />} />
+            <Route path="scores" element={<ExamScoresPage />} />
+            <Route path="scores/:examId" element={<ExamScoreDetailPage />} />
           </Route>
           <Route path="/student" element={<PrivateRoute role="mahasiswa" />}>
             <Route index element={<StudentDashboard />} />

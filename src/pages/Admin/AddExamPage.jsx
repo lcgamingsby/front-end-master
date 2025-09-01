@@ -424,21 +424,33 @@ function AddExamPage() {
           <table className="w-full border-collapse mb-4 text-sm">
             <thead>
               <tr className="bg-tec-darker text-white text-center font-bold">
-                <th className="w-1/12 px-4 py-3 border-x-2 border-white border-l-tec-darker">
+                {<th className="w-1/12 px-4 py-3 border-x-2 border-white border-l-tec-darker">
                   <input
-                    type="checkbox"
-                    name="all_questions"
-                    checked={form.questions.length === questions.length && questions.length > 0}
-                    onChange={() => {
-                      const allQuestionIDs = questions.flatMap((q) => q.question_id);
-
-                      setForm({
-                        ...form,
-                        questions: form.questions.length !== questions.length ? allQuestionIDs : [],
-                      });
-                    }}
-                    disabled={questions.length === 0}
-                  /></th>
+                  type="checkbox"
+                  name="all_questions"
+                  // centang jika SEMUA batch terpilih
+                  checked={questions.length > 0 && questions.every(b => form.questions.includes(b.batch_id))}
+                  // tampilkan state indeterminate jika sebagian terpilih
+                  ref={el => {
+                    if (!el) return;
+                    const someSelected =
+                      form.questions.length > 0 &&
+                      !questions.every(b => form.questions.includes(b.batch_id));
+                    el.indeterminate = someSelected;
+                  }}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      // pilih semua batch
+                      const allBatchIDs = questions.map(b => b.batch_id);
+                      setForm(prev => ({ ...prev, questions: allBatchIDs }));
+                    } else {
+                      // kosongkan pilihan
+                      setForm(prev => ({ ...prev, questions: [] }));
+                    }
+                  }}
+                  disabled={questions.length === 0}
+                />
+                </th>}
                 <th className="w-1/12 px-4 py-3 border-x-2 border-white">Type</th>
                 <th className="w-5/12 px-4 py-3 border-x-2 border-white">Question</th>
                 <th className="w-5/12 px-4 py-3 border-x-2 border-white border-r-tec-darker">Answer Choices</th>
@@ -457,15 +469,12 @@ function AddExamPage() {
                             type="checkbox"
                             checked={form.questions.includes(b.batch_id)}
                             onChange={() => {
-                              setForm((prevForm) => {
+                              setForm(prevForm => {
                                 const alreadySelected = prevForm.questions.includes(b.batch_id);
-
-                                return {
-                                ...form,
-                                questions: alreadySelected
-                                  ? prevForm.questions.filter((id) => id !== b.batch_id)
-                                  : [...prevForm.questions, b.batch_id],
-                                };
+                                const next = alreadySelected
+                                  ? prevForm.questions.filter(id => id !== b.batch_id)
+                                  : [...prevForm.questions, b.batch_id];
+                                return { ...prevForm, questions: next };
                               });
                             }}
                           />

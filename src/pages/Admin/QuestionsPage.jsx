@@ -63,10 +63,12 @@ function QuestionsPage() {
 
       if (response.status === 200) {
         setShowConfirm(false);
+        
 
         setQuestionBatches((prevQuestions) =>
           prevQuestions.filter((question) => question.question_id !== questionId)
         );
+        await getQuestions();
       }
     } catch (error) {
       console.error("Error deleting question:", error);

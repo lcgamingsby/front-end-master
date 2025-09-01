@@ -41,26 +41,41 @@ function StudentsPage() {
   const deleteStudent = async (nim) => {
     try {
       const token = localStorage.getItem("jwtToken");
-
-      const response = await axios.delete(config.BACKEND_URL + "/api/admin/users/" + nim, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
+  
+      console.log("🔵 Delete student debug:");
+      console.log("  → NIM/ID yang dikirim:", nim);
+      console.log("  → URL:", `${config.BACKEND_URL}/api/admin/users/${nim}`);
+      console.log("  → Token ada?:", token ? "YA" : "TIDAK");
+  
+      const response = await axios.delete(
+        `${config.BACKEND_URL}/api/admin/users/${nim}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      console.log("✅ Response sukses:", response);
+  
       if (response.status === 200) {
-        // seamless update
-        // console.log("Successfully deleted student:", nim); // debug
         setShowConfirm(false);
-
-        setStudents((prevStudents) =>
-          prevStudents.filter((student) => student.nim !== nim)
+        setStudents((prev) =>
+          prev.filter((student) => student.nim !== nim)
         );
       }
     } catch (error) {
-      console.error("Error deleting student:", error);
+      console.error("❌ Error deleting student:");
+      if (error.response) {
+        console.error("  Status:", error.response.status);
+        console.error("  Data:", error.response.data);
+        console.error("  Headers:", error.response.headers);
+      } else {
+        console.error("  Message:", error.message);
+      }
     }
-  }
+  };
+  
 
   useEffect(() => {
     // GET students data
@@ -103,8 +118,11 @@ function StudentsPage() {
   };
 
   const handleConfirmDelete = async () => {
+    console.log("🟡 Debug toDelete object:", toDelete);
+  
     const studentNIM = toDelete.nim;
-
+    console.log("🟡 NIM yang dipakai untuk delete:", studentNIM);
+  
     deleteStudent(studentNIM);
   };
 
@@ -119,13 +137,13 @@ function StudentsPage() {
       <main className="p-8">
         <h2 className="text-4xl mb-5 text-tec-darker font-bold">All Students</h2>
         <div className="flex justify-between items-center mb-5">
-          <button
-            className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
-              rounded-lg flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate("/admin/students/add")}
-          >
-            <FaPlus /> Add a Student
-          </button>
+          {/* <button */}
+            {/* className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold */}
+              {/* rounded-lg flex items-center gap-2 cursor-pointer" */}
+            {/* onClick={() => navigate("/admin/students/add")} */}
+          {/* > */}
+            {/* <FaPlus /> Add a Student */}
+          {/* </button> */}
 
           <div className="flex items-center flex-wrap gap-2">
             <div>
