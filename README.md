@@ -1,4 +1,8 @@
-# 🚀 UPDATE PROGRESS ![Progress](https://img.shields.io/badge/progress-78%25-brightgreen)
+# 🚀 UPDATE PROGRESS  
+![Progress](https://img.shields.io/badge/progress-78%25-brightgreen)  
+![Total Tasks](https://img.shields.io/badge/total_tasks-9-blue)  
+![Done](https://img.shields.io/badge/done-7-success)  
+![Remaining](https://img.shields.io/badge/remaining-2-red)  
 
 ### ✅ Selesai
 - [x] 🎧 Halaman Exam audio listening ganti section ke grammar audio otomatis terhenti  
@@ -19,8 +23,7 @@
 ---
 
 # 📊 Progress
-**7 / 9 tasks done (≈ 78%)**
-███████████████░░░░
+**7 / 9 tasks done**
 
 ---
 
