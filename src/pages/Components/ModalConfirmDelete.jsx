@@ -10,8 +10,6 @@ const ModalConfirmDelete = ({ isOpen, openModal, onTrue, onFalse, title, message
         }
     }
 
-    let open = isOpen;
-
     return (
         <div className="relative z-10" aria-labelledby="dialog-title" role="dialog" aria-modal="true">
             <div

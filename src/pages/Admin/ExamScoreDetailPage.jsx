@@ -4,6 +4,7 @@ import axios from "axios";
 import { config } from "../../data/config";
 import { FaDownload } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
+import Loading from "../Components/Loading";
 
 
 function ExamScoresPage() {
@@ -52,17 +53,20 @@ function ExamScoresPage() {
     link.click();
   };
 
+  const exportToFile = (data, filename) => {
+    
+  }
+
   const navigate = useNavigate();
-
-  
-
-  if (loading) return <p className="p-8">Loading...</p>;
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
-      <main className="p-8">
-        <button
+      {loading ? 
+        <Loading />
+      : (
+        <main className="p-8">
+          <button
             className="mb-4 bg-slate-300 hover:bg-slate-400 text-black px-4 py-2 rounded-lg"
             onClick={() => navigate("/admin/scores")}
           >
@@ -73,68 +77,69 @@ function ExamScoresPage() {
             Exam Scores Details
           </h2>
 
-        {/* Scores Table */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-2xl font-semibold text-tec-darker">Scores</h3>
-            <button
-              className="flex items-center gap-2 bg-tec-darker hover:bg-tec-dark text-white px-4 py-2 rounded-lg"
-              onClick={() => exportToFile(scores, "exam_scores.xlsx")}
-            >
-              <FaDownload /> Export Scores
-            </button>
-          </div>
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-tec-darker text-white">
-                <th className="px-4 py-2 border">Student ID</th>
-                <th className="px-4 py-2 border">Name</th>
-                <th className="px-4 py-2 border">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {scores.map((s, i) => (
-                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
-                  <td className="border px-4 py-2">{s.nim}</td>
-                  <td className="border px-4 py-2">{s.name}</td>
-                  <td className="border px-4 py-2">{s.score}</td>
+          {/* Scores Table */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-2xl font-semibold text-tec-darker">Scores</h3>
+              <button
+                className="flex items-center gap-2 bg-tec-darker hover:bg-tec-dark text-white px-4 py-2 rounded-lg"
+                onClick={() => exportToFile(scores, "exam_scores.xlsx")}
+              >
+                <FaDownload /> Export Scores
+              </button>
+            </div>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-tec-darker text-white">
+                  <th className="px-4 py-2 border">Student ID</th>
+                  <th className="px-4 py-2 border">Name</th>
+                  <th className="px-4 py-2 border">Score</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {scores.map((s, i) => (
+                  <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
+                    <td className="border px-4 py-2">{s.nim}</td>
+                    <td className="border px-4 py-2">{s.name}</td>
+                    <td className="border px-4 py-2">{s.score}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Logs Table */}
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-2xl font-semibold text-tec-darker">Activity Logs</h3>
-            <button
-              className="flex items-center gap-2 bg-tec-darker hover:bg-tec-dark text-white px-4 py-2 rounded-lg"
-              onClick={() => exportToFile(logs, "exam_logs.xlsx")}
-            >
-              <FaDownload /> Export Logs
-            </button>
-          </div>
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-tec-darker text-white">
-                <th className="px-4 py-2 border">Timestamp</th>
-                <th className="px-4 py-2 border">Student ID</th>
-                <th className="px-4 py-2 border">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((l, i) => (
-                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
-                  <td className="border px-4 py-2">{l.timestamp}</td>
-                  <td className="border px-4 py-2">{l.nim}</td>
-                  <td className="border px-4 py-2">{l.action}</td>
+          {/* Logs Table */}
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-2xl font-semibold text-tec-darker">Activity Logs</h3>
+              <button
+                className="flex items-center gap-2 bg-tec-darker hover:bg-tec-dark text-white px-4 py-2 rounded-lg"
+                onClick={() => exportToFile(logs, "exam_logs.xlsx")}
+              >
+                <FaDownload /> Export Logs
+              </button>
+            </div>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-tec-darker text-white">
+                  <th className="px-4 py-2 border">Timestamp</th>
+                  <th className="px-4 py-2 border">Student ID</th>
+                  <th className="px-4 py-2 border">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </main>
+              </thead>
+              <tbody>
+                {logs.map((l, i) => (
+                  <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
+                    <td className="border px-4 py-2">{l.timestamp}</td>
+                    <td className="border px-4 py-2">{l.nim}</td>
+                    <td className="border px-4 py-2">{l.action}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </main>
+      )}
     </div>
   );
 }
