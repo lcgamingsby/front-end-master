@@ -37,17 +37,19 @@ const StudentExam = () => {
   // Atur posisi awal ujian
   const [currentQuestion, setCurrentQuestion] = useState(() => {
     const savedSession = localStorage.getItem(examSessionKey);
-    if (savedSession) {
-      return JSON.parse(localStorage.getItem("currentQuestion")) || {
-        index: 0,
-        type: "listening",
-      };
+    const savedQuestion = localStorage.getItem("currentQuestion");
+  
+    if (savedSession && savedQuestion) {
+      try {
+        return JSON.parse(savedQuestion) || { index: 0, type: "listening" };
+      } catch {
+        return { index: 0, type: "listening" };
+      }
     } else {
       localStorage.setItem(examSessionKey, "started");
       return { index: 0, type: "listening" };
     }
   });
-
   const [selectedOption, setSelectedOption] = useState("");
   const [hasPlayed, setHasPlayed] = useState(played);
   const [playing, setPlaying] = useState(false);
@@ -67,6 +69,40 @@ const StudentExam = () => {
   });
 
   const audioRef = useRef(null);
+  const prevTypeRef = useRef(currentQuestion.type);
+
+  // Atur audio untuk listening
+  useEffect(() => {
+    const prevType = prevTypeRef.current;
+
+    // Kalau pindah ke grammar → stop audio lama
+    if (prevType === "listening" && currentQuestion.type === "grammar") {
+      if (audioRef.current) {
+        console.log("🔴 Stop audio karena pindah dari Listening ke Grammar");
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+
+    // Kalau masuk listening pertama kali ATAU audioRef masih kosong → load audio
+    if (
+      currentQuestion.type === "listening" &&
+      (prevType !== "listening" || !audioRef.current)
+    ) {
+      console.log("🟢 Load audio untuk Listening soal index:", currentQuestion.index);
+      const newAudio = new Audio(
+        `${config.BACKEND_URL}/audio/${
+          examQuestions[currentQuestion.type][currentQuestion.index].audio_path
+        }`
+      );
+      audioRef.current = newAudio;
+      audioRef.current.load();
+      setPlaying(false);
+    }
+
+    // Update ref type sebelumnya
+    prevTypeRef.current = currentQuestion.type;
+  }, [currentQuestion.type, currentQuestion.index]);
 
   useEffect(() => {
     const currentQ = examQuestions[currentQuestion.type][currentQuestion.index];
@@ -94,21 +130,6 @@ const StudentExam = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Atur audio untuk listening
-  useEffect(() => {
-    if (currentQuestion.type === "listening") {
-      const newAudio = new Audio(
-        `${config.BACKEND_URL}/audio/${
-          examQuestions[currentQuestion.type][currentQuestion.index].audio_path
-        }`
-      );
-      audioRef.current = newAudio;
-      audioRef.current.load();
-    } else {
-      audioRef.current = null;
-    }
-    setPlaying(false);
-  }, [currentQuestion]);
 
   const recoverExistingAnswers = async () => {
     const token = localStorage.getItem("jwtToken");
@@ -559,13 +580,12 @@ const StudentExam = () => {
           {examQuestions[currentQuestion.type][currentQuestion.index].audio_path !== ""
             || examQuestions[currentQuestion.type][currentQuestion.index].batch_text !== "" ? (
               <div className="bg-blue-300 rounded-xl flex-1 m-5 p-5">
-                {audioRef.current && (
+                {currentQuestion.type === "listening" && audioRef.current && (
                   <div className="gap-2 flex items-center">
                     <button
                       onClick={handlePlayPause}
                       disabled={hasPlayed.includes(
-                        examQuestions[currentQuestion.type][currentQuestion.index]
-                          .question_id
+                        examQuestions[currentQuestion.type][currentQuestion.index].question_id
                       )}
                       className="w-8 h-8 rounded-full bg-tec-darker text-white flex items-center justify-center"
                     >
