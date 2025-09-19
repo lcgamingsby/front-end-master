@@ -30,7 +30,10 @@ function StudentsPage() {
         },
       });
 
-      setStudents(response.data);
+      if (response.status === 200 && response.data.message !== "200 - No users found") {
+        setStudents(response.data);
+      }
+
       setFinishedLoading(true);
     } catch (error) {
       console.error("Error fetching students:", error);

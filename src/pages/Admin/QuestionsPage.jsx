@@ -34,16 +34,19 @@ function QuestionsPage() {
         },
       });
 
-      setQuestionBatches(response.data.map((b, index) => {
-        const batchQuestions = b.questions.map((q, idx) => {
-          return {
-            ...q,
-            answers: [q.choice_a, q.choice_b, q.choice_c, q.choice_d],
-          };
-        });
+      if (response.status === 200 && response.data.message !== "200 - No questions found") {
+        setQuestionBatches(response.data.map((b, index) => {
+          const batchQuestions = b.questions.map((q, idx) => {
+            return {
+              ...q,
+              answers: [q.choice_a, q.choice_b, q.choice_c, q.choice_d],
+            };
+          });
 
-        return {...b, questions: batchQuestions};
-      }));
+          return {...b, questions: batchQuestions};
+        }));
+      }
+
       setFinishedLoading(true);
     } catch (error) {
       console.error("Error fetching questions:", error);

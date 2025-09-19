@@ -32,7 +32,10 @@ function ExamsPage() {
         },
       });
 
-      setExams(response.data);
+      if (response.status === 200 && response.data.message !== "200 - No exams found") {
+        setExams(response.data);
+      }
+
       setFinishedLoading(true);
     } catch (error) {
       console.error("Error fetching exams:", error);
