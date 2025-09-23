@@ -6,16 +6,19 @@ import { FaDownload } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
 
-
-function ExamScoresPage() {
+function ExamScoreDetailPage() {
   const [scores, setScores] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
+  const { examID } = useParams();
+  const navigate = useNavigate();
+  
   const getScores = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
-      const res = await axios.get(`${config.BACKEND_URL}/api/admin/scores`, {
+      const res = await axios.get(`${config.BACKEND_URL}/api/admin/scores/${examID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setScores(res.data);
@@ -27,7 +30,7 @@ function ExamScoresPage() {
   const getLogs = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
-      const res = await axios.get(`${config.BACKEND_URL}/api/admin/logs`, {
+      const res = await axios.get(`${config.BACKEND_URL}/api/admin/logs/${examID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLogs(res.data);
@@ -36,16 +39,52 @@ function ExamScoresPage() {
     }
   };
 
+useEffect(() => {
+  let isMounted = true;
+
+  const loadData = async () => {
+    await Promise.all([getScores(), getLogs()]);
+    if (isMounted) setLoading(false);
+  };
+
+  // load pertama kali
+  loadData();
+
+  // polling setiap 10 detik
+  const interval = setInterval(() => {
+    console.log("Refreshing data...");
+    loadData();
+  }, 10000); // 10 detik
+
+  // cleanup interval kalau pindah halaman
+  return () => {
+    isMounted = false;
+    clearInterval(interval);
+  };
+  }, [examID]);
+
   useEffect(() => {
-    Promise.all([getScores(), getLogs()]).then(() => setLoading(false));
-  }, []);
+    const ws = new WebSocket(`${config.BACKEND_WS_URL}/ws`);
+  
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "exam_update" && data.examID === examID) {
+        getScores();
+        getLogs();
+      }
+    };
+  
+    return () => ws.close();
+  }, [examID]);
+  
 
   const exportCSV = (data, filename) => {
+    if (!data || data.length === 0) return;
     const csvContent = [
       Object.keys(data[0]).join(","), // header
-      ...data.map(row => Object.values(row).join(",")) // rows
+      ...data.map((row) => Object.values(row).join(",")), // rows
     ].join("\n");
-  
+
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -53,18 +92,25 @@ function ExamScoresPage() {
     link.click();
   };
 
-  const exportToFile = (data, filename) => {
-    
-  }
+  // setelah ambil data log
+  const groupedLogs = (logs || []).reduce((acc, log) => {
+    if (!acc[log.nim]) acc[log.nim] = [];
+    acc[log.nim].push(log);
+    return acc;
+  }, {});
 
-  const navigate = useNavigate();
+  const lastLogs = Object.keys(groupedLogs).map((nim) => ({
+    nim,
+    last: groupedLogs[nim][0], // karena backend ORDER BY waktu DESC
+  }));
+
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
-      {loading ? 
+      {loading ? (
         <Loading />
-      : (
+      ) : (
         <main className="p-8">
           <button
             className="mb-4 bg-slate-300 hover:bg-slate-400 text-black px-4 py-2 rounded-lg"
@@ -83,7 +129,7 @@ function ExamScoresPage() {
               <h3 className="text-2xl font-semibold text-tec-darker">Scores</h3>
               <button
                 className="flex items-center gap-2 bg-tec-darker hover:bg-tec-dark text-white px-4 py-2 rounded-lg"
-                onClick={() => exportToFile(scores, "exam_scores.xlsx")}
+                onClick={() => exportCSV(scores, "exam_scores.csv")}
               >
                 <FaDownload /> Export Scores
               </button>
@@ -91,8 +137,8 @@ function ExamScoresPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-tec-darker text-white">
-                  <th className="px-4 py-2 border">Student ID</th>
-                  <th className="px-4 py-2 border">Name</th>
+                  <th className="px-4 py-2 border">NPM</th>
+                  <th className="px-4 py-2 border">Nama</th>
                   <th className="px-4 py-2 border">Score</th>
                 </tr>
               </thead>
@@ -108,40 +154,92 @@ function ExamScoresPage() {
             </table>
           </div>
 
-          {/* Logs Table */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-2xl font-semibold text-tec-darker">Activity Logs</h3>
-              <button
-                className="flex items-center gap-2 bg-tec-darker hover:bg-tec-dark text-white px-4 py-2 rounded-lg"
-                onClick={() => exportToFile(logs, "exam_logs.xlsx")}
-              >
-                <FaDownload /> Export Logs
-              </button>
-            </div>
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-tec-darker text-white">
-                  <th className="px-4 py-2 border">Timestamp</th>
-                  <th className="px-4 py-2 border">Student ID</th>
-                  <th className="px-4 py-2 border">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((l, i) => (
-                  <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
-                    <td className="border px-4 py-2">{l.timestamp}</td>
-                    <td className="border px-4 py-2">{l.nim}</td>
-                    <td className="border px-4 py-2">{l.action}</td>
+          {/* Render logs per student */}
+          {/* Logs Summary */}
+            <div>
+              <h3 className="text-2xl font-semibold text-tec-darker mb-3">
+                Latest Activity per Student
+              </h3>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-tec-darker text-white">
+                    <th className="px-4 py-2 border">NPM</th>
+                    <th className="px-4 py-2 border">Latest Timestamp</th>
+                    <th className="px-4 py-2 border">Latest Activity</th>
+                    <th className="px-4 py-2 border">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {lastLogs.map((entry, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
+                      <td className="border px-4 py-2">{entry.nim}</td>
+                      <td className="border px-4 py-2">{entry.last.waktu}</td>
+                      <td className="border px-4 py-2">{entry.last.aktivitas}</td>
+                      <td className="border px-4 py-2">
+                      <div className="flex gap-4"> {/* jarak antar tombol lebih besar */}
+                        <button
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                          onClick={() => navigate(`/admin/logs/${examID}/${entry.nim}`)}
+                        >
+                          View Details
+                        </button>
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                          onClick={() => setDeleteTarget(entry.nim)} // ganti confirm manual → popup
+                        >
+                          Delete Logs
+                        </button>
+                      </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          {deleteTarget && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-xl p-6 w-[400px]">
+                <h3 className="text-xl font-bold text-tec-darker mb-4">
+                  Konfirmasi Hapus
+                </h3>
+                <p className="mb-6">
+                  Apakah Anda yakin ingin menghapus semua log aktivitas untuk student{" "}
+                  <span className="font-semibold">{deleteTarget}</span>?
+                </p>
+                <div className="flex justify-end gap-4">
+                  <button
+                    className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded"
+                    onClick={() => setDeleteTarget(null)}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem("jwtToken");
+                        await axios.delete(
+                          `${config.BACKEND_URL}/api/admin/logs/${examID}/${deleteTarget}`,
+                          { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        setDeleteTarget(null);
+                        getLogs(); // refresh tabel
+                      } catch (err) {
+                        console.error("Error deleting logs:", err);
+                        alert("Failed to delete logs");
+                      }
+                    }}
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       )}
     </div>
   );
 }
 
-export default ExamScoresPage;
+export default ExamScoreDetailPage;

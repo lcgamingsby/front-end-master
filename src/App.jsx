@@ -19,6 +19,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import StudentExam from "./pages/Student/StudentExam";
 import StudentFinish from "./pages/Student/StudentFinish";
 import ExamTrackingPage from "./pages/Admin/ExamTrackingPage";
+import StudentLogDetailPage from "./pages/Admin/StudentLogDetailPage";
 
 function App() {
   return (
@@ -46,7 +47,8 @@ function App() {
             <Route path="reset" element={<ResetPasswordPage />} />
             <Route path="track" element={<ExamTrackingPage />} />
             <Route path="scores" element={<ExamScoresPage />} />
-            <Route path="scores/:examId" element={<ExamScoreDetailPage />} />
+            <Route path="scores/:examID" element={<ExamScoreDetailPage />} />
+            <Route path="logs/:examID/:nim" element={<StudentLogDetailPage />} />
           </Route>
           <Route path="/student" element={<PrivateRoute role="mahasiswa" />}>
             <Route index element={<StudentDashboard />} />

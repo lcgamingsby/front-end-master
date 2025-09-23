@@ -72,19 +72,42 @@ const StudentFinish = () => {
         };
 
         if (confirm("Are you sure to end this exam now?")) {
+            try {
             const token = localStorage.getItem("jwtToken");         
 
-            const endRes = await axios.put(`${config.BACKEND_URL}/api/student/exam/finish`, {
-                nim: user.id,
-                exam_id: examID,
-            }, {
-                headers: {
-                Authorization: `Bearer ${token}`,
+            const endRes = await axios.put(
+                `${config.BACKEND_URL}/api/student/exam/finish`,
+                {
+                    nim: user.id,
+                    exam_id: examID,
                 },
-            });
-
-            if (endRes.status === 200) {
+                {
+                    headers: {
+                    Authorization: `Bearer ${token}`,   // <- pastikan token dikirim
+                    },
+                }
+                );
+            
+                if (endRes.status === 200) {
+                try {
+                    // 2. Hitung skor otomatis
+                    await axios.post(
+                    `${config.BACKEND_URL}/api/student/exam/submit/${user.id}/${examID}`,
+                    {},
+                    {
+                        headers: {
+                        Authorization: `Bearer ${token}`, // <- tambahkan juga di sini
+                        },
+                    }
+                    );
+                } catch (err) {
+                    console.error("Gagal menghitung nilai:", err);
+                }
+            
                 navigate("/student");
+                }
+            } catch (err) {
+                console.error("Gagal menyelesaikan ujian:", err);
             }
         }
     }

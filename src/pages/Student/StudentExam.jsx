@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import { config } from "../../data/config";
@@ -8,6 +6,7 @@ import { FaCheck, FaChevronLeft, FaChevronRight, FaFlag, FaPlay } from "react-ic
 import axios from "axios";
 import { useUser } from "../Components/UserContext";
 import GrammarUnderline from "../Components/GrammarUnderline";
+import { sendLog } from "../utils/log"; // ✅ tambahan
 
 const StudentExam = () => {
   const { user } = useUser();
@@ -17,6 +16,7 @@ const StudentExam = () => {
     reading: 55 * 60,
   };
 
+ 
   const location = useLocation();
   const examID = location.state?.examID || 0;
   const examQuestions = location.state?.questions || [];
@@ -24,10 +24,9 @@ const StudentExam = () => {
   const flagged = location.state?.flagged || [];
   const played = location.state?.hasPlayed || [];
 
-  console.log(examQuestions);
-
   const navigate = useNavigate();
-  const examSessionKey = `exam_session_${examID}`;
+  const storagePrefix = `${examID}_${user.id}`;
+  const examSessionKey = `exam_session_${examID}_${storagePrefix}`;
 
   const [flaggedQuestions, setFlaggedQuestions] = useState(flagged);
   const [answeredQuestions, setAnsweredQuestions] = useState([]);
@@ -37,7 +36,7 @@ const StudentExam = () => {
   // Atur posisi awal ujian
   const [currentQuestion, setCurrentQuestion] = useState(() => {
     const savedSession = localStorage.getItem(examSessionKey);
-    const savedQuestion = localStorage.getItem("currentQuestion");
+    const savedQuestion = localStorage.getItem(`currentQuestion_${storagePrefix}`);
   
     if (savedSession && savedQuestion) {
       try {
@@ -56,40 +55,115 @@ const StudentExam = () => {
 
   // Ambil waktu tersisa dari localStorage
   const [listeningTime, setListeningTime] = useState(() => {
-    const saved = localStorage.getItem("remainingTime_listening");
+    const saved = localStorage.getItem(`remainingTime_listening_${storagePrefix}`);
     return saved ? parseInt(saved) : sectionTimes.listening;
   });
   const [grammarTime, setGrammarTime] = useState(() => {
-    const saved = localStorage.getItem("remainingTime_grammar");
+    const saved = localStorage.getItem(`remainingTime_grammar_${storagePrefix}`);
     return saved ? parseInt(saved) : sectionTimes.grammar;
   });
   const [readingTime, setReadingTime] = useState(() => {
-    const saved = localStorage.getItem("remainingTime_reading");
+    const saved = localStorage.getItem(`remainingTime_reading_${storagePrefix}`);
     return saved ? parseInt(saved) : sectionTimes.reading;
   });
+
 
   const audioRef = useRef(null);
   const prevTypeRef = useRef(currentQuestion.type);
 
+  
+
+  // ✅ Logging aktivitas saat masuk & keluar halaman
+  useEffect(() => {
+    const logEnter = async () => {
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        tipeAktivitas: "enter_exam",
+        aktivitas: "Masuk halaman ujian",
+      });
+    };
+    logEnter();
+
+    const handleBeforeUnload = async () => {
+      const exitTime = Date.now();
+      localStorage.setItem("lastExitTime", exitTime);
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        tipeAktivitas: "exit_exam",
+        aktivitas: "Keluar dari halaman ujian",
+      });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      handleBeforeUnload();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  // ✅ Logging resume exam
+  useEffect(() => {
+    const lastExit = localStorage.getItem("lastExitTime");
+    if (lastExit) {
+      const duration = Math.floor((Date.now() - parseInt(lastExit, 10)) / 1000);
+      if (duration > 0) {
+        sendLog({
+          nim: user.id,
+          idUjian: examID,
+          tipeAktivitas: "resume_exam",
+          aktivitas: `Kembali ke halaman ujian setelah ${duration} detik`,
+        });
+      }
+      localStorage.removeItem("lastExitTime");
+    }
+  }, []);
+
+  // ✅ Logging tab aktif / tidak aktif
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.hidden) {
+        localStorage.setItem("lastExitTime", Date.now());
+        await sendLog({
+          nim: user.id,
+          idUjian: examID,
+          tipeAktivitas: "tab_hidden",
+          aktivitas: "Berpindah tab atau minimize ujian",
+        });
+      } else {
+        const lastExit = localStorage.getItem("lastExitTime");
+        if (lastExit) {
+          const duration = Math.floor((Date.now() - parseInt(lastExit, 10)) / 1000);
+          await sendLog({
+            nim: user.id,
+            idUjian: examID,
+            tipeAktivitas: "tab_active",
+            aktivitas: `Kembali ke tab ujian setelah ${duration} detik`,
+          });
+          localStorage.removeItem("lastExitTime");
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   // Atur audio untuk listening
   useEffect(() => {
     const prevType = prevTypeRef.current;
-
-    // Kalau pindah ke grammar → stop audio lama
     if (prevType === "listening" && currentQuestion.type === "grammar") {
       if (audioRef.current) {
-        console.log("🔴 Stop audio karena pindah dari Listening ke Grammar");
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
     }
-
-    // Kalau masuk listening pertama kali ATAU audioRef masih kosong → load audio
     if (
       currentQuestion.type === "listening" &&
       (prevType !== "listening" || !audioRef.current)
     ) {
-      console.log("🟢 Load audio untuk Listening soal index:", currentQuestion.index);
       const newAudio = new Audio(
         `${config.BACKEND_URL}/audio/${
           examQuestions[currentQuestion.type][currentQuestion.index].audio_path
@@ -99,8 +173,6 @@ const StudentExam = () => {
       audioRef.current.load();
       setPlaying(false);
     }
-
-    // Update ref type sebelumnya
     prevTypeRef.current = currentQuestion.type;
   }, [currentQuestion.type, currentQuestion.index]);
 
@@ -110,12 +182,10 @@ const StudentExam = () => {
     setSelectedOption(answer ? answer.answer : "");
   }, [currentQuestion, answeredQuestions]);
 
-  // Simpan posisi terakhir
   useEffect(() => {
-    localStorage.setItem("currentQuestion", JSON.stringify(currentQuestion));
-  }, [currentQuestion]);
+    localStorage.setItem(`currentQuestion_${storagePrefix}`, JSON.stringify(currentQuestion));
+  }, [currentQuestion, storagePrefix]);
 
-  // Blok refresh keyboard
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (
@@ -129,7 +199,6 @@ const StudentExam = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
 
   const recoverExistingAnswers = async () => {
     const token = localStorage.getItem("jwtToken");
@@ -159,25 +228,25 @@ const StudentExam = () => {
       if (currentQuestion.type === "listening") {
         setListeningTime((prev) => {
           const newTime = prev > 0 ? prev - 1 : 0;
-          localStorage.setItem("remainingTime_listening", newTime);
+          localStorage.setItem(`remainingTime_listening_${storagePrefix}`, newTime);
           return newTime;
         });
       } else if (currentQuestion.type === "grammar") {
         setGrammarTime((prev) => {
           const newTime = prev > 0 ? prev - 1 : 0;
-          localStorage.setItem("remainingTime_grammar", newTime);
+          localStorage.setItem(`remainingTime_grammar_${storagePrefix}`, newTime);
           return newTime;
         });
       } else if (currentQuestion.type === "reading") {
         setReadingTime((prev) => {
           const newTime = prev > 0 ? prev - 1 : 0;
-          localStorage.setItem("remainingTime_reading", newTime);
+          localStorage.setItem(`remainingTime_reading_${storagePrefix}`, newTime);
           return newTime;
         });
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [currentQuestion.type]);
+  }, [currentQuestion.type, storagePrefix]);
 
   useEffect(() => {
     if (
@@ -204,48 +273,61 @@ const StudentExam = () => {
       }
     );
 
-    // Reset semua data ujian
+    await sendLog({
+      nim: user.id,
+      idUjian: examID,
+      tipeAktivitas: "finish",
+      aktivitas: "Selesai ujian",
+    });
+
     localStorage.removeItem(examSessionKey);
-    localStorage.removeItem("currentQuestion");
-    localStorage.removeItem("remainingTime_listening");
-    localStorage.removeItem("remainingTime_grammar");
-    localStorage.removeItem("remainingTime_reading");
+    localStorage.removeItem(`currentQuestion_${storagePrefix}`);
+    localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
+    localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
+    localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
 
     navigate("/student");
   };
 
   // Flag
-  const handleFlag = () => {
-    if (
-      !flaggedQuestions.includes(
-        examQuestions[currentQuestion.type][currentQuestion.index].question_id
-      )
-    ) {
-      setFlaggedQuestions((prev) => [
-        ...prev,
-        examQuestions[currentQuestion.type][currentQuestion.index].question_id,
-      ]);
+  const handleFlag = async () => {
+    const q = examQuestions[currentQuestion.type][currentQuestion.index];
+    if (!flaggedQuestions.includes(q.question_id)) {
+      setFlaggedQuestions((prev) => [...prev, q.question_id]);
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        //idSoal: q.question_id,
+        tipeAktivitas: "flag",
+        aktivitas: "Flag soal",
+      });
     } else {
-      setFlaggedQuestions(
-        flaggedQuestions.filter(
-          (v) =>
-            v !==
-            examQuestions[currentQuestion.type][currentQuestion.index]
-              .question_id
-        )
-      );
+      setFlaggedQuestions(flaggedQuestions.filter((v) => v !== q.question_id));
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        //idSoal: q.question_id,
+        tipeAktivitas: "flag",
+        aktivitas: "Unflag soal",
+      });
     }
   };
 
   // Play audio
-  const handlePlayPause = () => {
+  const handlePlayPause = async () => {
+    const q = examQuestions[currentQuestion.type][currentQuestion.index];
     if (audioRef.current && !playing) {
       audioRef.current.play();
       setPlaying(true);
-      setHasPlayed([
-        ...hasPlayed,
-        examQuestions[currentQuestion.type][currentQuestion.index].question_id,
-      ]);
+      setHasPlayed([...hasPlayed, q.question_id]);
+
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        //idSoal: q.question_id,
+        tipeAktivitas: "listening",
+        aktivitas: "Play audio soal",
+      });
     }
   };
 
@@ -266,19 +348,22 @@ const StudentExam = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        //idSoal: q.question_id,
+        tipeAktivitas: "answer",
+        aktivitas: `Menjawab soal dengan pilihan ${index}`,
+      });
     } catch (e) {
       console.error("Error answering:", e);
       return;
     }
-    const otherAnswered = answeredQuestions.filter(
-      (v) => v.question_id !== q.question_id
-    );
+    const otherAnswered = answeredQuestions.filter((v) => v.question_id !== q.question_id);
     if (selectedOption !== index) {
       setSelectedOption(index);
-      setAnsweredQuestions([
-        ...otherAnswered,
-        { question_id: q.question_id, answer: index },
-      ]);
+      setAnsweredQuestions([...otherAnswered, { question_id: q.question_id, answer: index }]);
     } else {
       setSelectedOption("");
       setAnsweredQuestions([...otherAnswered]);
@@ -286,13 +371,18 @@ const StudentExam = () => {
   };
 
   // Navigasi
-  const handleNext = () => {
-    if (
-      currentQuestion.index <
-      examQuestions[currentQuestion.type].length - 1
-    ) {
-      const nextIndex = currentQuestion.index + 1;
-      setCurrentQuestion({ type: currentQuestion.type, index: nextIndex });
+  const handleNext = async () => {
+    const q = examQuestions[currentQuestion.type][currentQuestion.index];
+    await sendLog({
+      nim: user.id,
+      idUjian: examID,
+      //idSoal: q.question_id,
+      tipeAktivitas: "navigation",
+      aktivitas: "Pindah soal berikutnya",
+    });
+
+    if (currentQuestion.index < examQuestions[currentQuestion.type].length - 1) {
+      setCurrentQuestion({ type: currentQuestion.type, index: currentQuestion.index + 1 });
     } else {
       if (currentQuestion.type === "listening") {
         setListeningDone(true);
@@ -301,32 +391,31 @@ const StudentExam = () => {
         setGrammarDone(true);
         setCurrentQuestion({ type: "reading", index: 0 });
       } else if (currentQuestion.type === "reading") {
-        // Reset session sebelum navigasi
         localStorage.removeItem(examSessionKey);
-        localStorage.removeItem("currentQuestion");
-        localStorage.removeItem("remainingTime_listening");
-        localStorage.removeItem("remainingTime_grammar");
-        localStorage.removeItem("remainingTime_reading");
-      
+        localStorage.removeItem(`currentQuestion_${storagePrefix}`);
+        localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
+        localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
+        localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
+
         navigate("/student/exam/finish", {
-          state: {
-            examID,
-            questions: examQuestions,
-            endDatetime,
-            flagged: flaggedQuestions,
-            hasPlayed,
-          },
+          state: { examID, questions: examQuestions, endDatetime, flagged: flaggedQuestions, hasPlayed },
         });
       }
     }
   };
 
-  const handlePrev = () => {
+  const handlePrev = async () => {
+    const q = examQuestions[currentQuestion.type][currentQuestion.index];
+    await sendLog({
+      nim: user.id,
+      idUjian: examID,
+      //idSoal: q.question_id,
+      tipeAktivitas: "navigation",
+      aktivitas: "Pindah soal sebelumnya",
+    });
+
     if (currentQuestion.index > 0) {
-      setCurrentQuestion({
-        type: currentQuestion.type,
-        index: currentQuestion.index - 1,
-      });
+      setCurrentQuestion({ type: currentQuestion.type, index: currentQuestion.index - 1 });
     }
   };
 
@@ -334,9 +423,7 @@ const StudentExam = () => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor(seconds / 60) % 60;
     const secs = seconds % 60;
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const answerChoices = [
