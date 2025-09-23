@@ -1,5 +1,5 @@
 # 🚀 UPDATE PROGRESS  
-![Progress](https://img.shields.io/badge/progress-78%25-brightgreen)  ![Total Tasks](https://img.shields.io/badge/total_tasks-9-blue)  ![Done](https://img.shields.io/badge/done-7-success)  ![Remaining](https://img.shields.io/badge/remaining-2-red)  
+![Progress](https://img.shields.io/badge/progress-90%25-brightgreen)  ![Total Tasks](https://img.shields.io/badge/total_tasks-10-blue)  ![Done](https://img.shields.io/badge/done-9-success)  ![Remaining](https://img.shields.io/badge/remaining-1-red)  
 
 ### ✅ Selesai
 - [x] 🎧 Halaman Exam audio listening ganti section ke grammar audio otomatis terhenti  
