@@ -10,17 +10,19 @@
       _Sudah ada halamannya tinggal ubah sedikit dan sambung ke backend_  
 - [x] 🗑️ Bagian penghapusan akun student (yang tertunda/tidak ikut exam) tidak bisa di delete  
 - [x] 📝 Pada saat add question exam listening langsung blank putih  
-- [x] ❓ Hapus Question link nya di cek lagi  
+- [x] ❓ Hapus Question link nya di cek lagi
+- [x] 🔌 Hasil activity log (web socket) belum
+- [x] 💯 Penilaian otomatis dan muncul di 
 
 ### ⏳ Belum Selesai
-- [ ] 🔌 Hasil activity log (web socket) belum  
+
 - [ ] 🗄️ Beberapa Data dari database lama kelihatannya memang tidak mau dihapus dari sisi frontend,  
       jadi kalau mau hapus data lama kudu dari backend  
 
 ---
 
 # 📊 Progress
-**7 / 9 tasks done**
+**9 / 10 tasks done**
 
 ---
 
