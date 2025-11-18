@@ -21,7 +21,7 @@ function ExamScoreDetailPage() {
       const res = await axios.get(`${config.BACKEND_URL}/api/admin/scores/${examID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setScores(res.data);
+      setScores(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       console.error("Error fetching scores:", e);
     }
@@ -33,39 +33,33 @@ function ExamScoreDetailPage() {
       const res = await axios.get(`${config.BACKEND_URL}/api/admin/logs/${examID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setLogs(res.data);
+      setLogs(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       console.error("Error fetching logs:", e);
     }
   };
 
-useEffect(() => {
-  let isMounted = true;
-
-  const loadData = async () => {
-    await Promise.all([getScores(), getLogs()]);
-    if (isMounted) setLoading(false);
-  };
-
-  // load pertama kali
-  loadData();
-
-  // polling setiap 10 detik
-  const interval = setInterval(() => {
-    console.log("Refreshing data...");
+  useEffect(() => {
+    let isMounted = true;
+    const loadData = async () => {
+      await Promise.all([getScores(), getLogs()]);
+      if (isMounted) setLoading(false);
+    };
     loadData();
-  }, 10000); // 10 detik
 
-  // cleanup interval kalau pindah halaman
-  return () => {
-    isMounted = false;
-    clearInterval(interval);
-  };
+    const interval = setInterval(() => {
+      console.log("Refreshing data...");
+      loadData();
+    }, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [examID]);
 
   useEffect(() => {
     const ws = new WebSocket(`${config.BACKEND_WS_URL}/ws`);
-  
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "exam_update" && data.examID === examID) {
@@ -73,10 +67,8 @@ useEffect(() => {
         getLogs();
       }
     };
-  
     return () => ws.close();
   }, [examID]);
-  
 
   const exportCSV = (data, filename) => {
     if (!data || data.length === 0) return;
@@ -92,7 +84,25 @@ useEffect(() => {
     link.click();
   };
 
-  // setelah ambil data log
+  // ✅ Fungsi format tanggal agar tampil WIB & lebih rapi
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Group logs by student
   const groupedLogs = (logs || []).reduce((acc, log) => {
     if (!acc[log.nim]) acc[log.nim] = [];
     acc[log.nim].push(log);
@@ -103,7 +113,6 @@ useEffect(() => {
     nim,
     last: groupedLogs[nim][0], // karena backend ORDER BY waktu DESC
   }));
-
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
@@ -143,7 +152,7 @@ useEffect(() => {
                 </tr>
               </thead>
               <tbody>
-                {scores.map((s, i) => (
+                {(scores || []).map((s, i) => (
                   <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
                     <td className="border px-4 py-2">{s.nim}</td>
                     <td className="border px-4 py-2">{s.name}</td>
@@ -154,29 +163,31 @@ useEffect(() => {
             </table>
           </div>
 
-          {/* Render logs per student */}
           {/* Logs Summary */}
-            <div>
-              <h3 className="text-2xl font-semibold text-tec-darker mb-3">
-                Latest Activity per Student
-              </h3>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-tec-darker text-white">
-                    <th className="px-4 py-2 border">NPM</th>
-                    <th className="px-4 py-2 border">Latest Timestamp</th>
-                    <th className="px-4 py-2 border">Latest Activity</th>
-                    <th className="px-4 py-2 border">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lastLogs.map((entry, i) => (
-                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
-                      <td className="border px-4 py-2">{entry.nim}</td>
-                      <td className="border px-4 py-2">{entry.last.waktu}</td>
-                      <td className="border px-4 py-2">{entry.last.aktivitas}</td>
-                      <td className="border px-4 py-2">
-                      <div className="flex gap-4"> {/* jarak antar tombol lebih besar */}
+          <div>
+            <h3 className="text-2xl font-semibold text-tec-darker mb-3">
+              Latest Activity per Student
+            </h3>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-tec-darker text-white">
+                  <th className="px-4 py-2 border">NPM</th>
+                  <th className="px-4 py-2 border">Latest Timestamp</th>
+                  <th className="px-4 py-2 border">Latest Activity</th>
+                  <th className="px-4 py-2 border">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(lastLogs || []).map((entry, i) => (
+                  <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
+                    <td className="border px-4 py-2">{entry.nim}</td>
+                    {/* ✅ Format waktu di sini */}
+                    <td className="border px-4 py-2">
+                      {formatDate(entry.last.waktu)}
+                    </td>
+                    <td className="border px-4 py-2">{entry.last.aktivitas}</td>
+                    <td className="border px-4 py-2">
+                      <div className="flex gap-4">
                         <button
                           className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
                           onClick={() => navigate(`/admin/logs/${examID}/${entry.nim}`)}
@@ -185,17 +196,19 @@ useEffect(() => {
                         </button>
                         <button
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                          onClick={() => setDeleteTarget(entry.nim)} // ganti confirm manual → popup
+                          onClick={() => setDeleteTarget(entry.nim)}
                         >
                           Delete Logs
                         </button>
                       </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Popup Konfirmasi Hapus */}
           {deleteTarget && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg shadow-xl p-6 w-[400px]">
@@ -223,7 +236,7 @@ useEffect(() => {
                           { headers: { Authorization: `Bearer ${token}` } }
                         );
                         setDeleteTarget(null);
-                        getLogs(); // refresh tabel
+                        getLogs();
                       } catch (err) {
                         console.error("Error deleting logs:", err);
                         alert("Failed to delete logs");

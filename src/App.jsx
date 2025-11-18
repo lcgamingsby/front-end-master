@@ -20,6 +20,8 @@ import StudentExam from "./pages/Student/StudentExam";
 import StudentFinish from "./pages/Student/StudentFinish";
 import ExamTrackingPage from "./pages/Admin/ExamTrackingPage";
 import StudentLogDetailPage from "./pages/Admin/StudentLogDetailPage";
+import ExamRegistrationPage from "./pages/Admin/ExamRegistrationPage";
+
 
 function App() {
   return (
@@ -38,6 +40,7 @@ function App() {
             <Route path="exams" element={<ExamsPage />} />
             <Route path="exams/add" element={<AddExamPage />} />
             <Route path="exams/edit" element={<AddExamPage />} />
+            <Route path="exams/edit-offline" element={<AddExamPage mode="offline" />} />
             <Route path="questions" element={<QuestionsPage />} />
             <Route path="questions/add" element={<AddQuestionPage />} />
             <Route path="questions/edit" element={<AddQuestionPage />} />
@@ -49,6 +52,7 @@ function App() {
             <Route path="scores" element={<ExamScoresPage />} />
             <Route path="scores/:examID" element={<ExamScoreDetailPage />} />
             <Route path="logs/:examID/:nim" element={<StudentLogDetailPage />} />
+            <Route path="registrations" element={<ExamRegistrationPage />} />
           </Route>
           <Route path="/student" element={<PrivateRoute role="mahasiswa" />}>
             <Route index element={<StudentDashboard />} />

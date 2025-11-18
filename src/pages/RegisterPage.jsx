@@ -16,7 +16,7 @@ function RegisterPage() {
 
   // Helper: validasi email domain
   const isValidEmail = (val) =>
-    /^[a-zA-Z0-9._%+-]+@student\.ukdc\.ac\.id$/i.test(val.trim());
+  /^[a-zA-Z0-9._%+-]+@(student\.)?ukdc\.ac\.id$/i.test(val.trim());
 
   // Helper: validasi password 6-12
   const isValidPassword = (val) => val.length >= 6 && val.length <= 12;
@@ -113,7 +113,7 @@ function RegisterPage() {
           <input
             type="email"
             value={email}
-            placeholder="nama@student.ukdc.ac.id"
+            placeholder="nama@ukdc.ac.id/student.ukdc.ac.id"
             className="w-full py-3 px-4 my-2 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -122,7 +122,7 @@ function RegisterPage() {
               (isValidEmail(email) ? (
                 <span className="text-emerald-600">Format email valid.</span>
               ) : (
-                <span className="text-red-600">Wajib domain @student.ukdc.ac.id</span>
+                <span className="text-red-600">Wajib domain @ukdc.ac.id / @student.ukdc.ac.id</span>
               ))}
           </p>
 

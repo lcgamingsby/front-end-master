@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import { config } from "../../data/config";
-import { FaCheck, FaChevronLeft, FaChevronRight, FaFlag, FaPlay } from "react-icons/fa";
+import { FaBars, FaCheck, FaChevronLeft, FaChevronRight, FaFlag, FaPlay } from "react-icons/fa";
 import axios from "axios";
 import { useUser } from "../Components/UserContext";
 import GrammarUnderline from "../Components/GrammarUnderline";
@@ -32,6 +32,7 @@ const StudentExam = () => {
   const [answeredQuestions, setAnsweredQuestions] = useState([]);
   const [listeningDone, setListeningDone] = useState(false);
   const [grammarDone, setGrammarDone] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Atur posisi awal ujian
   const [currentQuestion, setCurrentQuestion] = useState(() => {
@@ -331,6 +332,13 @@ const StudentExam = () => {
     }
   };
 
+  const batchMap = {
+    listening: 1,
+    grammar: 2,
+    reading: 3,
+  };
+  
+
   // Answer click
   const handleOptionClick = async (index) => {
     const q = examQuestions[currentQuestion.type][currentQuestion.index];
@@ -343,11 +351,14 @@ const StudentExam = () => {
           question_id: q.question_id,
           nim: user.id,
           exam_id: examID,
+          tipeBatch: batchMap[currentQuestion.type],
         },
+        
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      
 
       await sendLog({
         nim: user.id,
@@ -376,33 +387,50 @@ const StudentExam = () => {
     await sendLog({
       nim: user.id,
       idUjian: examID,
-      //idSoal: q.question_id,
       tipeAktivitas: "navigation",
       aktivitas: "Pindah soal berikutnya",
     });
 
-    if (currentQuestion.index < examQuestions[currentQuestion.type].length - 1) {
-      setCurrentQuestion({ type: currentQuestion.type, index: currentQuestion.index + 1 });
-    } else {
-      if (currentQuestion.type === "listening") {
-        setListeningDone(true);
-        setCurrentQuestion({ type: "grammar", index: 0 });
-      } else if (currentQuestion.type === "grammar") {
-        setGrammarDone(true);
-        setCurrentQuestion({ type: "reading", index: 0 });
-      } else if (currentQuestion.type === "reading") {
-        localStorage.removeItem(examSessionKey);
-        localStorage.removeItem(`currentQuestion_${storagePrefix}`);
-        localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
-        localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
-        localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
+    const currentSection = currentQuestion.type;
+    const totalQuestions = examQuestions[currentSection].length;
+    const answeredInSection = answeredQuestions.filter((a) =>
+      examQuestions[currentSection].some((q) => q.question_id === a.question_id)
+    ).length;
 
-        navigate("/student/exam/finish", {
-          state: { examID, questions: examQuestions, endDatetime, flagged: flaggedQuestions, hasPlayed },
-        });
-      }
+    // Masih ada soal di section ini
+    if (currentQuestion.index < totalQuestions - 1) {
+      setCurrentQuestion({ type: currentSection, index: currentQuestion.index + 1 });
+      return;
+    }
+
+    // Sudah di soal terakhir section
+    // 🔒 Cek apakah semua soal di section ini sudah dijawab
+    if (answeredInSection < totalQuestions) {
+      alert(`Kamu harus menjawab semua soal di bagian ${currentSection} sebelum lanjut ke section berikutnya.`);
+      return;
+    }
+
+    // ✅ Semua sudah dijawab, baru pindah section
+    if (currentSection === "listening") {
+      setListeningDone(true);
+      setCurrentQuestion({ type: "grammar", index: 0 });
+    } else if (currentSection === "grammar") {
+      setGrammarDone(true);
+      setCurrentQuestion({ type: "reading", index: 0 });
+    } else if (currentSection === "reading") {
+      // Semua section selesai
+      localStorage.removeItem(examSessionKey);
+      localStorage.removeItem(`currentQuestion_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
+
+      navigate("/student/exam/finish", {
+        state: { examID, questions: examQuestions, endDatetime, flagged: flaggedQuestions, hasPlayed },
+      });
     }
   };
+
 
   const handlePrev = async () => {
     const q = examQuestions[currentQuestion.type][currentQuestion.index];
@@ -522,243 +550,280 @@ const StudentExam = () => {
 
   return (
     <div
-      className="absolute bg-slate-50 w-full min-h-full h-auto"
+      className="bg-slate-50 min-h-screen w-full"
       onContextMenu={(e) => {
         e.preventDefault();
         alert("Right clicking is disabled.");
       }}
     >
-      <Navbar examMode={true} />
-      <div className="flex flex-1 justify-between">
-        <div className="w-2/12 max-w-55 m-4 flex flex-col gap-2">
-          <div className="bg-tec-card p-2 rounded-xl flex justify-between text-tec-darker">
-            <span>Time Remaining:</span>
-            <b>
-              {formatTime(
-                currentQuestion.type === "listening"
-                  ? listeningTime
-                  : currentQuestion.type === "grammar"
-                  ? grammarTime
-                  : readingTime
-              )}
-            </b>
+    <Navbar examMode={true} />
+
+    {/* ✅ Layout Responsif */}
+    <div className="flex flex-col lg:flex-row justify-between px-4 md:px-8 py-4 gap-4">
+      {/* === Sidebar === */}
+        <div
+          className={`
+            fixed lg:static top-0 left-0 z-40
+            w-3/4 sm:w-2/3 md:w-1/2 lg:w-1/4
+            h-full lg:h-auto
+            bg-slate-100 lg:bg-transparent
+            transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+            transition-transform duration-300 ease-in-out
+            flex flex-col gap-3 order-2 lg:order-1 p-4
+          `}
+        > 
+        {/* Tombol tutup sidebar di mobile */}
+        <div className="lg:hidden flex justify-end mb-2">
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-slate-800 font-bold text-xl"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Sisa isi sidebar (Time Remaining & daftar soal) tetap sama */}
+        <div className="bg-tec-card p-3 rounded-xl flex justify-between text-tec-darker shadow">
+          <span>Time Remaining:</span>
+          <b>
+            {formatTime(
+              currentQuestion.type === "listening"
+                ? listeningTime
+                : currentQuestion.type === "grammar"
+                ? grammarTime
+                : readingTime
+            )}
+          </b>
+        </div>
+
+        <div className="bg-slate-200 p-3 rounded-xl overflow-y-auto max-h-[60vh] md:max-h-[80vh]">
+          {/* Listening */}
+          <div className="font-bold pb-2 text-tec-darker">Listening</div>
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {examQuestions.listening.map((v, i) => {
+              const flagged = flaggedQuestions.includes(v.question_id);
+              const answered = answeredQuestions.some(
+                (a) => a.question_id === v.question_id
+              );
+              const current =
+                currentQuestion.index === i &&
+                currentQuestion.type === "listening";
+              const cssState = current
+                ? flagged
+                  ? "bg-amber-500 text-white"
+                  : answered
+                  ? "bg-sky-500 text-white"
+                  : "bg-tec-darker text-white"
+                : flagged
+                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                : answered
+                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                : "bg-white text-tec-darker hover:bg-tec-card";
+              return (
+                <button
+                  key={i}
+                  disabled={disabledListening}
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base ${cssState} ${
+                    disabledListening ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                  onClick={() => {
+                    if (disabledListening) return;
+                    setCurrentQuestion({ type: "listening", index: i });
+                  }}
+                >
+                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
+                </button>
+              );
+            })}
           </div>
-          <div className="bg-slate-200 p-2 rounded-xl">
-            {/* Listening */}
-            <div className="font-bold pb-2 text-tec-darker">Listening</div>
-            <div className="grid grid-cols-5 gap-2">
-              {examQuestions.listening.map((v, i) => {
-                const flagged = flaggedQuestions.includes(v.question_id);
-                const answered = answeredQuestions.some(
-                  (a) => a.question_id === v.question_id
-                );
-                const current =
-                  currentQuestion.index === i &&
-                  currentQuestion.type === "listening";
-                const cssState = current
-                  ? flagged
-                    ? "bg-amber-500 text-white"
-                    : answered
-                    ? "bg-sky-500 text-white"
-                    : "bg-tec-darker text-white"
-                  : flagged
-                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+
+          {/* Grammar */}
+          <div className="font-bold pb-2 pt-4 text-tec-darker">Grammar</div>
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {examQuestions.grammar.map((v, i) => {
+              const flagged = flaggedQuestions.includes(v.question_id);
+              const answered = answeredQuestions.some(
+                (a) => a.question_id === v.question_id
+              );
+              const current =
+                currentQuestion.index === i &&
+                currentQuestion.type === "grammar";
+              const cssState = current
+                ? flagged
+                  ? "bg-amber-500 text-white"
                   : answered
-                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                  : "bg-white text-tec-darker hover:bg-tec-card";
-                return (
-                  <button
-                    key={i}
-                    disabled={disabledListening}
-                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold ${cssState} ${
-                      disabledListening ? "cursor-not-allowed opacity-50" : ""
-                    }`}
-                    onClick={() => {
-                      if (disabledListening) return;
-                      setCurrentQuestion({ type: "listening", index: i });
-                    }}
-                  >
-                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Grammar */}
-            <div className="font-bold pb-2 pt-4 text-tec-darker">Grammar</div>
-            <div className="grid grid-cols-5 gap-2">
-              {examQuestions.grammar.map((v, i) => {
-                const flagged = flaggedQuestions.includes(v.question_id);
-                const answered = answeredQuestions.some(
-                  (a) => a.question_id === v.question_id
-                );
-                const current =
-                  currentQuestion.index === i &&
-                  currentQuestion.type === "grammar";
-                const cssState = current
-                  ? flagged
-                    ? "bg-amber-500 text-white"
-                    : answered
-                    ? "bg-sky-500 text-white"
-                    : "bg-tec-darker text-white"
-                  : flagged
-                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                  ? "bg-sky-500 text-white"
+                  : "bg-tec-darker text-white"
+                : flagged
+                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                : answered
+                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                : "bg-white text-tec-darker hover:bg-tec-card";
+              return (
+                <button
+                  key={i}
+                  disabled={disabledGrammar}
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base ${cssState} ${
+                    disabledGrammar ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                  onClick={() => {
+                    if (disabledGrammar) return;
+                    setCurrentQuestion({ type: "grammar", index: i });
+                  }}
+                >
+                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Reading */}
+          <div className="font-bold pb-2 pt-4 text-tec-darker">Reading</div>
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {examQuestions.reading.map((v, i) => {
+              const flagged = flaggedQuestions.includes(v.question_id);
+              const answered = answeredQuestions.some(
+                (a) => a.question_id === v.question_id
+              );
+              const current =
+                currentQuestion.index === i &&
+                currentQuestion.type === "reading";
+              const cssState = current
+                ? flagged
+                  ? "bg-amber-500 text-white"
                   : answered
-                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                  : "bg-white text-tec-darker hover:bg-tec-card";
-                return (
-                  <button
-                    key={i}
-                    disabled={disabledGrammar}
-                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold ${cssState} ${
-                      disabledGrammar ? "cursor-not-allowed opacity-50" : ""
-                    }`}
-                    onClick={() => {
-                      if (disabledGrammar) return;
-                      setCurrentQuestion({ type: "grammar", index: i });
-                    }}
-                  >
-                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Reading */}
-            <div className="font-bold pb-2 pt-4 text-tec-darker">Reading</div>
-            <div className="grid grid-cols-5 gap-2">
-              {examQuestions.reading.map((v, i) => {
-                const flagged = flaggedQuestions.includes(v.question_id);
-                const answered = answeredQuestions.some(
-                  (a) => a.question_id === v.question_id
-                );
-                const current =
-                  currentQuestion.index === i &&
-                  currentQuestion.type === "reading";
-                const cssState = current
-                  ? flagged
-                    ? "bg-amber-500 text-white"
-                    : answered
-                    ? "bg-sky-500 text-white"
-                    : "bg-tec-darker text-white"
-                  : flagged
-                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                  : answered
-                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                  : "bg-white text-tec-darker hover:bg-tec-card";
-                return (
-                  <button
-                    key={i}
-                    disabled={disabledReading}
-                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold ${cssState} ${
-                      disabledReading ? "cursor-not-allowed opacity-50" : ""
-                    }`}
-                    onClick={() => {
-                      if (disabledReading) return;
-                      setCurrentQuestion({ type: "reading", index: i });
-                    }}
-                  >
-                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                  </button>
-                );
-              })}
-            </div>
+                  ? "bg-sky-500 text-white"
+                  : "bg-tec-darker text-white"
+                : flagged
+                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                : answered
+                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                : "bg-white text-tec-darker hover:bg-tec-card";
+              return (
+                <button
+                  key={i}
+                  disabled={disabledReading}
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base ${cssState} ${
+                    disabledReading ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                  onClick={() => {
+                    if (disabledReading) return;
+                    setCurrentQuestion({ type: "reading", index: i });
+                  }}
+                >
+                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
-        <div className="grow w-9/12">
-          {examQuestions[currentQuestion.type][currentQuestion.index].audio_path !== ""
-            || examQuestions[currentQuestion.type][currentQuestion.index].batch_text !== "" ? (
-              <div className="bg-blue-300 rounded-xl flex-1 m-5 p-5">
-                {currentQuestion.type === "listening" && audioRef.current && (
-                  <div className="gap-2 flex items-center">
-                    <button
-                      onClick={handlePlayPause}
-                      disabled={hasPlayed.includes(
-                        examQuestions[currentQuestion.type][currentQuestion.index].question_id
-                      )}
-                      className="w-8 h-8 rounded-full bg-tec-darker text-white flex items-center justify-center"
-                    >
-                      <FaPlay />
-                    </button>
-                    <p className="font-semibold text-tec-darker">
-                      You may only play the audio once.
-                    </p>
-                  </div>
-                )}
+      </div>
 
-                {examQuestions[currentQuestion.type][currentQuestion.index].batch_text != "" ? (
-                  <p className="text-justify font-medium select-none pl-2 pr-6 overflow-y-auto max-h-30">
-                    <span className="ml-16" />
-                    {displayFormattingParagraphs(examQuestions[currentQuestion.type][currentQuestion.index].batch_text)}
-                  </p>
-                ) : null}
-              </div>
-          ) : null}
-          {/* Question Card */}
-          <div className="bg-white rounded-xl flex-1 m-5 p-5 shadow-xl shadow-slate-400">
-            <p className="text-justify font-medium select-none">
-              {currentQuestion.type !== "grammar"
-                ? examQuestions[currentQuestion.type][currentQuestion.index]
-                    .question_text
-                : displayFormattingGrammar()}
-            </p>
-            <div className="flex flex-col gap-2.5 my-5">
-              {answerChoices.map((c) => (
+      {/* === Soal dan Audio === */}
+      <div className="flex-1 order-1 lg:order-2">
+        {/* Tombol garis tiga hanya muncul di layar kecil */}
+        <button
+          className="lg:hidden fixed top-20 left-4 z-50 bg-sky-600 text-white p-2 rounded-lg shadow-lg"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          <FaBars size={20} />
+        </button>
+        {/* Audio & Passage Section */}
+        {examQuestions[currentQuestion.type][currentQuestion.index].audio_path !== "" ||
+        examQuestions[currentQuestion.type][currentQuestion.index].batch_text !== "" ? (
+          <div className="bg-blue-300 rounded-xl p-4 md:p-6 mb-4 shadow-md">
+            {currentQuestion.type === "listening" && audioRef.current && (
+              <div className="gap-2 flex items-center flex-wrap">
                 <button
-                  key={c.value}
-                  onClick={() => handleOptionClick(c.value)}
-                  className={`text-center border-2 text-slate-900 rounded-lg p-1 font-semibold ${
-                    selectedOption === c.value
-                      ? "bg-gradient-to-r from-sky-500 to-sky-600 border-sky-800 text-white"
-                      : "border-slate-900 hover:bg-sky-200"
-                  }`}
-                >
-                  {c.text}
-                </button>
-              ))}
-            </div>
-            <div className="rounded-xl flex justify-between mt-5">
-                {/* Previous */}
-                <button
-                    onClick={handlePrev}
-                    className="flex items-center gap-2 bg-gradient-to-r from-slate-300 to-slate-400 text-tec-darker font-semibold px-4 py-2 rounded-full shadow hover:shadow-lg hover:from-slate-400 hover:to-slate-500 transition-all duration-200"
-                >
-                    <FaChevronLeft /> Previous
-                </button>
-
-                {/* Flag */}
-                <button
-                    onClick={handleFlag}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full shadow font-semibold transition-all duration-200 ${
-                    flaggedQuestions.includes(
-                        examQuestions[currentQuestion.type][currentQuestion.index].question_id
-                    )
-                        ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
-                        : "bg-gradient-to-r from-amber-200 to-amber-300 text-amber-800 hover:from-amber-300 hover:to-amber-400"
-                    }`}
-                >
-                    <FaFlag />
-                    {flaggedQuestions.includes(
+                  onClick={handlePlayPause}
+                  disabled={hasPlayed.includes(
                     examQuestions[currentQuestion.type][currentQuestion.index].question_id
-                    )
-                    ? "Unflag"
-                    : "Flag"}
-                </button>
-
-                {/* Next */}
-                <button
-                    onClick={handleNext}
-                    className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold px-4 py-2 rounded-full shadow hover:shadow-lg hover:from-sky-600 hover:to-sky-700 transition-all duration-200"
+                  )}
+                  className="w-10 h-10 rounded-full bg-tec-darker text-white flex items-center justify-center"
                 >
-                    {currentQuestion.index ===
-                    examQuestions[currentQuestion.type].length - 1
-                    ? "Next Section"
-                    : "Next"}{" "}
-                    <FaChevronRight />
+                  <FaPlay />
                 </button>
-            </div>
+                <p className="font-semibold text-tec-darker text-sm sm:text-base">
+                  You may only play the audio once.
+                </p>
+              </div>
+            )}
+            {examQuestions[currentQuestion.type][currentQuestion.index].batch_text && (
+              <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto max-h-40 md:max-h-60 mt-2 text-sm sm:text-base">
+                <span className="ml-8 sm:ml-16" />
+                {displayFormattingParagraphs(
+                  examQuestions[currentQuestion.type][currentQuestion.index].batch_text
+                )}
+              </p>
+            )}
+          </div>
+        ) : null}
+
+        {/* Question Card */}
+        <div className="bg-white rounded-xl p-4 md:p-6 shadow-md">
+          <p className="text-justify font-medium select-none text-sm sm:text-base">
+            {currentQuestion.type !== "grammar"
+              ? examQuestions[currentQuestion.type][currentQuestion.index].question_text
+              : displayFormattingGrammar()}
+          </p>
+
+          <div className="flex flex-col gap-2.5 my-5">
+            {answerChoices.map((c) => (
+              <button
+                key={c.value}
+                onClick={() => handleOptionClick(c.value)}
+                className={`text-center border-2 text-slate-900 rounded-lg py-2 px-3 font-semibold text-sm sm:text-base ${
+                  selectedOption === c.value
+                    ? "bg-gradient-to-r from-sky-500 to-sky-600 border-sky-800 text-white"
+                    : "border-slate-900 hover:bg-sky-200"
+                }`}
+              >
+                {c.text}
+              </button>
+            ))}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center flex-wrap gap-3">
+            <button
+              onClick={handlePrev}
+              className="flex items-center gap-2 bg-slate-300 hover:bg-slate-400 text-tec-darker font-semibold px-4 py-2 rounded-full transition-all"
+            >
+              <FaChevronLeft /> Previous
+            </button>
+
+            <button
+              onClick={handleFlag}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all ${
+                flaggedQuestions.includes(
+                  examQuestions[currentQuestion.type][currentQuestion.index].question_id
+                )
+                  ? "bg-amber-500 text-white hover:bg-amber-600"
+                  : "bg-amber-200 text-amber-800 hover:bg-amber-300"
+              }`}
+            >
+              <FaFlag />
+              {flaggedQuestions.includes(
+                examQuestions[currentQuestion.type][currentQuestion.index].question_id
+              )
+                ? "Unflag"
+                : "Flag"}
+            </button>
+
+            <button
+              onClick={handleNext}
+              className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold px-4 py-2 rounded-full transition-all"
+            >
+              {currentQuestion.index === examQuestions[currentQuestion.type].length - 1
+                ? "Next Section"
+                : "Next"}{" "}
+              <FaChevronRight />
+            </button>
           </div>
         </div>
       </div>
     </div>
+  </div>
   );
 };
   

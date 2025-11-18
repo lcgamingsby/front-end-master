@@ -17,21 +17,41 @@ function ExamScoresPage() {
         const res = await axios.get(`${config.BACKEND_URL}/api/admin/exams`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setExams(res.data);
+        setExams(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Error fetching exams:", err);
+        setExams([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchExams();
   }, []);
+
+  // ✅ Format tanggal agar lebih mudah dibaca
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
-      {loading ? <Loading /> : (
+      {loading ? (
+        <Loading />
+      ) : (
         <main className="p-8">
           <h2 className="text-4xl mb-5 text-tec-darker font-bold">Exam Scores</h2>
           <table className="w-full border-collapse">
@@ -49,7 +69,7 @@ function ExamScoresPage() {
                   <td className="border px-4 py-2">{exam.exam_id}</td>
                   <td className="border px-4 py-2">{exam.exam_title}</td>
                   <td className="border px-4 py-2">
-                    {exam.start_datetime} - {exam.end_datetime}
+                    {formatDate(exam.start_datetime)} - {formatDate(exam.end_datetime)}
                   </td>
                   <td className="border px-4 py-2 text-center">
                     <button

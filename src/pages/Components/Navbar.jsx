@@ -72,6 +72,16 @@ function Navbar({ examMode = false }) {
                         >
                         Scores
                     </button>
+                    <button
+                        className={`${location.pathname == "/admin/registrations"
+                            ? "bg-tec-dark hover:bg-tec-light text-white"
+                            : "text-tec-dark hover:bg-slate-200"} 
+                            py-5 px-6 border-0 font-semibold transition-colors
+                            duration-150 cursor-pointer`}
+                        onClick={() => navigate("/admin/registrations")}
+                    >
+                        Registrations
+                    </button>
                 </div>
             ) : null}
         </div>

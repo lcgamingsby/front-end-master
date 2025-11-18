@@ -26,16 +26,31 @@ const StudentLogDetailPage = () => {
         setLoading(false);
       }
     };
-    fetchLogs();
 
-    const interval = setInterval(fetchLogs, 10000); // Refresh every 10 seconds
-    return () => clearInterval(interval); // Cleanup on unmount
-    
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 10000);
+    return () => clearInterval(interval);
   }, [examID, nim]);
 
-  if (loading) return <Loading />;
+  // ✅ Fungsi untuk format waktu agar rapi (WIB)
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }) + " WIB";
+    } catch {
+      return dateStr;
+    }
+  };
 
-  
+  if (loading) return <Loading />;
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
@@ -62,8 +77,12 @@ const StudentLogDetailPage = () => {
           </thead>
           <tbody>
             {logs.map((log, i) => (
-              <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
-                <td className="border px-4 py-2">{log.waktu}</td>
+              <tr
+                key={i}
+                className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}
+              >
+                {/* ✅ Format waktu di sini */}
+                <td className="border px-4 py-2">{formatDate(log.waktu)}</td>
                 <td className="border px-4 py-2">{log.tipeAktivitas}</td>
                 <td className="border px-4 py-2">{log.aktivitas}</td>
               </tr>
