@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../Components/Navbar";
 import axios from "axios";
 import { config } from "../../data/config";
+import { getRefreshToken } from "../../data/helper";
 import Loading from "../Components/Loading";
 import { useNavigate } from "react-router-dom";
 
@@ -17,13 +18,10 @@ function AdminDashboard() {
   const [finishedLoading, setFinishedLoading] = useState(false);
 
   const getDashboardNumbers = async () => {
-    const token = localStorage.getItem("jwtToken");
-
-    const response = await axios.get(`${config.BACKEND_URL}/api/admin/home`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axios.get(
+      `${config.BACKEND_URL}/api/admin/home`,
+      { withCredentials: true },
+    );
 
     setDashboardNumbers(response.data);
 
@@ -32,13 +30,10 @@ function AdminDashboard() {
 
   const getOngoingExams = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
-
-      const response = await axios.get(`${config.BACKEND_URL}/api/admin/home/ongoing`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${config.BACKEND_URL}/api/admin/home/ongoing`,
+        { withCredentials: true },
+      );
 
       // console.log(response.data, typeof response.data);
 
@@ -150,7 +145,7 @@ function AdminDashboard() {
                   })
                 ) : (
                   <div className="text-tec-darker rounded-xl p-5 w-full text-center">
-                    <h3 className="text-2xl font-bold">- No Upcoming Exams -</h3>
+                    <h3 className="text-2xl font-bold">- No Ongoing Exams -</h3>
                     <p>Check back later.</p>
                   </div>
                 )}

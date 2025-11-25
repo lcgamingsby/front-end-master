@@ -16,7 +16,7 @@ function RegisterPage() {
 
   // Helper: validasi email domain
   const isValidEmail = (val) =>
-  /^[a-zA-Z0-9._%+-]+@(student\.)?ukdc\.ac\.id$/i.test(val.trim());
+  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val.trim());
 
   // Helper: validasi password 6-12
   const isValidPassword = (val) => val.length >= 6 && val.length <= 12;
@@ -122,7 +122,7 @@ function RegisterPage() {
               (isValidEmail(email) ? (
                 <span className="text-emerald-600">Format email valid.</span>
               ) : (
-                <span className="text-red-600">Wajib domain @ukdc.ac.id / @student.ukdc.ac.id</span>
+                <span className="text-red-600">Format email tidak sesuai.</span>
               ))}
           </p>
 

@@ -14,9 +14,10 @@ function ExamRegistrationPage() {
   const fetchRegistrations = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
-      const res = await axios.get(`${config.BACKEND_URL}/api/admin/registrations`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${config.BACKEND_URL}/api/admin/registrations`,
+        { withCredentials: true },
+      );
 
       // pastikan hasilnya array
       const data = Array.isArray(res.data) ? res.data : [];
@@ -36,7 +37,7 @@ function ExamRegistrationPage() {
       const token = localStorage.getItem("jwtToken");
       await axios.post(`${config.BACKEND_URL}/api/admin/registrations/verify`,
         { id, status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true },
       );
       setMessage(`Pendaftaran #${id} diperbarui menjadi ${newStatus}.`);
       fetchRegistrations();

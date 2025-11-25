@@ -23,17 +23,16 @@ function ExamsPage() {
 
   const getExams = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
-
       const endpoint =
         examMode === "online"
           ? `${config.BACKEND_URL}/api/admin/exams`
           : `${config.BACKEND_URL}/api/admin/exams/offline`;
       
 
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        endpoint,
+        { withCredentials: true }
+      );
 
       if (response.status === 200 && response.data.length > 0) {
         setExams(response.data);
@@ -49,17 +48,16 @@ function ExamsPage() {
 
   const deleteExams = async (examID) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-
       const endpoint =
         examMode === "online"
           ? `${config.BACKEND_URL}/api/admin/exams/${examID}`
           : `${config.BACKEND_URL}/api/admin/exams/offline/${examID}`;
           
 
-      const response = await axios.delete(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.delete(
+        endpoint,
+        { withCredentials: true },
+      );
 
       if (response.status === 200) {
         setShowConfirm(false);
@@ -73,15 +71,15 @@ function ExamsPage() {
   };
 
   // Konversi UTC dari server → waktu lokal browser
-function formatLocalDatetime(datetimeStr) {
-  if (!datetimeStr) return "-";
-  const date = new Date(datetimeStr);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toLocaleString("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
+  function formatLocalDatetime(datetimeStr) {
+    if (!datetimeStr) return "-";
+    const date = new Date(datetimeStr);
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toLocaleString("en-GB", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  }
 
 
   useEffect(() => {
@@ -89,27 +87,26 @@ function formatLocalDatetime(datetimeStr) {
   }, [examMode]); // refresh saat mode berubah
 
   const handleEdit = async (examID) => {
-  const token = localStorage.getItem("jwtToken");
-
   // Jangan ubah examID jadi number — biarkan string
-  const endpoint =
-    examMode === "online"
-      ? `${config.BACKEND_URL}/api/admin/exams/${examID}`
-      : `${config.BACKEND_URL}/api/admin/exams/offline/${examID}`;
-
-  try {
-    const response = await axios.get(endpoint, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    navigate(
+    const endpoint =
       examMode === "online"
-        ? "/admin/exams/edit"
-        : "/admin/exams/edit-offline",
-      {
-        state: { exam: response.data, isEdit: true },
-      }
-    );
+        ? `${config.BACKEND_URL}/api/admin/exams/${examID}`
+        : `${config.BACKEND_URL}/api/admin/exams/offline/${examID}`;
+
+    try {
+      const response = await axios.get(
+        endpoint,
+        { withCredentials: true },
+      );
+
+      navigate(
+        examMode === "online"
+          ? "/admin/exams/edit"
+          : "/admin/exams/edit-offline",
+        {
+          state: { exam: response.data, mode: examMode, isEdit: true },
+        }
+      );
     } catch (err) {
       console.error("Failed to load exam for edit:", err);
       alert("Failed to load exam data. Please check backend logs.");
@@ -240,6 +237,9 @@ function formatLocalDatetime(datetimeStr) {
                 const daysAway = getDaysAway(startDatetime);
                 const isOdd = index % 2 === 1;
 
+                // Determine if the exam can be deleted (if it's not less than 3 days away from the exam date)
+                const deleteDisabled = daysAway <= 3;
+
                 return (
                   <tr
                     key={exam.exam_id}
@@ -279,7 +279,7 @@ function formatLocalDatetime(datetimeStr) {
                       <button
                         className="bg-amber-500 hover:bg-orange-600 mr-1 p-2 rounded-lg cursor-pointer"
                         onClick={() => handleEdit(exam.exam_id)}
-                        title="Edit"
+                        title="Edit this exam"
                       >
                         <FaEdit className="w-4 h-4 text-white" />
                       </button>
@@ -287,8 +287,11 @@ function formatLocalDatetime(datetimeStr) {
                         className="bg-red-500 hover:bg-red-600 cursor-pointer disabled:cursor-not-allowed
                           p-2 rounded-lg disabled:bg-slate-500"
                         onClick={() => confirmDelete(exam)}
-                        disabled={!(daysAway > 3)}
-                        title="Delete"
+                        disabled={deleteDisabled}
+                        title={deleteDisabled ?
+                          "Cannot delete this exam (less than 3 days away from the start date)"
+                          : "Delete this exam"
+                        }
                       >
                         <FaTrash className="w-4 h-4 text-white" />
                       </button>

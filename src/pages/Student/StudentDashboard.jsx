@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import axios from "axios";
 import { config } from "../../data/config";
 import Loading from "../Components/Loading";
 import { useUser } from "../Components/UserContext";
+import ModalFinished from "../Components/ModalFinished";
 
 function StudentDashboard() {
   const { user } = useUser();
+  const location = useLocation();
+  const finishedExam = location.state?.finished || false;
 
   const [exams, setExams] = useState([]);
   const [finishedLoading, setFinishedLoading] = useState(false);
@@ -22,35 +25,29 @@ function StudentDashboard() {
   const [offlineExams, setOfflineExams] = useState([]);
   const [onlineExamList, setOnlineExamList] = useState([]);
   const [selectedOnlineExam, setSelectedOnlineExam] = useState("");
-  
 
+  const [modalFinishedOpen, setModalFinishedOpen] = useState(finishedExam);
 
   const navigate = useNavigate();
 
 
   const handleExamClick = async (exam) => { 
     try {
-      const token = localStorage.getItem("jwtToken");
-
       const startRes = await axios.put(`${config.BACKEND_URL}/api/student/exam/start`, {
-        nim: user.id,
-        exam_id: exam.exam_id,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+          nim: user.id,
+          exam_id: exam.exam_id,
+        }, { withCredentials: true },
+      );
 
       if (startRes.status !== 200) {
         console.log("Unable to start exam");
         return
       }
 
-      const response = await axios.get(`${config.BACKEND_URL}/api/student/exam/${exam.exam_id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${config.BACKEND_URL}/api/student/exam/${exam.exam_id}`,
+        { withCredentials: true },
+      );
 
       const grammar = response.data.filter((q) => q.batch_type.toLowerCase() === "grammar");
       const reading = response.data.filter((q) => q.batch_type.toLowerCase() === "reading");
@@ -73,9 +70,10 @@ function StudentDashboard() {
   const getUpcomingExams = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
-      const response = await axios.get(`${config.BACKEND_URL}/api/student/home`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${config.BACKEND_URL}/api/student/home`,
+        { withCredentials: true },
+      );
 
       // Pastikan response.data itu array
       const examData = Array.isArray(response.data) ? response.data : [];
@@ -110,16 +108,17 @@ function StudentDashboard() {
     getUpcomingExams();
     getOfflineExams();
     if (examType === "online") {
-    fetchOnlineExamList();
+      fetchOnlineExamList();
     }
   }, []);
 
   const fetchOfflineExamList = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
-      const res = await axios.get(`${config.BACKEND_URL}/api/student/offline/available`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${config.BACKEND_URL}/api/student/offline/available`,
+        { withCredentials: true },
+      );
       setOfflineExamList(res.data);
     } catch (err) {
       console.error("Gagal ambil daftar ujian offline:", err);
@@ -161,11 +160,11 @@ function StudentDashboard() {
       `${config.BACKEND_URL}/api/exam/register`,
       formData,
       {
+        withCredentials: true,
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
-        },
-      }
+        }
+      },
     );
 
     setMessage(res.data.message || "Pendaftaran berhasil!");
@@ -186,9 +185,10 @@ function StudentDashboard() {
   const getOfflineExams = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
-      const response = await axios.get(`${config.BACKEND_URL}/api/student/offline`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${config.BACKEND_URL}/api/student/offline`, 
+        { withCredentials: true },
+      );
 
       setOfflineExams(
         response.data.map((e) => {
@@ -207,9 +207,10 @@ function StudentDashboard() {
   const fetchOnlineExamList = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
-      const res = await axios.get(`${config.BACKEND_URL}/api/student/online/available`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${config.BACKEND_URL}/api/student/online/available`,
+        { withCredentials: true },
+      );
       setOnlineExamList(res.data);
     } catch (err) {
       console.error("Gagal ambil daftar ujian online:", err);
@@ -217,6 +218,7 @@ function StudentDashboard() {
     }
   };
 
+  console.log(finishedExam);
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
@@ -511,6 +513,15 @@ function StudentDashboard() {
       ) : (
         <Loading />
       )}
+
+      {modalFinishedOpen ? (
+        <ModalFinished
+          isOpen={modalFinishedOpen}
+          openModal={setModalFinishedOpen}
+          title="Ujian Selesai"
+          message="Terima kasih sudah mengikuti ujian hari ini.
+          Hasil akan segera diberitahukan dalam beberapa hari kerja." />
+      ) : null}
     </div>
   );
 }

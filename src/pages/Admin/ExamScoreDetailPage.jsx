@@ -17,10 +17,10 @@ function ExamScoreDetailPage() {
   
   const getScores = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await axios.get(`${config.BACKEND_URL}/api/admin/scores/${examID}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${config.BACKEND_URL}/api/admin/scores/${examID}`, 
+        { withCredentials: true }
+      );
       setScores(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       console.error("Error fetching scores:", e);
@@ -29,10 +29,10 @@ function ExamScoreDetailPage() {
 
   const getLogs = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await axios.get(`${config.BACKEND_URL}/api/admin/logs/${examID}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${config.BACKEND_URL}/api/admin/logs/${examID}`,
+        { withCredentials: true }
+      );
       setLogs(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       console.error("Error fetching logs:", e);
@@ -72,9 +72,27 @@ function ExamScoreDetailPage() {
 
   const exportCSV = (data, filename) => {
     if (!data || data.length === 0) return;
+
+    const customOrder = [
+      "nim",
+      "name",
+      "listening",
+      "grammar",
+      "reading",
+      "score",
+    ]
+
+    console.log(data);
     const csvContent = [
-      Object.keys(data[0]).join(","), // header
-      ...data.map((row) => Object.values(row).join(",")), // rows
+      "NIM,Name,Listening Score,Grammar Score,Reading Score,Total Score",
+      ...data.map((row) => [
+        row.nim,
+        row.name,
+        row.listening,
+        row.grammar,
+        row.reading,
+        row.score,
+      ].join(",")), // rows
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -146,9 +164,12 @@ function ExamScoreDetailPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-tec-darker text-white">
-                  <th className="px-4 py-2 border">NPM</th>
-                  <th className="px-4 py-2 border">Nama</th>
-                  <th className="px-4 py-2 border">Score</th>
+                  <th className="px-4 py-2 border w-3/12">NPM</th>
+                  <th className="px-4 py-2 border w-4/12">Nama</th>
+                  <th className="px-4 py-2 border w-1/12">Listening</th>
+                  <th className="px-4 py-2 border w-1/12">Grammar</th>
+                  <th className="px-4 py-2 border w-1/12">Reading</th>
+                  <th className="px-4 py-2 border w-2/12">Total Score</th>
                 </tr>
               </thead>
               <tbody>
@@ -156,6 +177,9 @@ function ExamScoreDetailPage() {
                   <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-100"}>
                     <td className="border px-4 py-2">{s.nim}</td>
                     <td className="border px-4 py-2">{s.name}</td>
+                    <td className="border px-4 py-2">{s.listening}</td>
+                    <td className="border px-4 py-2">{s.grammar}</td>
+                    <td className="border px-4 py-2">{s.reading}</td>
                     <td className="border px-4 py-2">{s.score}</td>
                   </tr>
                 ))}
@@ -230,10 +254,9 @@ function ExamScoreDetailPage() {
                     className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
                     onClick={async () => {
                       try {
-                        const token = localStorage.getItem("jwtToken");
                         await axios.delete(
                           `${config.BACKEND_URL}/api/admin/logs/${examID}/${deleteTarget}`,
-                          { headers: { Authorization: `Bearer ${token}` } }
+                          { withCredentials: true },
                         );
                         setDeleteTarget(null);
                         getLogs();

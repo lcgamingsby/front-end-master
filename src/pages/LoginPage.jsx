@@ -20,17 +20,14 @@ function LoginPage() {
       const response = await axios.post(`${config.BACKEND_URL}/login`, {
         username: name,
         password: password,
-      });
+      }, { withCredentials: true });
 
-      if (response.status === 200 && response.data.token) {
-        localStorage.setItem("jwtToken", response.data.token);
+      if (response.status === 200) {
+        const userRes = await axios.get(
+          `${config.BACKEND_URL}/api/me`,
+          { withCredentials: true }
+        );
 
-        const userRes = await axios.get(`${config.BACKEND_URL}/api/me`, {
-            headers: {
-                Authorization: `Bearer ${response.data.token}`,
-            },
-        });
-        
         setUser(userRes.data);
 
         if (userRes.data.role === "admin") {

@@ -14,10 +14,9 @@ const StudentLogDetailPage = () => {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const token = localStorage.getItem("jwtToken");
         const res = await axios.get(
           `${config.BACKEND_URL}/api/admin/logs/${examID}/${nim}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { withCredentials: true },
         );
         setLogs(res.data);
       } catch (err) {

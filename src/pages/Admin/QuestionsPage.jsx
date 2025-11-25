@@ -26,13 +26,10 @@ function QuestionsPage() {
   // Create-Update on AddQuestionPage.jsx
   const getQuestions = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
-
-      const response = await axios.get(`${config.BACKEND_URL}/api/admin/questions`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${config.BACKEND_URL}/api/admin/questions`,
+        { withCredentials: true },
+      );
 
       if (response.status === 200 && response.data.message !== "200 - No questions found") {
         setQuestionBatches(response.data.map((b, index) => {
@@ -56,13 +53,10 @@ function QuestionsPage() {
 
   const deleteQuestion = async (questionId) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-
-      const response = await axios.delete(`${config.BACKEND_URL}/api/admin/questions/${questionId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.delete(
+        `${config.BACKEND_URL}/api/admin/questions/${questionId}`,
+        { withCredentials: true },
+      );
 
       if (response.status === 200) {
         setShowConfirm(false);
@@ -88,22 +82,15 @@ function QuestionsPage() {
 
   const filteredBatches = questionBatches.filter((b) => {
     const search = searchTerm.toLowerCase();
-    const matchSearch = false;
-    /*
+
     const matchSearch =
-      q.question_id.toString().includes(search) ||
-      q.question_type.toLowerCase().includes(search) ||
-      q.question_text.toLowerCase().includes(search) ||
-      q.choice_a.includes(search) ||
-      q.choice_b.includes(search) ||
-      q.choice_c.includes(search) ||
-      q.choice_d.includes(search);
-    */
+      b.batch_id.toString().includes(search) ||
+      b.batch_text.toLowerCase().includes(search);
 
     const matchType =
-      selectedType === "All Types" || q.question_type.toLowerCase() === selectedType.toLowerCase();
+      selectedType === "All Types" || b.batch_type.toLowerCase() === selectedType.toLowerCase();
 
-    return matchType;
+    return matchSearch && matchType;
   });
 
   const refilterBatches = (search, type) => {
@@ -111,22 +98,16 @@ function QuestionsPage() {
 
     const t = type !== null ? type : selectedType;
 
-    return questionBatches.filter((q) => {
+    return questionBatches.filter((b) => {
       const search = s.toLowerCase();
       
-      const matchType = t === "All Types" || q.question_type.toLowerCase() === t.toLowerCase();
-      const matchSearch = false;
-      /*
-        const matchSearch =
-          q.question_type.toLowerCase().includes(search) ||
-          q.question_text.toLowerCase().includes(search) ||
-          q.choice_a.includes(search) ||
-          q.choice_b.includes(search) ||
-          q.choice_c.includes(search) ||
-          q.choice_d.includes(search);
-      */
+      const matchType = t === "All Types" || b.batch_type.toLowerCase() === t.toLowerCase();
+
+      const matchSearch =
+        b.batch_id.toString().includes(search) ||
+        b.batch_text.toLowerCase().includes(search);
       
-      return matchType;
+      return matchSearch && matchType;
     });
   }
 

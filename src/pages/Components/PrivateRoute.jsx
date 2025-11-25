@@ -4,42 +4,44 @@ import { useUser } from "./UserContext";
 import axios from "axios";
 import { config } from "../../data/config";
 
-const RestoreUserFromToken = async (token, setUser) => {
-    const userRes = await axios.get(`${config.BACKEND_URL}/api/me`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    setUser(userRes.data);
-}
-
 function PrivateRoute({ role }) {
     const { user, setUser } = useUser();
-    const token = localStorage.getItem("jwtToken");
-    const [loading, setLoading] = useState(false);
+    const [finishedLoading, setFinishedLoading] = useState(false);
 
     useEffect(() => {
-        if (!user && token) {
-            setLoading(true);
-            RestoreUserFromToken(token, setUser)
-            .catch(() => {
-                // handle token error
-                localStorage.removeItem("jwtToken");
-            })
-            .finally(() => setLoading(false));
-        }
-    }, [user, token, setUser]);
+        const fetchUser = async () => {
+            try {
+                const userRes = await axios.get(
+                    `${config.BACKEND_URL}/api/me`,
+                    {withCredentials: true}
+                );
 
-    if (!user && token) {
+                setUser(userRes.data);
+            } catch (e) {
+                setUser(null); // Not logged in
+            } finally {
+                setFinishedLoading(true);
+            }
+        }
+
+        console.log(user);
+
+        if (user === undefined || user === null) {
+            fetchUser();
+        } else {
+            setFinishedLoading(true);
+        }
+    }, [user, setUser]);
+
+    if (!finishedLoading) {
         return <div>Loading...</div>;
     }
-
-    if (!user) {
+    
+    if (user === null) {
         return <Navigate to="/login" replace />;
     }
 
-    if (role && user.role !== role) {
+    if (user && role && user.role !== role) {
         return <Navigate to="/login" replace />;
     }
     

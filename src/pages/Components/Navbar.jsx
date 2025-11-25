@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp, FaKey, FaSignOutAlt } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
+import axios from "axios";
+import { config } from "../../data/config";
 
 function Navbar({ examMode = false }) {
     const navigate = useNavigate();
@@ -11,10 +13,24 @@ function Navbar({ examMode = false }) {
 
     const [showDropdown, setShowDropdown] = useState(false);
 
-    const handleLogout = () => {
-        localStorage.removeItem("jwtToken");
-        setUser(null);
-        navigate("/login");
+    const handleLogout = async () => {
+        try {
+            const response = await axios.post(
+                `${config.BACKEND_URL}/logout`,
+                {},
+                { withCredentials: true },
+            );
+
+            if (response.status >= 200 && response.status < 300) {
+                setUser(undefined);
+        
+                navigate("/login");
+            } else {
+                console.error("Unexpected logout response:", e);
+            }
+        } catch (e) {
+            console.error("Failed to log out:", e);
+        }
     }
 
     const handleResetPassword = () => {
@@ -104,14 +120,12 @@ function Navbar({ examMode = false }) {
 
             {showDropdown && !examMode ? (
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-xl py-1 z-20">
-                    {/*
                     <button
                         className="block px-4 py-2 text-slate-600 hover:bg-slate-200 w-full text-left font-semibold"
                         onClick={handleResetPassword}
                     >
                         <FaKey className="inline" /> Reset Password
                     </button>
-                    */}
                     <button
                         className="block px-4 py-2 text-red-600 hover:bg-red-200 w-full text-left font-semibold"
                         onClick={handleLogout}>

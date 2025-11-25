@@ -10,6 +10,7 @@ const StudentFinish = () => {
     const { user } = useUser();
     useEffect(() => {
         // Reset semua data ujian
+        localStorage.removeItem("seenInstructions");
         localStorage.removeItem(`exam_session_${location.state?.examID}`);
         localStorage.removeItem("currentQuestion");
         localStorage.removeItem("remainingTime_listening");
@@ -47,11 +48,10 @@ const StudentFinish = () => {
     const recoverExistingAnswers = async () => {
         const token = localStorage.getItem("jwtToken");
         
-        const answerResponse = await axios.get(`${config.BACKEND_URL}/api/student/answers/${examID}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+        const answerResponse = await axios.get(
+            `${config.BACKEND_URL}/api/student/answers/${examID}`, 
+            { withCredentials: true },
+        );
 
         const answerArray = (answerResponse.status === 200 && answerResponse.data.message === undefined)
             ? answerResponse.data.map((v, i) => {
@@ -73,38 +73,30 @@ const StudentFinish = () => {
 
         if (confirm("Are you sure to end this exam now?")) {
             try {
-            const token = localStorage.getItem("jwtToken");         
+                const token = localStorage.getItem("jwtToken");         
 
-            const endRes = await axios.put(
-                `${config.BACKEND_URL}/api/student/exam/finish`,
-                {
-                    nim: user.id,
-                    exam_id: examID,
-                },
-                {
-                    headers: {
-                    Authorization: `Bearer ${token}`,   // <- pastikan token dikirim
+                const endRes = await axios.put(
+                    `${config.BACKEND_URL}/api/student/exam/finish`,
+                    {
+                        nim: user.id,
+                        exam_id: examID,
                     },
-                }
+                    { withCredentials: true },
                 );
             
                 if (endRes.status === 200) {
-                try {
-                    // 2. Hitung skor otomatis
-                    await axios.post(
-                    `${config.BACKEND_URL}/api/student/exam/submit/${user.id}/${examID}`,
-                    {},
-                    {
-                        headers: {
-                        Authorization: `Bearer ${token}`, // <- tambahkan juga di sini
-                        },
+                    try {
+                        // 2. Hitung skor otomatis
+                        await axios.post(
+                        `${config.BACKEND_URL}/api/student/exam/submit/${user.id}/${examID}`,
+                        {},
+                        { withCredentials: true },
+                        );
+                    } catch (err) {
+                        console.error("Gagal menghitung nilai:", err);
                     }
-                    );
-                } catch (err) {
-                    console.error("Gagal menghitung nilai:", err);
-                }
-            
-                navigate("/student");
+                
+                    navigate("/student", { state: { finished: true } });
                 }
             } catch (err) {
                 console.error("Gagal menyelesaikan ujian:", err);

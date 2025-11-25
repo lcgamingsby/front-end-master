@@ -19,20 +19,16 @@ function AddQuestionPage() {
 
   const [questions, setQuestions] = useState(editQuestion != null ? editQuestion.questions : []);
 
-  console.log(questions);
+  //console.log(questions);
 
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Create-Update Questions
   // Read-Delete on QuestionsPage.jsx
   const createQuestionBatch = async (question, onProgress) => {
-    const token = localStorage.getItem("jwtToken");
-
     try {
       await axios.post(`${config.BACKEND_URL}/api/admin/questions`, question, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        withCredentials: true,
         onUploadProgress: (progressEvent) => {
           if (onProgress) {
             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -50,13 +46,9 @@ function AddQuestionPage() {
   }
 
   const updateQuestionBatch = async (id, question, onProgress) => {
-    const token = localStorage.getItem("jwtToken");
-
     try {
       await axios.put(`${config.BACKEND_URL}/api/admin/questions/${id}`, question, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        withCredentials: true,
         onUploadProgress: (progressEvent) => {
           if (onProgress) {
             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -155,9 +147,26 @@ function AddQuestionPage() {
         const data = event.target.result;
 
         const toAdd = [];
+        const regex = /"([^"]*)"|([^";]+)/g;
 
         data.split("\n").forEach((line, idx) => {
-          const [text, choice_a, choice_b, choice_c, choice_d, answer] = line.split(";").map(v => v.trim());
+          if (line.length === 0) return; // empty string handler
+
+          let tempStr = line.replace(/""/g, '\0');
+          let result = [];
+          let match;
+
+          while ((match = regex.exec(tempStr)) !== null) {
+            if (match[1]) {
+              result.push(match[1].replace(/\0/g, '"'));
+            } else if (match[2]) {
+              result.push(match[2]);
+            }
+          }
+
+          result = result.map(v => v.trim());
+
+          const [text, choice_a, choice_b, choice_c, choice_d, answer] = result;
 
           if (idx === 0) {
             if (text !== "Text" || choice_a !== "ChoiceA" || choice_b !== "ChoiceB"
@@ -166,8 +175,11 @@ function AddQuestionPage() {
                 return;
             }
           } else {
-            if (!text || !choice_a || !choice_b || !choice_c || !choice_d || !answer) {
-              alert("Invalid CSV format. Please ensure all fields are filled.");
+            console.log(line, line.length);
+
+            // Text is optional if the type of question batch is listening
+            if ((type !== "listening" && !text) || !choice_a || !choice_b || !choice_c || !choice_d || !answer) {
+              alert("Invalid CSV format. Please ensure all required fields (marked with *) are filled.");
               return;
             }
 
