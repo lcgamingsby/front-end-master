@@ -40,7 +40,7 @@ function StudentDashboard() {
       );
 
       if (startRes.status !== 200) {
-        console.log("Unable to start exam");
+        //console.log("Unable to start exam");
         return
       }
 
@@ -218,7 +218,7 @@ function StudentDashboard() {
     }
   };
 
-  console.log(finishedExam);
+  //console.log(finishedExam);
 
   return (
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">

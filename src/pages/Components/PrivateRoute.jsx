@@ -24,7 +24,7 @@ function PrivateRoute({ role }) {
             }
         }
 
-        console.log(user);
+        //console.log(user);
 
         if (user === undefined || user === null) {
             fetchUser();

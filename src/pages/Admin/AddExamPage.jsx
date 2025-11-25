@@ -76,7 +76,7 @@ function AddExamPage() {
   };
 
   const createExam = async (exam) => {
-    console.log(exam);
+    //console.log(exam);
 
     if (examMode === "online") {
       const { students, ...examData } = exam;
@@ -119,7 +119,7 @@ function AddExamPage() {
   }
 
   const updateExam = async (id, exam) => {
-    console.log(id, exam);
+    //console.log(id, exam);
 
     if (examMode === "online") {
       try {

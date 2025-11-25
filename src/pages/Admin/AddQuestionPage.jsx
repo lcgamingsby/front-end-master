@@ -175,7 +175,7 @@ function AddQuestionPage() {
                 return;
             }
           } else {
-            console.log(line, line.length);
+            //console.log(line, line.length);
 
             // Text is optional if the type of question batch is listening
             if ((type !== "listening" && !text) || !choice_a || !choice_b || !choice_c || !choice_d || !answer) {

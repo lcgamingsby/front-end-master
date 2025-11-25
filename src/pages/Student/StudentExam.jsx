@@ -89,7 +89,7 @@ const StudentExam = () => {
     }
   ];
 
-  console.log(instructions[readingIndex], readingIndex);
+  //console.log(instructions[readingIndex], readingIndex);
 
   function getFirstUniqueEntries(arr, key) {
     const seen = new Map();
@@ -660,7 +660,7 @@ const StudentExam = () => {
 
   //console.log(examQuestions[currentQuestion.type][currentQuestion.index]);
   //console.log(currentQuestion.type, examQuestions[currentQuestion.type][currentQuestion.index].question_id);
-  console.log(instructionsSeen);
+  //console.log(instructionsSeen);
 
   return (
     <div

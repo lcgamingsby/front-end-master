@@ -59,7 +59,7 @@ function ResetPasswordPage() {
 
     const role = user.role === "mahasiswa" ? "student" : user.role;
 
-    console.log(user);
+    //console.log(user);
 
     alert("Password successfully changed!");
     navigate(`/${role}`);

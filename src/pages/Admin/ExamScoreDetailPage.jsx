@@ -48,7 +48,7 @@ function ExamScoreDetailPage() {
     loadData();
 
     const interval = setInterval(() => {
-      console.log("Refreshing data...");
+      //console.log("Refreshing data...");
       loadData();
     }, 10000);
 
@@ -82,7 +82,7 @@ function ExamScoreDetailPage() {
       "score",
     ]
 
-    console.log(data);
+    //console.log(data);
     const csvContent = [
       "NIM,Name,Listening Score,Grammar Score,Reading Score,Total Score",
       ...data.map((row) => [

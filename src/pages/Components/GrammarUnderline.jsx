@@ -1,7 +1,7 @@
 import React from "react";
 
 const GrammarUnderline = ({ text, contentLetter }) => {
-    console.log(text, contentLetter);
+    //console.log(text, contentLetter);
 
     if (!text || !contentLetter) {
         return null;

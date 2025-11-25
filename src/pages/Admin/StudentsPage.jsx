@@ -45,7 +45,7 @@ function StudentsPage() {
         { withCredentials: true },
       );
   
-      console.log("✅ Response sukses:", response);
+      //console.log("✅ Response sukses:", response);
   
       if (response.status === 200) {
         setShowConfirm(false);
@@ -54,14 +54,7 @@ function StudentsPage() {
         );
       }
     } catch (error) {
-      console.error("❌ Error deleting student:");
-      if (error.response) {
-        console.error("  Status:", error.response.status);
-        console.error("  Data:", error.response.data);
-        console.error("  Headers:", error.response.headers);
-      } else {
-        console.error("  Message:", error.message);
-      }
+      console.error("❌ Error deleting student:", error);
     }
   };
   
@@ -107,10 +100,10 @@ function StudentsPage() {
   };
 
   const handleConfirmDelete = async () => {
-    console.log("🟡 Debug toDelete object:", toDelete);
+    //console.log("🟡 Debug toDelete object:", toDelete);
   
     const studentNIM = toDelete.nim;
-    console.log("🟡 NIM yang dipakai untuk delete:", studentNIM);
+    //console.log("🟡 NIM yang dipakai untuk delete:", studentNIM);
   
     deleteStudent(studentNIM);
   };
