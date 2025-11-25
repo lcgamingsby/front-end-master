@@ -113,7 +113,7 @@ function RegisterPage() {
           <input
             type="email"
             value={email}
-            placeholder="nama@ukdc.ac.id/student.ukdc.ac.id"
+            placeholder="email.saya@gmail.com | email.saya@student.ukdc.ac.id | email.saya@ukdc.ac.id"
             className="w-full py-3 px-4 my-2 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
             onChange={(e) => setEmail(e.target.value)}
           />
