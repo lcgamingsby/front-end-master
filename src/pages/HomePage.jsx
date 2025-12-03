@@ -9,7 +9,7 @@ function HomePage() {
   return (
     <div className="absolute w-full min-h-full h-auto bg-linear-135 from-tec-light to-tec-dark text-white">
       {/* Header */}
-      <div className="flex justify-between items-center px-10 mx-auto bg-white shadow-lg">
+      <div className="flex sticky top-0 left-0 justify-between items-center px-10 mx-auto bg-white shadow-xl">
         <div className="flex items-center select-none">
           <img src="/logoukdc.png" alt="Logo" className="w-12 h-12 mr-3.5" />
           <h1 className="text-2xl text-tec-dark font-bold">TEC UKDC</h1>
@@ -24,7 +24,10 @@ function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="w-23/24 sm:max-w-5xl mx-auto my-25 bg-white py-10 rounded-xl shadow-lg text-slate-600 text-center">
+      <div
+        className="w-23/24 sm:max-w-5xl mx-auto my-15 bg-white py-10 rounded-xl shadow-lg
+          text-slate-600 text-center"
+      >
         <h2 className="font-bold text-tec-darker mb-5 text-2xl px-4 sm:px-10">
           INFORMASI TEC UKDC
         </h2>
@@ -38,7 +41,7 @@ function HomePage() {
         <div className="flex justify-center mt-6 space-x-4">
           <button
             onClick={() => setActiveTab("jadwal")}
-            className={`px-6 py-2 rounded-lg font-semibold border transition-all duration-150 ${
+            className={`px-6 py-2 rounded-lg font-semibold border transition-all duration-150 cursor-pointer ${
               activeTab === "jadwal"
                 ? "bg-tec-dark text-white border-tec-dark"
                 : "bg-white text-tec-dark border-tec-dark hover:bg-tec-light hover:text-white"
@@ -48,7 +51,7 @@ function HomePage() {
           </button>
           <button
             onClick={() => setActiveTab("instruksi")}
-            className={`px-6 py-2 rounded-lg font-semibold border transition-all duration-150 ${
+            className={`px-6 py-2 rounded-lg font-semibold border transition-all duration-150 cursor-pointer ${
               activeTab === "instruksi"
                 ? "bg-tec-dark text-white border-tec-dark"
                 : "bg-white text-tec-dark border-tec-dark hover:bg-tec-light hover:text-white"
@@ -59,7 +62,7 @@ function HomePage() {
         </div>
 
         {/* Konten Berdasarkan Tab */}
-        <div className="mt-10 text-left px-8 sm:px-16">
+        <div className="mt-3 text-left px-4 sm:px-10">
           {activeTab === "jadwal" ? (
             <TecSchedule />
           ) : (
@@ -117,7 +120,7 @@ function HomePage() {
                 </p>
                 <p className="mt-2">
                   Briefing akan diadakan pada hari yang sama pukul{" "}
-                  <strong>11.30 di ruang AV lantai 3</strong>. Peserta yang tidak
+                  <strong>11:30 di ruang AV lantai 3</strong>. Peserta yang tidak
                   hadir briefing{" "}
                   <strong>tidak diperkenankan mengikuti tes</strong>.
                 </p>

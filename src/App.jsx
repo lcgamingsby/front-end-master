@@ -21,6 +21,8 @@ import StudentFinish from "./pages/Student/StudentFinish";
 import ExamTrackingPage from "./pages/Admin/ExamTrackingPage";
 import StudentLogDetailPage from "./pages/Admin/StudentLogDetailPage";
 import ExamRegistrationPage from "./pages/Admin/ExamRegistrationPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ForgotResetPasswordPage from "./pages/ForgotResetPasswordPage";
 
 
 function App() {
@@ -34,6 +36,12 @@ function App() {
           </Route>
           <Route path="/register" element={<PublicRoute />}>
             <Route index element={<RegisterPage />} />
+          </Route>
+          <Route path="/forgot" element={<PublicRoute />}>
+            <Route index element={<ForgotPasswordPage />} />
+          </Route>
+          <Route path="/reset-password" element={< PublicRoute />}>
+            <Route index element={<ForgotResetPasswordPage />} />
           </Route>
           <Route path="/admin" element={<PrivateRoute role="admin" />}>
             <Route index element={<AdminDashboard />} />

@@ -33,9 +33,9 @@ const ModalFinished = ({ isOpen, openModal, onClose, title, message }) => {
 						<div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
 							<div
 								className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full
-								bg-emerald-200"
+								bg-blue-200"
 							>
-								<FaCheck className={`h-6 w-6 text-emerald-600`} />
+								<FaCheck className={`h-6 w-6 text-blue-600`} />
 							</div>
 							<div class="mt-4 text-center">
 								<DialogTitle
@@ -57,8 +57,8 @@ const ModalFinished = ({ isOpen, openModal, onClose, title, message }) => {
 						<div class="bg-white px-4 py-3 sm:px-6">
 							<button
 								type="button"
-								class="inline-flex w-full justify-center rounded-md bg-violet-600 px-3 py-2 text-sm
-								font-semibold text-white shadow-xs hover:bg-violet-500"
+								class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm
+								font-semibold text-white shadow-xs hover:bg-blue-500"
 								onClick={() => {
                   openModal(false);
 

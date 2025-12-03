@@ -18,8 +18,11 @@ function RegisterPage() {
   const isValidEmail = (val) =>
   /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val.trim());
 
-  // Helper: validasi password 6-12
-  const isValidPassword = (val) => val.length >= 6 && val.length <= 12;
+  // Helper: validasi panjang password
+  const passLengthLowest = config.PASSWORD_LENGTH_LOWEST;
+  const passLengthHighest = config.PASSWORD_LENGTH_HIGHEST;
+
+  const isValidPassword = (val) => val.length >= passLengthLowest && val.length <= passLengthHighest;
 
   // Helper: form ready?
   const formValid =
@@ -44,7 +47,7 @@ function RegisterPage() {
         name: name.trim(),
         nim: nim.trim(),
         email: email.trim().toLowerCase(),
-        password, // min 6, max 12
+        password, // min 6, max 18
       };
 
       // Dummy register endpoint — ganti sesuai backend kamu
@@ -77,14 +80,14 @@ function RegisterPage() {
       <div className="bg-white py-10 px-8 rounded-xl shadow-lg w-full max-w-md text-center">
         <h2 className="mb-5 text-2xl text-tec-dark font-bold">Daftar</h2>
 
-        <form onSubmit={handleSubmit} className="text-left">
+        <form onSubmit={handleSubmit} className="w-9/10 mx-auto text-left">
           {/* Nama */}
           <label className="block text-sm font-semibold text-slate-700">Nama</label>
           <input
             type="text"
             value={name}
             placeholder="Nama lengkap"
-            className="w-full py-3 px-4 my-2 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
+            className="w-full py-3 px-4 mt-1 mb-2 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
             onChange={(e) => setName(e.target.value)}
           />
 
@@ -98,7 +101,7 @@ function RegisterPage() {
             pattern="[0-9]*"
             value={nim}
             placeholder="Hanya angka"
-            className="w-full py-3 px-4 my-2 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
+            className="w-full py-3 px-4 mt-1 mb-2 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
             onChange={handleNimChange}
             maxLength={20}
           />
@@ -109,12 +112,12 @@ function RegisterPage() {
           </p>
 
           {/* Email */}
-          <label className="block mt-4 text-sm font-semibold text-slate-700">Email</label>
+          <label className="block mt-4 text-sm font-semibold text-slate-700">E-mail</label>
           <input
             type="email"
             value={email}
-            placeholder="email.saya@gmail.com | email.saya@student.ukdc.ac.id | email.saya@ukdc.ac.id"
-            className="w-full py-3 px-4 my-2 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
+            placeholder="misal: email.saya@gmail.com"
+            className="w-full py-3 px-4 mt-1 mb-2 border border-gray-300 rounded-lg text-lg outline-none hover:border-tec-light"
             onChange={(e) => setEmail(e.target.value)}
           />
           <p className="text-xs mt-1">
@@ -128,31 +131,32 @@ function RegisterPage() {
 
           {/* Password */}
           <label className="block mt-4 text-sm font-semibold text-slate-700">Password</label>
-          <div className="w-full flex items-center justify-between border border-gray-300 rounded-lg my-2 py-3 px-4 hover:border-tec-light">
+          <div className="w-full flex items-center justify-between border border-gray-300 rounded-lg mt-1 mb-2 py-3 px-4 hover:border-tec-light">
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              placeholder="6-12 karakter"
-              className="flex-grow text-lg outline-none"
+              placeholder={`${passLengthLowest}-${passLengthHighest} karakter`}
+              className="flex-grow max-w-11/12 outline-none"
               onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
-              maxLength={12}
+              minLength={passLengthLowest}
+              maxLength={passLengthHighest}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              className="text-tec-dark hover:text-tec-light cursor-pointer"
             >
               {showPassword ? (
-                <FaEyeSlash className="text-tec-dark w-6 h-6" />
+                <FaEyeSlash className="w-6 h-6" />
               ) : (
-                <FaEye className="text-tec-dark w-6 h-6" />
+                <FaEye className="w-6 h-6" />
               )}
             </button>
           </div>
           <p className="text-xs mt-1">
             {password.length > 0 &&
               !(password.length >= 6 && password.length <= 12) && (
-                <span className="text-red-600">Panjang password 6–12 karakter.</span>
+                <span className="text-red-600">Panjang password 6-12 karakter.</span>
               )}
           </p>
 

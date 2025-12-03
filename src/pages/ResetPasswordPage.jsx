@@ -20,8 +20,8 @@ function ResetPasswordPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
-  const passLengthLowest = 6;
-  const passLengthHighest = 12;
+  const passLengthLowest = config.PASSWORD_LENGTH_LOWEST;
+  const passLengthHighest = config.PASSWORD_LENGTH_HIGHEST;
 
   const navigate = useNavigate();
 
@@ -30,7 +30,7 @@ function ResetPasswordPage() {
 
     if (form.new_password.length < passLengthLowest
         || form.new_password.length > passLengthHighest) {
-      alert("New password length must be in the range of 6-12 characters.");
+      alert(`New password length must be in the range of ${passLengthLowest}-${passLengthHighest} characters.`);
       return;
     }
 
@@ -130,6 +130,8 @@ function ResetPasswordPage() {
               })}
               placeholder={`Enter your new password (${passLengthLowest}-${passLengthHighest} characters)`}
               required="true"
+              minLength={passLengthLowest}
+              maxLength={passLengthHighest}
             />
             <span
               onClick={() => setShowNewPassword(!showNewPassword)}
