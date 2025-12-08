@@ -157,7 +157,7 @@ const StudentExam = () => {
       setInstructionsTime(15);
       setReadingIndex(
         instructionsStartIndex[currentQuestion.type]
-        + Math.max(indexThreshold[currentQuestion.type].indexOf(currentQ.question_id), 0)
+        + Math.max(indexThreshold[currentQuestion.type].indexOf(currentQ.batch_id), 0)
       );
     }
   }, [instructionsSeen, currentQuestion]);

@@ -114,7 +114,6 @@ function StudentDashboard() {
 
   const fetchOfflineExamList = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
       const res = await axios.get(
         `${config.BACKEND_URL}/api/student/offline/available`,
         { withCredentials: true },
@@ -206,7 +205,6 @@ function StudentDashboard() {
 
   const fetchOnlineExamList = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
       const res = await axios.get(
         `${config.BACKEND_URL}/api/student/online/available`,
         { withCredentials: true },
