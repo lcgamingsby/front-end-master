@@ -67,7 +67,7 @@ function RegisterPage() {
             "Akun dengan email ini sudah ada. Silakan gunakan email lain atau masuk menggunakan email ini."
           ) : (
         err?.response?.data?.message ||
-        "Terjadi kesalahan saat membuat akun. Coba lagi."
+        `Terjadi kesalahan saat membuat akun. Mohon coba lagi.`
       ));
       
 
