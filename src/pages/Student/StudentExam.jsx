@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import { config } from "../../data/config";
-import { FaCheck, FaChevronLeft, FaChevronRight, FaFlag, FaPlay } from "react-icons/fa";
+import { FaBars, FaCheck, FaChevronLeft, FaChevronRight, FaFlag, FaPlay } from "react-icons/fa";
 import axios from "axios";
 import { useUser } from "../Components/UserContext";
 import GrammarUnderline from "../Components/GrammarUnderline";
+import { sendLog } from "../utils/log"; // ✅ tambahan
+import { getRefreshToken } from "../../data/helper";
+import Loading from "../Components/Loading";
 
 const StudentExam = () => {
   const { user } = useUser();
@@ -17,6 +18,7 @@ const StudentExam = () => {
     reading: 55 * 60,
   };
 
+ 
   const location = useLocation();
   const examID = location.state?.examID || 0;
   const examQuestions = location.state?.questions || [];
@@ -24,20 +26,96 @@ const StudentExam = () => {
   const flagged = location.state?.flagged || [];
   const played = location.state?.hasPlayed || [];
 
-  console.log(examQuestions);
-
   const navigate = useNavigate();
-  const examSessionKey = `exam_session_${examID}`;
+  const storagePrefix = `${examID}_${user.id}`;
+  const examSessionKey = `exam_session_${examID}_${storagePrefix}`;
 
   const [flaggedQuestions, setFlaggedQuestions] = useState(flagged);
   const [answeredQuestions, setAnsweredQuestions] = useState([]);
   const [listeningDone, setListeningDone] = useState(false);
   const [grammarDone, setGrammarDone] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [readingInstructions, setReadingInstructions] = useState(false);
+  const [instructionsTime, setInstructionsTime] = useState(0);
+  const [readingIndex, setReadingIndex] = useState(0);
+  const [instructionsSeen, setInstructionsSeen] = useState(() => {
+    const saved = localStorage.getItem("seenInstructions");
+    return saved ? saved.split(",").map(v => v.trim()).filter(v => v !== "").map(v => parseInt(v)) : [];
+  });
+  const instructionsStartIndex = {
+    "listening": 0,
+    "grammar": 3,
+    "reading": 5
+  };
+  const instructions = [
+    // LISTENING
+    {
+      question_id: 0,
+      instructions: `In this section, you will hear short conversations between two people. After each
+        conversation, you will hear a question about the conversation. The conversations and questions
+        will not be repeated. After you hear a question, read the four possible answers and choose the
+        best answer.`
+    },
+    {
+      question_id: 1,
+      instructions: `In this section, you will hear longer conversations. After each conversation, you
+        will hear several questions. The conversations will not be repeated. After you hear a question,
+        read the four possible answers and choose the best answer.`
+    },
+    {
+      question_id: 2,
+      instructions: `In this section, you will hear several talks. After each talk, you will hear some
+        questions. The talks and questions will not be repeated. After you hear a question, read the
+        four possible answers and choose the best answer.`
+    },
+    // GRAMMAR
+    {
+      question_id: 3,
+      instructions: `The first 15 questions are incomplete sentences. Beneath each sentence you will
+        see four words or phrases. Choose the one word or phrase that best completes the sentence.`
+    },
+    {
+      question_id: 4,
+      instructions: `In the next 25 questions, each sentence has four underlined words or phrases. The
+        four underlined parts of the sentence are marked (A), (B), (C), (D). Identify the one
+        underlined word or phrase that must be changed in order for the sentence to be correct.`
+    },
+    // READING
+    {
+      question_id: 5,
+      instructions: `In this section you will read several passages. Each one is followed by a number
+        of questions about it. You are to choose the one best answer to each question. Answer all
+        questions about the information in a passage on the basis of what is stated or implied in that
+        passage.`
+    }
+  ];
+
+  //console.log(instructions[readingIndex], readingIndex);
+
+  function getFirstUniqueEntries(arr, key) {
+    const seen = new Map();
+
+    for (const item of arr) {
+      if (!seen.has(item[key])) {
+        seen.set(item[key], item);
+      }
+    }
+
+    return Array.from(seen.values());
+  }
+
+  const indexThreshold = {
+    "listening": getFirstUniqueEntries(examQuestions["listening"], "batch_id").map(v => v.batch_id),
+    "grammar": getFirstUniqueEntries(examQuestions["grammar"], "batch_id").map(v => v.batch_id),
+    // only need the first section for reading
+    "reading": [getFirstUniqueEntries(examQuestions["reading"], "batch_id").map(v => v.batch_id)[0]],
+  }
 
   // Atur posisi awal ujian
   const [currentQuestion, setCurrentQuestion] = useState(() => {
     const savedSession = localStorage.getItem(examSessionKey);
-    const savedQuestion = localStorage.getItem("currentQuestion");
+    const savedQuestion = localStorage.getItem(`currentQuestion_${storagePrefix}`);
   
     if (savedSession && savedQuestion) {
       try {
@@ -56,40 +134,117 @@ const StudentExam = () => {
 
   // Ambil waktu tersisa dari localStorage
   const [listeningTime, setListeningTime] = useState(() => {
-    const saved = localStorage.getItem("remainingTime_listening");
+    const saved = localStorage.getItem(`remainingTime_listening_${storagePrefix}`);
     return saved ? parseInt(saved) : sectionTimes.listening;
   });
   const [grammarTime, setGrammarTime] = useState(() => {
-    const saved = localStorage.getItem("remainingTime_grammar");
+    const saved = localStorage.getItem(`remainingTime_grammar_${storagePrefix}`);
     return saved ? parseInt(saved) : sectionTimes.grammar;
   });
   const [readingTime, setReadingTime] = useState(() => {
-    const saved = localStorage.getItem("remainingTime_reading");
+    const saved = localStorage.getItem(`remainingTime_reading_${storagePrefix}`);
     return saved ? parseInt(saved) : sectionTimes.reading;
   });
+
 
   const audioRef = useRef(null);
   const prevTypeRef = useRef(currentQuestion.type);
 
+  useEffect(() => {
+    const currentQ = examQuestions[currentQuestion.type][currentQuestion.index];
+    const batchId = currentQ.batch_id; // Use batch_id as unique identifier
+
+    if (!instructionsSeen.includes(batchId) && indexThreshold[currentQuestion.type].includes(batchId)) {
+      setReadingInstructions(true);
+      setInstructionsTime(15);
+      setReadingIndex(
+        instructionsStartIndex[currentQuestion.type]
+        + Math.max(indexThreshold[currentQuestion.type].indexOf(currentQ.batch_id), 0)
+      );
+    }
+  }, [instructionsSeen, currentQuestion]);
+
+  // ✅ Logging aktivitas saat masuk & keluar halaman
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      const exitTime = Date.now();
+      localStorage.setItem("lastExitTime", exitTime);
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        tipeAktivitas: "exit_exam",
+        aktivitas: "Keluar dari halaman ujian",
+      });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      handleBeforeUnload();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  // ✅ Logging resume exam
+  useEffect(() => {
+    const lastExit = localStorage.getItem("lastExitTime");
+    if (lastExit) {
+      const duration = Math.floor((Date.now() - parseInt(lastExit, 10)) / 1000);
+      if (duration > 0) {
+        sendLog({
+          nim: user.id,
+          idUjian: examID,
+          tipeAktivitas: "resume_exam",
+          aktivitas: `Kembali ke halaman ujian setelah ${duration} detik`,
+        });
+      }
+      localStorage.removeItem("lastExitTime");
+    }
+  }, []);
+
+  // ✅ Logging tab aktif / tidak aktif
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.hidden) {
+        localStorage.setItem("lastExitTime", Date.now());
+        await sendLog({
+          nim: user.id,
+          idUjian: examID,
+          tipeAktivitas: "tab_hidden",
+          aktivitas: "Berpindah tab atau minimize ujian",
+        });
+      } else {
+        const lastExit = localStorage.getItem("lastExitTime");
+        if (lastExit) {
+          const duration = Math.floor((Date.now() - parseInt(lastExit, 10)) / 1000);
+          await sendLog({
+            nim: user.id,
+            idUjian: examID,
+            tipeAktivitas: "tab_active",
+            aktivitas: `Kembali ke tab ujian setelah ${duration} detik`,
+          });
+          localStorage.removeItem("lastExitTime");
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   // Atur audio untuk listening
   useEffect(() => {
     const prevType = prevTypeRef.current;
-
-    // Kalau pindah ke grammar → stop audio lama
     if (prevType === "listening" && currentQuestion.type === "grammar") {
       if (audioRef.current) {
-        console.log("🔴 Stop audio karena pindah dari Listening ke Grammar");
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
     }
-
-    // Kalau masuk listening pertama kali ATAU audioRef masih kosong → load audio
     if (
       currentQuestion.type === "listening" &&
       (prevType !== "listening" || !audioRef.current)
     ) {
-      console.log("🟢 Load audio untuk Listening soal index:", currentQuestion.index);
       const newAudio = new Audio(
         `${config.BACKEND_URL}/audio/${
           examQuestions[currentQuestion.type][currentQuestion.index].audio_path
@@ -99,8 +254,6 @@ const StudentExam = () => {
       audioRef.current.load();
       setPlaying(false);
     }
-
-    // Update ref type sebelumnya
     prevTypeRef.current = currentQuestion.type;
   }, [currentQuestion.type, currentQuestion.index]);
 
@@ -110,12 +263,10 @@ const StudentExam = () => {
     setSelectedOption(answer ? answer.answer : "");
   }, [currentQuestion, answeredQuestions]);
 
-  // Simpan posisi terakhir
   useEffect(() => {
-    localStorage.setItem("currentQuestion", JSON.stringify(currentQuestion));
-  }, [currentQuestion]);
+    localStorage.setItem(`currentQuestion_${storagePrefix}`, JSON.stringify(currentQuestion));
+  }, [currentQuestion, storagePrefix]);
 
-  // Blok refresh keyboard
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (
@@ -130,14 +281,10 @@ const StudentExam = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-
   const recoverExistingAnswers = async () => {
-    const token = localStorage.getItem("jwtToken");
     const answerResponse = await axios.get(
       `${config.BACKEND_URL}/api/student/answers/${examID}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+      { withCredentials: true },
     );
     const answerArray =
       answerResponse.status === 200 && answerResponse.data.message === undefined
@@ -156,103 +303,193 @@ const StudentExam = () => {
   // Timer
   useEffect(() => {
     const timer = setInterval(() => {
-      if (currentQuestion.type === "listening") {
-        setListeningTime((prev) => {
+      if (readingInstructions) {
+        setInstructionsTime((prev) => {
           const newTime = prev > 0 ? prev - 1 : 0;
-          localStorage.setItem("remainingTime_listening", newTime);
           return newTime;
-        });
-      } else if (currentQuestion.type === "grammar") {
-        setGrammarTime((prev) => {
-          const newTime = prev > 0 ? prev - 1 : 0;
-          localStorage.setItem("remainingTime_grammar", newTime);
-          return newTime;
-        });
-      } else if (currentQuestion.type === "reading") {
-        setReadingTime((prev) => {
-          const newTime = prev > 0 ? prev - 1 : 0;
-          localStorage.setItem("remainingTime_reading", newTime);
-          return newTime;
-        });
+        })
+      } else {
+        if (currentQuestion.type === "listening") {
+          setListeningTime((prev) => {
+            const newTime = prev > 0 ? prev - 1 : 0;
+            localStorage.setItem(`remainingTime_listening_${storagePrefix}`, newTime);
+            return newTime;
+          });
+        } else if (currentQuestion.type === "grammar") {
+          setGrammarTime((prev) => {
+            const newTime = prev > 0 ? prev - 1 : 0;
+            localStorage.setItem(`remainingTime_grammar_${storagePrefix}`, newTime);
+            return newTime;
+          });
+        } else if (currentQuestion.type === "reading") {
+          setReadingTime((prev) => {
+            const newTime = prev > 0 ? prev - 1 : 0;
+            localStorage.setItem(`remainingTime_reading_${storagePrefix}`, newTime);
+            return newTime;
+          });
+        }
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [currentQuestion.type]);
+  }, [readingInstructions, currentQuestion.type, storagePrefix]);
 
   useEffect(() => {
-    if (
-      (currentQuestion.type === "listening" && listeningTime === 0) ||
-      (currentQuestion.type === "grammar" && grammarTime === 0) ||
-      (currentQuestion.type === "reading" && readingTime === 0)
-    ) {
-      finishExam();
-      alert("Time's up!");
+    if (readingInstructions) {
+      if (instructionsTime === 0) {
+        setReadingInstructions(false);
+        setInstructionsTime(0);
+        const currentQ = examQuestions[currentQuestion.type][currentQuestion.index];
+        setInstructionsSeen([...instructionsSeen, currentQ.batch_id]); // Save batch_id
+
+        localStorage.setItem("seenInstructions", [...instructionsSeen, currentQ.batch_id]);
+      }
+    } else {
+      if (
+        (currentQuestion.type === "listening" && listeningTime === 0) ||
+        (currentQuestion.type === "grammar" && grammarTime === 0) ||
+        (currentQuestion.type === "reading" && readingTime === 0)
+      ) {
+        if (currentQuestion.type == "reading") {
+          finishExam();
+          alert("Time's up!");
+        } else {
+          alert("Time's up! Moving to the next section.");
+          if (currentQuestion.type === "listening") {
+            setListeningDone(true);
+            setCurrentQuestion({ type: "grammar", index: 0 });
+          } else if (currentQuestion.type === "grammar") {
+            setGrammarDone(true);
+            setCurrentQuestion({ type: "reading", index: 0 });
+          }
+        }
+      }
     }
-  }, [listeningTime, grammarTime, readingTime, currentQuestion.type]);
+  }, [readingInstructions, instructionsTime, listeningTime, grammarTime, readingTime, currentQuestion.type]);
 
   // Finish exam
   const finishExam = async () => {
-    const token = localStorage.getItem("jwtToken");
-    await axios.put(
-      `${config.BACKEND_URL}/api/student/exam/finish`,
-      {
-        nim: user.id,
-        exam_id: examID,
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
+    try {
+      const endRes = await axios.put(
+        `${config.BACKEND_URL}/api/student/exam/finish`,
+        {
+          nim: user.id,
+          exam_id: examID,
+        },
+        { withCredentials: true },
+      );
+
+      if (endRes.status === 200) {
+        for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+          try {
+            // 2. Hitung skor otomatis
+            await axios.post(
+              `${config.BACKEND_URL}/api/student/exam/submit/${user.id}/${examID}`,
+              {},
+              { withCredentials: true },
+            );
+          } catch (err) {
+            console.error("Gagal menghitung nilai:", err);
+
+            const res = await getRefreshToken();
+
+            if (res.status !== 200) {
+              console.error("Unable to refresh token: ", res.message);
+            }
+          }
+        }
       }
-    );
 
-    // Reset semua data ujian
-    localStorage.removeItem(examSessionKey);
-    localStorage.removeItem("currentQuestion");
-    localStorage.removeItem("remainingTime_listening");
-    localStorage.removeItem("remainingTime_grammar");
-    localStorage.removeItem("remainingTime_reading");
+      localStorage.removeItem("seenInstructions");
+      localStorage.removeItem(examSessionKey);
+      localStorage.removeItem(`currentQuestion_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
 
-    navigate("/student");
+      navigate("/student", { state: { finished: true } });
+    } catch (e) {
+      console.error("Error finishing exam:", e);
+
+      if (e.response?.status === 401) {
+        for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+          try {
+            const res = await getRefreshToken();
+
+            if (res.status === 200) {
+              // re-run this function
+              finishExam();
+              // no need to loop after a success
+              break;
+            } else {
+              console.error("Unable to refresh token: ", res.message);
+            }
+          } catch (refreshErr) {
+            console.error("Token refresh failed:", refreshErr);
+          }
+        }
+      }
+    }
   };
 
   // Flag
-  const handleFlag = () => {
-    if (
-      !flaggedQuestions.includes(
-        examQuestions[currentQuestion.type][currentQuestion.index].question_id
-      )
-    ) {
-      setFlaggedQuestions((prev) => [
-        ...prev,
-        examQuestions[currentQuestion.type][currentQuestion.index].question_id,
-      ]);
+  const handleFlag = async () => {
+    const q = examQuestions[currentQuestion.type][currentQuestion.index];
+    if (!flaggedQuestions.includes(q.question_id)) {
+      setFlaggedQuestions((prev) => [...prev, q.question_id]);
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        idSoal: q.question_id,
+        tipeAktivitas: "flag",
+        aktivitas: `Flag soal ID ${q.question_id}`,
+      });
     } else {
-      setFlaggedQuestions(
-        flaggedQuestions.filter(
-          (v) =>
-            v !==
-            examQuestions[currentQuestion.type][currentQuestion.index]
-              .question_id
-        )
-      );
+      setFlaggedQuestions(flaggedQuestions.filter((v) => v !== q.question_id));
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        idSoal: q.question_id,
+        tipeAktivitas: "flag",
+        aktivitas: `Unflag soal ID ${q.question_id}`,
+      });
     }
   };
 
   // Play audio
-  const handlePlayPause = () => {
+  const handlePlayPause = async () => {
+    const q = examQuestions[currentQuestion.type][currentQuestion.index];
     if (audioRef.current && !playing) {
       audioRef.current.play();
       setPlaying(true);
-      setHasPlayed([
-        ...hasPlayed,
-        examQuestions[currentQuestion.type][currentQuestion.index].question_id,
-      ]);
+      setHasPlayed([...hasPlayed, q.audio_path]);
+
+      await sendLog({
+        nim: user.id,
+        idUjian: examID,
+        //idSoal: q.question_id,
+        tipeAktivitas: "listening",
+        aktivitas: "Memutar audio soal listening",
+      });
     }
   };
 
+  const batchMap = {
+    listening: 1,
+    grammar: 2,
+    reading: 3,
+  };
+
+  const isAnswering = useRef(false);
+
   // Answer click
   const handleOptionClick = async (index) => {
+    if (isAnswering.current) {
+      return;
+    }
+
+    isAnswering.current = true;
     const q = examQuestions[currentQuestion.type][currentQuestion.index];
-    const token = localStorage.getItem("jwtToken");
+
     try {
       await axios.post(
         `${config.BACKEND_URL}/api/student/exam/${examID}`,
@@ -261,24 +498,46 @@ const StudentExam = () => {
           question_id: q.question_id,
           nim: user.id,
           exam_id: examID,
+          tipeBatch: batchMap[currentQuestion.type],
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { withCredentials: true },
       );
     } catch (e) {
       console.error("Error answering:", e);
+
+      if (e.response?.status === 401) {
+        console.log("i'm here");
+        isAnswering.current = false;
+
+        for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+          try {
+            const res = await getRefreshToken();
+
+            if (res.status === 200) {
+              console.log("i'm here too");
+              // re-run this function
+              handleOptionClick(index);
+              // no need to loop after a success
+              break;
+            } else {
+              console.error("Unable to refresh token: ", res.message);
+            }
+          } catch (refreshErr) {
+            console.error("Token refresh failed:", refreshErr);
+          }
+        }
+      }
+
       return;
+    } finally {
+      isAnswering.current = false;
     }
-    const otherAnswered = answeredQuestions.filter(
-      (v) => v.question_id !== q.question_id
-    );
+
+    const otherAnswered = answeredQuestions.filter((v) => v.question_id !== q.question_id);
+    
     if (selectedOption !== index) {
       setSelectedOption(index);
-      setAnsweredQuestions([
-        ...otherAnswered,
-        { question_id: q.question_id, answer: index },
-      ]);
+      setAnsweredQuestions([...otherAnswered, { question_id: q.question_id, answer: index }]);
     } else {
       setSelectedOption("");
       setAnsweredQuestions([...otherAnswered]);
@@ -286,47 +545,81 @@ const StudentExam = () => {
   };
 
   // Navigasi
-  const handleNext = () => {
-    if (
-      currentQuestion.index <
-      examQuestions[currentQuestion.type].length - 1
-    ) {
-      const nextIndex = currentQuestion.index + 1;
-      setCurrentQuestion({ type: currentQuestion.type, index: nextIndex });
-    } else {
-      if (currentQuestion.type === "listening") {
-        setListeningDone(true);
-        setCurrentQuestion({ type: "grammar", index: 0 });
-      } else if (currentQuestion.type === "grammar") {
-        setGrammarDone(true);
-        setCurrentQuestion({ type: "reading", index: 0 });
-      } else if (currentQuestion.type === "reading") {
-        // Reset session sebelum navigasi
-        localStorage.removeItem(examSessionKey);
-        localStorage.removeItem("currentQuestion");
-        localStorage.removeItem("remainingTime_listening");
-        localStorage.removeItem("remainingTime_grammar");
-        localStorage.removeItem("remainingTime_reading");
-      
-        navigate("/student/exam/finish", {
-          state: {
-            examID,
-            questions: examQuestions,
-            endDatetime,
-            flagged: flaggedQuestions,
-            hasPlayed,
-          },
-        });
-      }
+  const handleNext = async () => {
+    const q = examQuestions[currentQuestion.type][currentQuestion.index];
+    await sendLog({
+      nim: user.id,
+      idUjian: examID,
+      tipeAktivitas: "navigation",
+      aktivitas: "Pindah soal berikutnya",
+    });
+
+    const currentSection = currentQuestion.type;
+    const totalQuestions = examQuestions[currentSection].length;
+    const answeredInSection = answeredQuestions.filter((a) =>
+      examQuestions[currentSection].some((q) => q.question_id === a.question_id)
+    ).length;
+
+    // Masih ada soal di section ini
+    if (currentQuestion.index < totalQuestions - 1) {
+      setCurrentQuestion({ type: currentSection, index: currentQuestion.index + 1 });
+      return;
+    }
+
+    // Sudah di soal terakhir section
+    // 🔒 Cek apakah semua soal di section ini sudah dijawab
+    if (answeredInSection < totalQuestions) {
+      alert(`All questions in the ${currentSection} section must be answered before moving to the next section.`);
+      return;
+    }
+
+    // Cek apakah ada soal yang diberi flag
+    if (flaggedQuestions.length > 0 && currentSection !== "reading") {
+      alert(`Please remove flags in the ${currentSection} section before moving to the next section.`);
+      return;
+    }
+
+    // ✅ Semua sudah dijawab, baru pindah section
+    if (currentSection === "listening") {
+      setListeningDone(true);
+      setCurrentQuestion({ type: "grammar", index: 0 });
+    } else if (currentSection === "grammar") {
+      setGrammarDone(true);
+      setCurrentQuestion({ type: "reading", index: 0 });
+    } else if (currentSection === "reading") {
+      // Semua section selesai
+      // localStorage.removeItem(examSessionKey);
+      // localStorage.removeItem(`currentQuestion_${storagePrefix}`);
+      // localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
+      // localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
+      // localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
+
+      navigate("/student/exam/finish", {
+        state: {
+          examID: examID,
+          questions: examQuestions,
+          endDatetime: endDatetime,
+          flagged: flaggedQuestions,
+          hasPlayed: hasPlayed,
+          displayTime: readingTime,
+        },
+      });
     }
   };
 
-  const handlePrev = () => {
+
+  const handlePrev = async () => {
+    const q = examQuestions[currentQuestion.type][currentQuestion.index];
+    await sendLog({
+      nim: user.id,
+      idUjian: examID,
+      //idSoal: q.question_id,
+      tipeAktivitas: "navigation",
+      aktivitas: "Pindah soal sebelumnya",
+    });
+
     if (currentQuestion.index > 0) {
-      setCurrentQuestion({
-        type: currentQuestion.type,
-        index: currentQuestion.index - 1,
-      });
+      setCurrentQuestion({ type: currentQuestion.type, index: currentQuestion.index - 1 });
     }
   };
 
@@ -334,9 +627,7 @@ const StudentExam = () => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor(seconds / 60) % 60;
     const secs = seconds % 60;
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const answerChoices = [
@@ -431,247 +722,334 @@ const StudentExam = () => {
   const disabledGrammar = currentQuestion.type !== "grammar";
   const disabledReading = currentQuestion.type !== "reading";
 
-  console.log(examQuestions[currentQuestion.type][currentQuestion.index]);
+  //console.log(examQuestions[currentQuestion.type][currentQuestion.index]);
+  //console.log(currentQuestion.type, examQuestions[currentQuestion.type][currentQuestion.index].question_id);
+  //console.log(instructionsSeen);
 
   return (
     <div
-      className="absolute bg-slate-50 w-full min-h-full h-auto"
+      className="bg-slate-50 min-h-screen w-full"
       onContextMenu={(e) => {
         e.preventDefault();
         alert("Right clicking is disabled.");
       }}
     >
-      <Navbar examMode={true} />
-      <div className="flex flex-1 justify-between">
-        <div className="w-2/12 max-w-55 m-4 flex flex-col gap-2">
-          <div className="bg-tec-card p-2 rounded-xl flex justify-between text-tec-darker">
-            <span>Time Remaining:</span>
-            <b>
-              {formatTime(
+    <Navbar examMode={true} />
+
+    {/* ✅ Layout Responsif */}
+    <div className="flex flex-col lg:flex-row justify-between px-4 md:px-8 py-4 gap-4">
+      {/* === Sidebar === */}
+        <div
+          className={`
+            fixed lg:static top-0 left-0 z-5
+            w-3/4 sm:w-2/3 md:w-1/2 lg:w-1/4
+            h-full lg:h-auto
+            bg-slate-100 lg:bg-transparent
+            transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+            transition-transform duration-300 ease-in-out
+            flex flex-col gap-3 order-2 lg:order-1 p-4
+          `}
+        > 
+        {/* Tombol tutup sidebar di mobile */}
+        <div className="lg:hidden flex justify-end mb-2">
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-slate-800 font-bold text-xl"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Sisa isi sidebar (Time Remaining & daftar soal) tetap sama */}
+        <div className="bg-tec-card p-3 rounded-xl flex justify-between text-tec-darker shadow">
+          <span>Time Remaining:</span>
+          <b>
+            {readingInstructions ? formatTime(instructionsTime) : 
+              formatTime(
                 currentQuestion.type === "listening"
                   ? listeningTime
                   : currentQuestion.type === "grammar"
                   ? grammarTime
                   : readingTime
-              )}
-            </b>
+              )
+            }
+          </b>
+        </div>
+
+        <div className="bg-slate-200 p-3 rounded-xl overflow-y-auto max-h-[60vh] md:max-h-[70vh]">
+          {/* Listening */}
+          <div className="font-bold pb-2 text-tec-darker">Listening</div>
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {examQuestions.listening.map((v, i) => {
+              const flagged = flaggedQuestions.includes(v.question_id);
+              const answered = answeredQuestions.some(
+                (a) => a.question_id === v.question_id
+              );
+              const current =
+                currentQuestion.index === i &&
+                currentQuestion.type === "listening";
+              const cssState = current
+                ? flagged
+                  ? "bg-amber-500 text-white"
+                  : answered
+                  ? "bg-sky-500 text-white"
+                  : "bg-tec-darker text-white"
+                : flagged
+                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                : answered
+                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                : "bg-white text-tec-darker hover:bg-tec-card";
+              return (
+                <button
+                  key={i}
+                  disabled={disabledListening || readingInstructions}
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                    ${cssState} ${
+                    disabledListening ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                  }`}
+                  onClick={() => {
+                    if (disabledListening) return;
+                    setCurrentQuestion({ type: "listening", index: i });
+                  }}
+                >
+                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
+                </button>
+              );
+            })}
           </div>
-          <div className="bg-slate-200 p-2 rounded-xl">
-            {/* Listening */}
-            <div className="font-bold pb-2 text-tec-darker">Listening</div>
-            <div className="grid grid-cols-5 gap-2">
-              {examQuestions.listening.map((v, i) => {
-                const flagged = flaggedQuestions.includes(v.question_id);
-                const answered = answeredQuestions.some(
-                  (a) => a.question_id === v.question_id
-                );
-                const current =
-                  currentQuestion.index === i &&
-                  currentQuestion.type === "listening";
-                const cssState = current
-                  ? flagged
-                    ? "bg-amber-500 text-white"
-                    : answered
-                    ? "bg-sky-500 text-white"
-                    : "bg-tec-darker text-white"
-                  : flagged
-                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+
+          {/* Grammar */}
+          <div className="font-bold pb-2 pt-4 text-tec-darker">Grammar</div>
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {examQuestions.grammar.map((v, i) => {
+              const flagged = flaggedQuestions.includes(v.question_id);
+              const answered = answeredQuestions.some(
+                (a) => a.question_id === v.question_id
+              );
+              const current =
+                currentQuestion.index === i &&
+                currentQuestion.type === "grammar";
+              const cssState = current
+                ? flagged
+                  ? "bg-amber-500 text-white"
                   : answered
-                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                  : "bg-white text-tec-darker hover:bg-tec-card";
-                return (
-                  <button
-                    key={i}
-                    disabled={disabledListening}
-                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold ${cssState} ${
-                      disabledListening ? "cursor-not-allowed opacity-50" : ""
-                    }`}
-                    onClick={() => {
-                      if (disabledListening) return;
-                      setCurrentQuestion({ type: "listening", index: i });
-                    }}
-                  >
-                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Grammar */}
-            <div className="font-bold pb-2 pt-4 text-tec-darker">Grammar</div>
-            <div className="grid grid-cols-5 gap-2">
-              {examQuestions.grammar.map((v, i) => {
-                const flagged = flaggedQuestions.includes(v.question_id);
-                const answered = answeredQuestions.some(
-                  (a) => a.question_id === v.question_id
-                );
-                const current =
-                  currentQuestion.index === i &&
-                  currentQuestion.type === "grammar";
-                const cssState = current
-                  ? flagged
-                    ? "bg-amber-500 text-white"
-                    : answered
-                    ? "bg-sky-500 text-white"
-                    : "bg-tec-darker text-white"
-                  : flagged
-                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                  ? "bg-sky-500 text-white"
+                  : "bg-tec-darker text-white"
+                : flagged
+                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                : answered
+                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                : "bg-white text-tec-darker hover:bg-tec-card";
+              return (
+                <button
+                  key={i}
+                  disabled={disabledGrammar || readingInstructions}
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                    ${cssState} ${
+                    disabledGrammar ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                  }`}
+                  onClick={() => {
+                    if (disabledGrammar) return;
+                    setCurrentQuestion({ type: "grammar", index: i });
+                  }}
+                >
+                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Reading */}
+          <div className="font-bold pb-2 pt-4 text-tec-darker">Reading</div>
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {examQuestions.reading.map((v, i) => {
+              const flagged = flaggedQuestions.includes(v.question_id);
+              const answered = answeredQuestions.some(
+                (a) => a.question_id === v.question_id
+              );
+              const current =
+                currentQuestion.index === i &&
+                currentQuestion.type === "reading";
+              const cssState = current
+                ? flagged
+                  ? "bg-amber-500 text-white"
                   : answered
-                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                  : "bg-white text-tec-darker hover:bg-tec-card";
-                return (
-                  <button
-                    key={i}
-                    disabled={disabledGrammar}
-                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold ${cssState} ${
-                      disabledGrammar ? "cursor-not-allowed opacity-50" : ""
-                    }`}
-                    onClick={() => {
-                      if (disabledGrammar) return;
-                      setCurrentQuestion({ type: "grammar", index: i });
-                    }}
-                  >
-                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Reading */}
-            <div className="font-bold pb-2 pt-4 text-tec-darker">Reading</div>
-            <div className="grid grid-cols-5 gap-2">
-              {examQuestions.reading.map((v, i) => {
-                const flagged = flaggedQuestions.includes(v.question_id);
-                const answered = answeredQuestions.some(
-                  (a) => a.question_id === v.question_id
-                );
-                const current =
-                  currentQuestion.index === i &&
-                  currentQuestion.type === "reading";
-                const cssState = current
-                  ? flagged
-                    ? "bg-amber-500 text-white"
-                    : answered
-                    ? "bg-sky-500 text-white"
-                    : "bg-tec-darker text-white"
-                  : flagged
-                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                  : answered
-                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                  : "bg-white text-tec-darker hover:bg-tec-card";
-                return (
-                  <button
-                    key={i}
-                    disabled={disabledReading}
-                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold ${cssState} ${
-                      disabledReading ? "cursor-not-allowed opacity-50" : ""
-                    }`}
-                    onClick={() => {
-                      if (disabledReading) return;
-                      setCurrentQuestion({ type: "reading", index: i });
-                    }}
-                  >
-                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                  </button>
-                );
-              })}
-            </div>
+                  ? "bg-sky-500 text-white"
+                  : "bg-tec-darker text-white"
+                : flagged
+                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                : answered
+                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                : "bg-white text-tec-darker hover:bg-tec-card";
+              return (
+                <button
+                  key={i}
+                  disabled={disabledReading || readingInstructions}
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                    ${cssState} ${
+                    disabledReading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                  }`}
+                  onClick={() => {
+                    if (disabledReading) return;
+                    setCurrentQuestion({ type: "reading", index: i });
+                  }}
+                >
+                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
-        <div className="grow w-9/12">
-          {examQuestions[currentQuestion.type][currentQuestion.index].audio_path !== ""
-            || examQuestions[currentQuestion.type][currentQuestion.index].batch_text !== "" ? (
-              <div className="bg-blue-300 rounded-xl flex-1 m-5 p-5">
+      </div>
+
+      {/* === Soal dan Audio === */}
+      <div className="flex-1 order-1 lg:order-2">
+        {/* Question Card */}
+        {readingInstructions ? (
+          <div className="bg-blue-300 rounded-xl p-4 md:p-6 mb-4 shadow-md">
+            <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto max-h-40
+              md:max-h-60 mt-2 text-sm sm:text-base"
+            >
+              You are given 15 seconds to read this instruction.<br/><br/>
+              {instructions[readingIndex].instructions}
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Tombol garis tiga hanya muncul di layar kecil */}
+            <button
+              className="lg:hidden fixed top-20 left-4 z-5 bg-sky-600 text-white p-2 rounded-lg shadow-lg"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              <FaBars size={20} />
+            </button>
+            {/* Audio & Passage Section */}
+            {examQuestions[currentQuestion.type][currentQuestion.index].audio_path !== "" ||
+            examQuestions[currentQuestion.type][currentQuestion.index].batch_text !== "" ? (
+              <div className="bg-blue-300 rounded-xl p-4 md:p-6 mb-4 shadow-md">
                 {currentQuestion.type === "listening" && audioRef.current && (
-                  <div className="gap-2 flex items-center">
+                  <div className="gap-2 flex items-center flex-wrap">
                     <button
                       onClick={handlePlayPause}
                       disabled={hasPlayed.includes(
-                        examQuestions[currentQuestion.type][currentQuestion.index].question_id
+                        examQuestions[currentQuestion.type][currentQuestion.index].audio_path
                       )}
-                      className="w-8 h-8 rounded-full bg-tec-darker text-white flex items-center justify-center"
+                      className="w-10 h-10 rounded-full bg-tec-darker hover:bg-tec-dark disabled:bg-slate-500
+                      text-white flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                      title={
+                        hasPlayed.includes(
+                          examQuestions[currentQuestion.type][currentQuestion.index].audio_path
+                        ) ? "This audio is already played." : (
+                          playing && !hasPlayed.includes(
+                            examQuestions[currentQuestion.type][currentQuestion.index].audio_path
+                          ) ? "An audio is already playing for a different section." : ""
+                        )
+                      }
                     >
                       <FaPlay />
                     </button>
-                    <p className="font-semibold text-tec-darker">
+                    <p className="font-semibold text-tec-darker text-sm sm:text-base">
                       You may only play the audio once.
                     </p>
                   </div>
                 )}
-
-                {examQuestions[currentQuestion.type][currentQuestion.index].batch_text != "" ? (
-                  <p className="text-justify font-medium select-none pl-2 pr-6 overflow-y-auto max-h-30">
-                    <span className="ml-16" />
-                    {displayFormattingParagraphs(examQuestions[currentQuestion.type][currentQuestion.index].batch_text)}
+                {examQuestions[currentQuestion.type][currentQuestion.index].batch_text && (
+                  <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto
+                    max-h-36 md:max-h-48 text-sm sm:text-base"
+                  >
+                    <span className="ml-8 sm:ml-16" />
+                    {displayFormattingParagraphs(
+                      examQuestions[currentQuestion.type][currentQuestion.index].batch_text
+                    )}
                   </p>
-                ) : null}
+                )}
               </div>
-          ) : null}
-          {/* Question Card */}
-          <div className="bg-white rounded-xl flex-1 m-5 p-5 shadow-xl shadow-slate-400">
-            <p className="text-justify font-medium select-none">
-              {currentQuestion.type !== "grammar"
-                ? examQuestions[currentQuestion.type][currentQuestion.index]
-                    .question_text
-                : displayFormattingGrammar()}
-            </p>
-            <div className="flex flex-col gap-2.5 my-5">
-              {answerChoices.map((c) => (
+            ) : null}
+          
+            <div className="bg-white rounded-xl p-4 md:p-6 shadow-md">
+              <p className="text-justify font-medium select-none text-sm/4 sm:text-base/8">
+                {currentQuestion.type !== "grammar"
+                  ? examQuestions[currentQuestion.type][currentQuestion.index].question_text
+                  : displayFormattingGrammar()}
+              </p>
+
+              <div className="flex flex-col gap-2.5 my-5 relative">
+                {answerChoices.map((c) => (
+                  <button
+                    key={c.value}
+                    onClick={() => handleOptionClick(c.value)}
+                    className={`text-center border-2 text-slate-900 rounded-lg py-2 px-3 font-semibold
+                      text-sm sm:text-base cursor-pointer ${
+                      selectedOption === c.value
+                        ? "bg-gradient-to-r from-sky-500 to-sky-600 border-sky-800 text-white"
+                        : "border-slate-900 hover:bg-sky-200"
+                    }`}
+                  >
+                    {c.text}
+                  </button>
+                ))}
+                {isAnswering.current && (
+                  <div
+                    className="z-10 absolute bg-gray-700/70 w-full h-full text-center flex
+                      flex-col items-center justify-center"
+                  >
+                    <p
+                      className="text-white font-bold text-shadow-xl
+                      text-shadow-slate-900 text-2xl"
+                    >
+                      Saving your answer...
+                    </p>
+                    <Loading text=" " useAlt={true} />
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between items-center flex-wrap gap-3">
                 <button
-                  key={c.value}
-                  onClick={() => handleOptionClick(c.value)}
-                  className={`text-center border-2 text-slate-900 rounded-lg p-1 font-semibold ${
-                    selectedOption === c.value
-                      ? "bg-gradient-to-r from-sky-500 to-sky-600 border-sky-800 text-white"
-                      : "border-slate-900 hover:bg-sky-200"
+                  onClick={handlePrev}
+                  className="flex items-center gap-2 bg-slate-300 hover:bg-slate-400 text-tec-darker
+                  font-semibold px-4 py-2 rounded-full transition-all cursor-pointer"
+                >
+                  <FaChevronLeft /> Previous
+                </button>
+
+                <button
+                  onClick={handleFlag}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all
+                    cursor-pointer ${
+                    flaggedQuestions.includes(
+                      examQuestions[currentQuestion.type][currentQuestion.index].question_id
+                    )
+                      ? "bg-amber-500 text-white hover:bg-amber-600"
+                      : "bg-amber-200 text-amber-800 hover:bg-amber-300"
                   }`}
                 >
-                  {c.text}
-                </button>
-              ))}
-            </div>
-            <div className="rounded-xl flex justify-between mt-5">
-                {/* Previous */}
-                <button
-                    onClick={handlePrev}
-                    className="flex items-center gap-2 bg-gradient-to-r from-slate-300 to-slate-400 text-tec-darker font-semibold px-4 py-2 rounded-full shadow hover:shadow-lg hover:from-slate-400 hover:to-slate-500 transition-all duration-200"
-                >
-                    <FaChevronLeft /> Previous
-                </button>
-
-                {/* Flag */}
-                <button
-                    onClick={handleFlag}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full shadow font-semibold transition-all duration-200 ${
-                    flaggedQuestions.includes(
-                        examQuestions[currentQuestion.type][currentQuestion.index].question_id
-                    )
-                        ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
-                        : "bg-gradient-to-r from-amber-200 to-amber-300 text-amber-800 hover:from-amber-300 hover:to-amber-400"
-                    }`}
-                >
-                    <FaFlag />
-                    {flaggedQuestions.includes(
+                  <FaFlag />
+                  {flaggedQuestions.includes(
                     examQuestions[currentQuestion.type][currentQuestion.index].question_id
-                    )
+                  )
                     ? "Unflag"
                     : "Flag"}
                 </button>
 
-                {/* Next */}
                 <button
-                    onClick={handleNext}
-                    className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold px-4 py-2 rounded-full shadow hover:shadow-lg hover:from-sky-600 hover:to-sky-700 transition-all duration-200"
+                  onClick={handleNext}
+                  className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold
+                  cursor-pointer px-4 py-2 rounded-full transition-all"
                 >
-                    {currentQuestion.index ===
-                    examQuestions[currentQuestion.type].length - 1
+                  {currentQuestion.index === examQuestions[currentQuestion.type].length - 1
                     ? "Next Section"
                     : "Next"}{" "}
-                    <FaChevronRight />
+                  <FaChevronRight />
                 </button>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
+  </div>
   );
 };
   

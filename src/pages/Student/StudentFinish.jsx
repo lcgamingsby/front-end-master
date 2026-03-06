@@ -5,18 +5,10 @@ import { config } from "../../data/config";
 import { FaChevronLeft } from "react-icons/fa";
 import axios from "axios";
 import { useUser } from "../Components/UserContext";
+import { getRefreshToken } from "../../data/helper";
 
 const StudentFinish = () => {
     const { user } = useUser();
-    useEffect(() => {
-        // Reset semua data ujian
-        localStorage.removeItem(`exam_session_${location.state?.examID}`);
-        localStorage.removeItem("currentQuestion");
-        localStorage.removeItem("remainingTime_listening");
-        localStorage.removeItem("remainingTime_grammar");
-        localStorage.removeItem("remainingTime_reading");
-      }, []);
-      
 
     const location = useLocation();
     const examID = location.state?.examID || 0;
@@ -24,20 +16,23 @@ const StudentFinish = () => {
     const endDatetime = location.state?.endDatetime || "";
     const flagged = location.state?.flagged || [];
     const played = location.state?.hasPlayed || [];
+    const displayTime = location.state?.displayTime || 0;
+
+    const storagePrefix = `${examID}_${user.id}`;
 
     const navigate = useNavigate();
 
-    const recalculateTimeLeft = (dt) => {
-        const currentDate = new Date();
+    // const recalculateTimeLeft = (dt) => {
+    //     const currentDate = new Date();
 
-        const timeDifference = dt.getTime() - currentDate.getTime();
+    //     const timeDifference = dt.getTime() - currentDate.getTime();
 
-        // remove milliseconds
-        return Math.floor(timeDifference / 1000);
-    }
+    //     // remove milliseconds
+    //     return Math.floor(timeDifference / 1000);
+    // }
 
-    const endDate = new Date(endDatetime);
-    const [timeLeft, setTimeLeft] = useState(recalculateTimeLeft(endDate));
+    // const endDate = new Date(endDatetime);
+    const [timeLeft, setTimeLeft] = useState(displayTime);
 
     const [flaggedQuestions, setFlaggedQuestions] = useState(flagged);
     const [hasPlayed, setHasPlayed] = useState(played);
@@ -45,13 +40,10 @@ const StudentFinish = () => {
     const [answeredQuestions, setAnsweredQuestions] = useState([]);
 
     const recoverExistingAnswers = async () => {
-        const token = localStorage.getItem("jwtToken");
-        
-        const answerResponse = await axios.get(`${config.BACKEND_URL}/api/student/answers/${examID}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+        const answerResponse = await axios.get(
+            `${config.BACKEND_URL}/api/student/answers/${examID}`, 
+            { withCredentials: true },
+        );
 
         const answerArray = (answerResponse.status === 200 && answerResponse.data.message === undefined)
             ? answerResponse.data.map((v, i) => {
@@ -72,19 +64,67 @@ const StudentFinish = () => {
         };
 
         if (confirm("Are you sure to end this exam now?")) {
-            const token = localStorage.getItem("jwtToken");         
+            // Reset semua data ujian
+            localStorage.removeItem("seenInstructions");
+            localStorage.removeItem(`exam_session_${examID}_${storagePrefix}`);
+            localStorage.removeItem(`currentQuestion_${storagePrefix}`);
+            localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
+            localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
+            localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
 
-            const endRes = await axios.put(`${config.BACKEND_URL}/api/student/exam/finish`, {
-                nim: user.id,
-                exam_id: examID,
-            }, {
-                headers: {
-                Authorization: `Bearer ${token}`,
-                },
-            });
+            try {
+                const endRes = await axios.put(
+                    `${config.BACKEND_URL}/api/student/exam/finish`,
+                    {
+                        nim: user.id,
+                        exam_id: examID,
+                    },
+                    { withCredentials: true },
+                );
+            
+                if (endRes.status === 200) {
+                    for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+                        try {
+                            // 2. Hitung skor otomatis
+                            await axios.post(
+                            `${config.BACKEND_URL}/api/student/exam/submit/${user.id}/${examID}`,
+                            {},
+                            { withCredentials: true },
+                            );
+                        } catch (err) {
+                            console.error("Gagal menghitung nilai:", err);
 
-            if (endRes.status === 200) {
-                navigate("/student");
+                            const res = await getRefreshToken();
+
+                            if (res.status !== 200) {
+                                console.error("Unable to refresh token: ", res.message);
+                            }
+                        }
+                    }
+                
+                    navigate("/student", { state: { finished: true } });
+                }
+            } catch (err) {
+                console.error("Gagal menyelesaikan ujian:", err);
+
+                if (err.response?.status === 401) {
+                    for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+                        try {
+                        const res = await getRefreshToken();
+            
+                        if (res.status === 200) {
+                            // re-run this function
+                            handleExamClick(e);
+                            // no need to loop after a success
+                            break;
+                        } else {
+                            console.error("Unable to refresh token: ", res.message);
+                        }
+                        } catch (refreshErr) {
+                        console.error("Token refresh failed:", refreshErr);
+                        }
+                    }
+                }
             }
         }
     }
@@ -95,7 +135,11 @@ const StudentFinish = () => {
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+            setTimeLeft((prev) => {
+                const newTime = prev > 0 ? prev - 1 : 0;
+                localStorage.setItem(`remainingTime_reading_${storagePrefix}`, newTime);
+                return newTime;
+            });
         }, 1000);
 
         return () => clearInterval(timer);
@@ -108,20 +152,38 @@ const StudentFinish = () => {
         return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    const returnToExam = () => {
+        navigate("/student/exam", {
+            state: {
+                examID: examID,
+                questions: examQuestions,
+                endDatetime: endDatetime,
+                flagged: flaggedQuestions,
+                hasPlayed: hasPlayed
+            },
+        });
+    }
+
     return (
         <div className="absolute bg-slate-50 w-full min-h-full h-auto">
             <Navbar examMode={true} />
 
             <main className="px-8 py-12">
                 <div className="flex gap-2 items-baseline">
+                    <button
+                        className="text-tec-darker hover:text-tec-light cursor-pointer"
+                        onClick={() => returnToExam()}
+                    >
+                        <FaChevronLeft className="w-6 h-6" />
+                    </button>
                     <h2 className="text-4xl mb-5 text-tec-darker font-bold">Confirm Finishing Exam</h2>
                 </div>
-                <div className="bg-tec-card p-2 rounded-xl flex justify-between text-tec-darker w-55">
+                <div className="bg-tec-card p-2 rounded-xl flex justify-between text-tec-darker sm:w-3/4 md:w-1/3">
                     <span className="text-left">Time Remaining:</span>
                     <b className="text-right">{formatTime(timeLeft)}</b>
                 </div>
 
-                <div className="my-4 font-semibold text-tec-darker">
+                <div className="my-4 font-semibold text-tec-darker text-justify">
                     {flaggedQuestions.length === 0 
                         ? "Make sure you have answered every question on the exam."
                         : "You cannot finish the exam with questions flagged."}

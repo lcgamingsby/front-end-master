@@ -36,19 +36,22 @@ function ScheduleTable({ title, rows }) {
         <thead>
           <tr>
             <th
-              className="py-2.5 px-2 text-center bg-slate-100 font-bold whitespace-nowrap w-3/12"
+              className="py-2.5 px-2 text-center bg-slate-100 font-bold whitespace-nowrap w-5/12"
             >
               Bulan
             </th>
-            <th className="py-2.5 px-2 text-center bg-slate-100 font-bold whitespace-nowrap w-5/12"
+            <th
+              className="py-2.5 px-2 text-center bg-slate-100 font-bold whitespace-nowrap w-3/12"
             >
               Tanggal
             </th>
-            <th className="py-2.5 px-2 text-center bg-slate-100 font-bold whitespace-nowrap w-2/12"
+            <th
+              className="py-2.5 px-2 text-center bg-slate-100 font-bold whitespace-nowrap w-2/12"
             >
               Sesi 1
             </th>
-            <th className="py-2.5 px-2 text-center bg-slate-100 font-bold whitespace-nowrap w-2/12"
+            <th
+              className="py-2.5 px-2 text-center bg-slate-100 font-bold whitespace-nowrap w-2/12"
             >
               Sesi 2
             </th>
@@ -57,11 +60,11 @@ function ScheduleTable({ title, rows }) {
         <tbody>
           {rows.map(({ month, date }) => (
             <tr key={month}>
-              <td className="border-t border-slate-400 py-2.5 px-2 align-top">
-                <span className="font-semibold">{month}</span>
+              <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">
+                <span className="font-semibold">{month}</span><br />
                 <span className="inline-block text-xs py-0.5 px-2 rounded-full bg-slate-200 ml-2">2 sesi</span>
               </td>
-              <td className="border-t border-slate-400 py-2.5 px-2 align-top">{date}</td>
+              <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">{date}</td>
               <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">{S1}</td>
               <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">{S2}</td>
             </tr>
@@ -75,8 +78,8 @@ function ScheduleTable({ title, rows }) {
 export default function TecSchedule() {
   return (
     <div className="mx-auto">
-      <h3 className="text-xl font-bold mt-3 mb-1.5 text-tec-dark px-4 sm:px-10">Jadwal Tes TEC 2025</h3>
-      <p className="text-sm mb-3 px-4 sm:px-10">
+      <h3 className="text-xl font-bold mt-3 mb-1.5 text-tec-dark px-2 sm:px-4">Jadwal Tes TEC 2025</h3>
+      <p className="text-sm mb-3 px-2 sm:px-4">
         Tes TEC akan dilaksanakan pada hari Jumat setiap bulannya. Setiap bulan terdiri dari 2 sesi: <br />
         <strong>Sesi 1</strong> pukul {S1} dan <strong>Sesi 2</strong> pukul {S2}.
       </p>

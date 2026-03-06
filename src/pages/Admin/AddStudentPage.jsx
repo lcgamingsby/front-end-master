@@ -25,14 +25,12 @@ function AddStudentPage() {
   // Create-Update Students
   // Read-Delete on StudentsPage.jsx
   const createStudent = async (student) => {
-    const token = localStorage.getItem("jwtToken");
-
     try {
-      await axios.post(`${config.BACKEND_URL}/api/admin/users`, student, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.post(
+        `${config.BACKEND_URL}/api/admin/users`,
+        student,
+        { withCredentials: true }
+      );
 
       // navigate to students page after adding
       navigate("/admin/students");
@@ -42,14 +40,12 @@ function AddStudentPage() {
   }
 
   const updateStudent = async (nim, student) => {
-    const token = localStorage.getItem("jwtToken");
-
     try {
-      await axios.put(`${config.BACKEND_URL}/api/admin/users/${nim}`, student, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.put(
+        `${config.BACKEND_URL}/api/admin/users/${nim}`,
+        student,
+        { withCredentials: true }
+      );
 
       // navigate to students page after updating
       navigate("/admin/students");
@@ -57,8 +53,6 @@ function AddStudentPage() {
       console.error("Failed to update student:", e);
     }
   }
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -19,6 +19,11 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import StudentExam from "./pages/Student/StudentExam";
 import StudentFinish from "./pages/Student/StudentFinish";
 import ExamTrackingPage from "./pages/Admin/ExamTrackingPage";
+import StudentLogDetailPage from "./pages/Admin/StudentLogDetailPage";
+import ExamRegistrationPage from "./pages/Admin/ExamRegistrationPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ForgotResetPasswordPage from "./pages/ForgotResetPasswordPage";
+
 
 function App() {
   return (
@@ -32,11 +37,18 @@ function App() {
           <Route path="/register" element={<PublicRoute />}>
             <Route index element={<RegisterPage />} />
           </Route>
+          <Route path="/forgot" element={<PublicRoute />}>
+            <Route index element={<ForgotPasswordPage />} />
+          </Route>
+          <Route path="/reset-password" element={< PublicRoute />}>
+            <Route index element={<ForgotResetPasswordPage />} />
+          </Route>
           <Route path="/admin" element={<PrivateRoute role="admin" />}>
             <Route index element={<AdminDashboard />} />
             <Route path="exams" element={<ExamsPage />} />
             <Route path="exams/add" element={<AddExamPage />} />
-            <Route path="exams/edit" element={<AddExamPage />} />
+            <Route path="exams/edit/" element={<AddExamPage />} />
+            <Route path="exams/edit-offline" element={<AddExamPage mode="offline" />} />
             <Route path="questions" element={<QuestionsPage />} />
             <Route path="questions/add" element={<AddQuestionPage />} />
             <Route path="questions/edit" element={<AddQuestionPage />} />
@@ -46,7 +58,9 @@ function App() {
             <Route path="reset" element={<ResetPasswordPage />} />
             <Route path="track" element={<ExamTrackingPage />} />
             <Route path="scores" element={<ExamScoresPage />} />
-            <Route path="scores/:examId" element={<ExamScoreDetailPage />} />
+            <Route path="scores/:examID" element={<ExamScoreDetailPage />} />
+            <Route path="logs/:examID/:nim" element={<StudentLogDetailPage />} />
+            <Route path="registrations" element={<ExamRegistrationPage />} />
           </Route>
           <Route path="/student" element={<PrivateRoute role="mahasiswa" />}>
             <Route index element={<StudentDashboard />} />
