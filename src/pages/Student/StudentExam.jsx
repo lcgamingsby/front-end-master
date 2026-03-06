@@ -8,6 +8,7 @@ import { useUser } from "../Components/UserContext";
 import GrammarUnderline from "../Components/GrammarUnderline";
 import { sendLog } from "../utils/log"; // ✅ tambahan
 import { getRefreshToken } from "../../data/helper";
+import Loading from "../Components/Loading";
 
 const StudentExam = () => {
   const { user } = useUser();
@@ -368,7 +369,7 @@ const StudentExam = () => {
   // Finish exam
   const finishExam = async () => {
     try {
-      await axios.put(
+      const endRes = await axios.put(
         `${config.BACKEND_URL}/api/student/exam/finish`,
         {
           nim: user.id,
@@ -376,6 +377,27 @@ const StudentExam = () => {
         },
         { withCredentials: true },
       );
+
+      if (endRes.status === 200) {
+        for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+          try {
+            // 2. Hitung skor otomatis
+            await axios.post(
+              `${config.BACKEND_URL}/api/student/exam/submit/${user.id}/${examID}`,
+              {},
+              { withCredentials: true },
+            );
+          } catch (err) {
+            console.error("Gagal menghitung nilai:", err);
+
+            const res = await getRefreshToken();
+
+            if (res.status !== 200) {
+              console.error("Unable to refresh token: ", res.message);
+            }
+          }
+        }
+      }
 
       localStorage.removeItem("seenInstructions");
       localStorage.removeItem(examSessionKey);
@@ -389,7 +411,7 @@ const StudentExam = () => {
       console.error("Error finishing exam:", e);
 
       if (e.response?.status === 401) {
-        for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+        for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
           try {
             const res = await getRefreshToken();
 
@@ -484,11 +506,15 @@ const StudentExam = () => {
       console.error("Error answering:", e);
 
       if (e.response?.status === 401) {
-        for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+        console.log("i'm here");
+        isAnswering.current = false;
+
+        for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
           try {
             const res = await getRefreshToken();
 
             if (res.status === 200) {
+              console.log("i'm here too");
               // re-run this function
               handleOptionClick(index);
               // no need to loop after a success
@@ -548,7 +574,7 @@ const StudentExam = () => {
     }
 
     // Cek apakah ada soal yang diberi flag
-    if (flaggedQuestions.length > 0) {
+    if (flaggedQuestions.length > 0 && currentSection !== "reading") {
       alert(`Please remove flags in the ${currentSection} section before moving to the next section.`);
       return;
     }
@@ -562,14 +588,21 @@ const StudentExam = () => {
       setCurrentQuestion({ type: "reading", index: 0 });
     } else if (currentSection === "reading") {
       // Semua section selesai
-      localStorage.removeItem(examSessionKey);
-      localStorage.removeItem(`currentQuestion_${storagePrefix}`);
-      localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
-      localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
-      localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
+      // localStorage.removeItem(examSessionKey);
+      // localStorage.removeItem(`currentQuestion_${storagePrefix}`);
+      // localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
+      // localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
+      // localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
 
       navigate("/student/exam/finish", {
-        state: { examID, questions: examQuestions, endDatetime, flagged: flaggedQuestions, hasPlayed },
+        state: {
+          examID: examID,
+          questions: examQuestions,
+          endDatetime: endDatetime,
+          flagged: flaggedQuestions,
+          hasPlayed: hasPlayed,
+          displayTime: readingTime,
+        },
       });
     }
   };
@@ -770,8 +803,9 @@ const StudentExam = () => {
                 <button
                   key={i}
                   disabled={disabledListening || readingInstructions}
-                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base ${cssState} ${
-                    disabledListening ? "cursor-not-allowed opacity-50" : ""
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                    ${cssState} ${
+                    disabledListening ? "cursor-not-allowed opacity-50" : "cursor-pointer"
                   }`}
                   onClick={() => {
                     if (disabledListening) return;
@@ -810,8 +844,9 @@ const StudentExam = () => {
                 <button
                   key={i}
                   disabled={disabledGrammar || readingInstructions}
-                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base ${cssState} ${
-                    disabledGrammar ? "cursor-not-allowed opacity-50" : ""
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                    ${cssState} ${
+                    disabledGrammar ? "cursor-not-allowed opacity-50" : "cursor-pointer"
                   }`}
                   onClick={() => {
                     if (disabledGrammar) return;
@@ -850,8 +885,9 @@ const StudentExam = () => {
                 <button
                   key={i}
                   disabled={disabledReading || readingInstructions}
-                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base ${cssState} ${
-                    disabledReading ? "cursor-not-allowed opacity-50" : ""
+                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                    ${cssState} ${
+                    disabledReading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
                   }`}
                   onClick={() => {
                     if (disabledReading) return;
@@ -919,7 +955,7 @@ const StudentExam = () => {
                 )}
                 {examQuestions[currentQuestion.type][currentQuestion.index].batch_text && (
                   <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto
-                    max-h-40 md:max-h-60 mt-2 text-sm sm:text-base"
+                    max-h-36 md:max-h-48 text-sm sm:text-base"
                   >
                     <span className="ml-8 sm:ml-16" />
                     {displayFormattingParagraphs(
@@ -937,12 +973,13 @@ const StudentExam = () => {
                   : displayFormattingGrammar()}
               </p>
 
-              <div className="flex flex-col gap-2.5 my-5">
+              <div className="flex flex-col gap-2.5 my-5 relative">
                 {answerChoices.map((c) => (
                   <button
                     key={c.value}
                     onClick={() => handleOptionClick(c.value)}
-                    className={`text-center border-2 text-slate-900 rounded-lg py-2 px-3 font-semibold text-sm sm:text-base ${
+                    className={`text-center border-2 text-slate-900 rounded-lg py-2 px-3 font-semibold
+                      text-sm sm:text-base cursor-pointer ${
                       selectedOption === c.value
                         ? "bg-gradient-to-r from-sky-500 to-sky-600 border-sky-800 text-white"
                         : "border-slate-900 hover:bg-sky-200"
@@ -951,20 +988,36 @@ const StudentExam = () => {
                     {c.text}
                   </button>
                 ))}
+                {isAnswering.current && (
+                  <div
+                    className="z-10 absolute bg-gray-700/70 w-full h-full text-center flex
+                      flex-col items-center justify-center"
+                  >
+                    <p
+                      className="text-white font-bold text-shadow-xl
+                      text-shadow-slate-900 text-2xl"
+                    >
+                      Saving your answer...
+                    </p>
+                    <Loading text=" " useAlt={true} />
+                  </div>
+                )}
               </div>
 
               {/* Navigation Buttons */}
               <div className="flex justify-between items-center flex-wrap gap-3">
                 <button
                   onClick={handlePrev}
-                  className="flex items-center gap-2 bg-slate-300 hover:bg-slate-400 text-tec-darker font-semibold px-4 py-2 rounded-full transition-all"
+                  className="flex items-center gap-2 bg-slate-300 hover:bg-slate-400 text-tec-darker
+                  font-semibold px-4 py-2 rounded-full transition-all cursor-pointer"
                 >
                   <FaChevronLeft /> Previous
                 </button>
 
                 <button
                   onClick={handleFlag}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all
+                    cursor-pointer ${
                     flaggedQuestions.includes(
                       examQuestions[currentQuestion.type][currentQuestion.index].question_id
                     )
@@ -982,7 +1035,8 @@ const StudentExam = () => {
 
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold px-4 py-2 rounded-full transition-all"
+                  className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold
+                  cursor-pointer px-4 py-2 rounded-full transition-all"
                 >
                   {currentQuestion.index === examQuestions[currentQuestion.type].length - 1
                     ? "Next Section"

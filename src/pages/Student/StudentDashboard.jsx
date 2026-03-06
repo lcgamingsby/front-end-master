@@ -67,7 +67,7 @@ function StudentDashboard() {
 
       // chances are most non-200 statuses are about expired token for jwt, so we refresh them
       if (e.response?.status === 401) {
-        for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+        for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
           try {
             const res = await getRefreshToken();
 
@@ -119,7 +119,7 @@ function StudentDashboard() {
       console.error("❌ Error fetching exams:", error);
 
       if (e.response?.status === 401) {
-        for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+        for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
           try {
             const res = await getRefreshToken();
 
