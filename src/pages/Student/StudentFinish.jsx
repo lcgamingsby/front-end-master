@@ -5,6 +5,7 @@ import { config } from "../../data/config";
 import { FaChevronLeft } from "react-icons/fa";
 import axios from "axios";
 import { useUser } from "../Components/UserContext";
+import { getRefreshToken } from "../../data/helper";
 
 const StudentFinish = () => {
     const { user } = useUser();
@@ -46,8 +47,6 @@ const StudentFinish = () => {
     const [answeredQuestions, setAnsweredQuestions] = useState([]);
 
     const recoverExistingAnswers = async () => {
-        const token = localStorage.getItem("jwtToken");
-        
         const answerResponse = await axios.get(
             `${config.BACKEND_URL}/api/student/answers/${examID}`, 
             { withCredentials: true },
@@ -73,8 +72,6 @@ const StudentFinish = () => {
 
         if (confirm("Are you sure to end this exam now?")) {
             try {
-                const token = localStorage.getItem("jwtToken");         
-
                 const endRes = await axios.put(
                     `${config.BACKEND_URL}/api/student/exam/finish`,
                     {
@@ -100,6 +97,25 @@ const StudentFinish = () => {
                 }
             } catch (err) {
                 console.error("Gagal menyelesaikan ujian:", err);
+
+                if (err.response?.status === 401) {
+                    for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+                        try {
+                        const res = await getRefreshToken();
+            
+                        if (res.status === 200) {
+                            // re-run this function
+                            handleExamClick(e);
+                            // no need to loop after a success
+                            break;
+                        } else {
+                            console.error("Unable to refresh token: ", res.message);
+                        }
+                        } catch (refreshErr) {
+                        console.error("Token refresh failed:", refreshErr);
+                        }
+                    }
+                }
             }
         }
     }

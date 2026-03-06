@@ -72,6 +72,10 @@ function ExamScoreDetailPage() {
     return () => ws.close();
   }, [examID]);
 
+  const cleanStringForCSV = (str) => {
+    return str.includes(";") ? `"${str}"` : str;
+  }
+
   const exportCSV = (data, filename) => {
     if (!data || data.length === 0) return;
 
@@ -86,15 +90,16 @@ function ExamScoreDetailPage() {
 
     //console.log(data);
     const csvContent = [
-      "NIM,Name,Listening Score,Grammar Score,Reading Score,Total Score",
+      "sep=;",
+      "NIM;Name;Listening Score;Grammar Score;Reading Score;Total Score",
       ...data.map((row) => [
-        row.nim,
-        row.name,
+        cleanStringForCSV(row.nim),
+        cleanStringForCSV(row.name),
         row.listening,
         row.grammar,
         row.reading,
         row.score,
-      ].join(",")), // rows
+      ].join(";")), // rows
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });

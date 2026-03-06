@@ -32,9 +32,7 @@ function HomePage() {
           INFORMASI TEC UKDC
         </h2>
         <p className="text-lg my-3 px-4 sm:px-10">
-          Kursus ini dirancang untuk membantu peserta dan mahasiswa untuk
-          mempelajari strategi dalam mengerjakan soal-soal TEC (Test of English
-          Competence).
+          Selamat datang di TEC (<i>Test of English Competence</i>) Online UKDC.
         </p>
 
         {/* Tombol Switch */}

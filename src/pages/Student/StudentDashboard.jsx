@@ -6,6 +6,7 @@ import { config } from "../../data/config";
 import Loading from "../Components/Loading";
 import { useUser } from "../Components/UserContext";
 import ModalFinished from "../Components/ModalFinished";
+import { getRefreshToken } from "../../data/helper";
 
 function StudentDashboard() {
   const { user } = useUser();
@@ -40,8 +41,7 @@ function StudentDashboard() {
       );
 
       if (startRes.status !== 200) {
-        //console.log("Unable to start exam");
-        return
+        return;
       }
 
       const response = await axios.get(
@@ -64,12 +64,31 @@ function StudentDashboard() {
       }
     } catch (e) {
       console.error("Error starting exam:", e);
+
+      // chances are most non-200 statuses are about expired token for jwt, so we refresh them
+      if (e.response?.status === 401) {
+        for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+          try {
+            const res = await getRefreshToken();
+
+            if (res.status === 200) {
+              // re-run this function
+              handleExamClick(exam);
+              // no need to loop after a success
+              break;
+            } else {
+              console.error("Unable to refresh token: ", res.message);
+            }
+          } catch (refreshErr) {
+            console.error("Token refresh failed:", refreshErr);
+          }
+        }
+      }
     }
   };
 
   const getUpcomingExams = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
       const response = await axios.get(
         `${config.BACKEND_URL}/api/student/home`,
         { withCredentials: true },
@@ -98,6 +117,26 @@ function StudentDashboard() {
       setFinishedLoading(true);
     } catch (error) {
       console.error("❌ Error fetching exams:", error);
+
+      if (e.response?.status === 401) {
+        for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+          try {
+            const res = await getRefreshToken();
+
+            if (res.status === 200) {
+              // re-run this function
+              getUpcomingExams();
+              // no need to loop after a success
+              break;
+            } else {
+              console.error("Unable to refresh token: ", res.message);
+            }
+          } catch (refreshErr) {
+            console.error("Token refresh failed:", refreshErr);
+          }
+        }
+      }
+
       setExams([]);
       setFinishedLoading(true);
     }

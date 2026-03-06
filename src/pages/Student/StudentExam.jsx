@@ -7,6 +7,7 @@ import axios from "axios";
 import { useUser } from "../Components/UserContext";
 import GrammarUnderline from "../Components/GrammarUnderline";
 import { sendLog } from "../utils/log"; // ✅ tambahan
+import { getRefreshToken } from "../../data/helper";
 
 const StudentExam = () => {
   const { user } = useUser();
@@ -164,16 +165,6 @@ const StudentExam = () => {
 
   // ✅ Logging aktivitas saat masuk & keluar halaman
   useEffect(() => {
-    const logEnter = async () => {
-      await sendLog({
-        nim: user.id,
-        idUjian: examID,
-        tipeAktivitas: "enter_exam",
-        aktivitas: "Masuk halaman ujian",
-      });
-    };
-    logEnter();
-
     const handleBeforeUnload = async () => {
       const exitTime = Date.now();
       localStorage.setItem("lastExitTime", exitTime);
@@ -376,30 +367,46 @@ const StudentExam = () => {
 
   // Finish exam
   const finishExam = async () => {
-    await axios.put(
-      `${config.BACKEND_URL}/api/student/exam/finish`,
-      {
-        nim: user.id,
-        exam_id: examID,
-      },
-      { withCredentials: true },
-    );
+    try {
+      await axios.put(
+        `${config.BACKEND_URL}/api/student/exam/finish`,
+        {
+          nim: user.id,
+          exam_id: examID,
+        },
+        { withCredentials: true },
+      );
 
-    await sendLog({
-      nim: user.id,
-      idUjian: examID,
-      tipeAktivitas: "finish",
-      aktivitas: "Selesai ujian",
-    });
+      localStorage.removeItem("seenInstructions");
+      localStorage.removeItem(examSessionKey);
+      localStorage.removeItem(`currentQuestion_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
+      localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
 
-    localStorage.removeItem("seenInstructions");
-    localStorage.removeItem(examSessionKey);
-    localStorage.removeItem(`currentQuestion_${storagePrefix}`);
-    localStorage.removeItem(`remainingTime_listening_${storagePrefix}`);
-    localStorage.removeItem(`remainingTime_grammar_${storagePrefix}`);
-    localStorage.removeItem(`remainingTime_reading_${storagePrefix}`);
+      navigate("/student", { state: { finished: true } });
+    } catch (e) {
+      console.error("Error finishing exam:", e);
 
-    navigate("/student", { state: { finished: true } });
+      if (e.response?.status === 401) {
+        for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+          try {
+            const res = await getRefreshToken();
+
+            if (res.status === 200) {
+              // re-run this function
+              finishExam();
+              // no need to loop after a success
+              break;
+            } else {
+              console.error("Unable to refresh token: ", res.message);
+            }
+          } catch (refreshErr) {
+            console.error("Token refresh failed:", refreshErr);
+          }
+        }
+      }
+    }
   };
 
   // Flag
@@ -410,18 +417,18 @@ const StudentExam = () => {
       await sendLog({
         nim: user.id,
         idUjian: examID,
-        //idSoal: q.question_id,
+        idSoal: q.question_id,
         tipeAktivitas: "flag",
-        aktivitas: "Flag soal",
+        aktivitas: `Flag soal ID ${q.question_id}`,
       });
     } else {
       setFlaggedQuestions(flaggedQuestions.filter((v) => v !== q.question_id));
       await sendLog({
         nim: user.id,
         idUjian: examID,
-        //idSoal: q.question_id,
+        idSoal: q.question_id,
         tipeAktivitas: "flag",
-        aktivitas: "Unflag soal",
+        aktivitas: `Unflag soal ID ${q.question_id}`,
       });
     }
   };
@@ -439,7 +446,7 @@ const StudentExam = () => {
         idUjian: examID,
         //idSoal: q.question_id,
         tipeAktivitas: "listening",
-        aktivitas: "Play audio soal",
+        aktivitas: "Memutar audio soal listening",
       });
     }
   };
@@ -450,9 +457,17 @@ const StudentExam = () => {
     reading: 3,
   };
 
+  const isAnswering = useRef(false);
+
   // Answer click
   const handleOptionClick = async (index) => {
+    if (isAnswering.current) {
+      return;
+    }
+
+    isAnswering.current = true;
     const q = examQuestions[currentQuestion.type][currentQuestion.index];
+
     try {
       await axios.post(
         `${config.BACKEND_URL}/api/student/exam/${examID}`,
@@ -465,19 +480,35 @@ const StudentExam = () => {
         },
         { withCredentials: true },
       );
-      
-      await sendLog({
-        nim: user.id,
-        idUjian: examID,
-        //idSoal: q.question_id,
-        tipeAktivitas: "answer",
-        aktivitas: `Menjawab soal dengan pilihan ${index}`,
-      });
     } catch (e) {
       console.error("Error answering:", e);
+
+      if (e.response?.status === 401) {
+        for (i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
+          try {
+            const res = await getRefreshToken();
+
+            if (res.status === 200) {
+              // re-run this function
+              handleOptionClick(index);
+              // no need to loop after a success
+              break;
+            } else {
+              console.error("Unable to refresh token: ", res.message);
+            }
+          } catch (refreshErr) {
+            console.error("Token refresh failed:", refreshErr);
+          }
+        }
+      }
+
       return;
+    } finally {
+      isAnswering.current = false;
     }
+
     const otherAnswered = answeredQuestions.filter((v) => v.question_id !== q.question_id);
+    
     if (selectedOption !== index) {
       setSelectedOption(index);
       setAnsweredQuestions([...otherAnswered, { question_id: q.question_id, answer: index }]);
