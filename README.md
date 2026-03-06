@@ -33,5 +33,3 @@
    atau bagaimana jika ingin menghapusnya.  
 
 ---
-
-\* Bisa berupa **data question/batch question** atau **data akun yang ikut exam**
