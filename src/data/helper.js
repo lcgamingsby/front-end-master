@@ -11,12 +11,12 @@ export async function getRefreshToken() {
     if (res.status === 401) {
         return {
             status: res.status,
-            message: "You don't have a proper refresh token. Please try relogging in.",
+            message: res.message,
         }
     } else if (res.status === 500) {
         return {
             status: res.status,
-            message: "Something went wrong. Please try again.",
+            message: res.message,
         }
     }
 

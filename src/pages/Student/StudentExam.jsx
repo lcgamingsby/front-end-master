@@ -9,6 +9,7 @@ import GrammarUnderline from "../Components/GrammarUnderline";
 import { sendLog } from "../utils/log"; // ✅ tambahan
 import { getRefreshToken } from "../../data/helper";
 import Loading from "../Components/Loading";
+import Snackbar from "../Components/Snackbar";
 
 const StudentExam = () => {
   const { user } = useUser();
@@ -505,8 +506,11 @@ const StudentExam = () => {
     } catch (e) {
       console.error("Error answering:", e);
 
+      let errorType = "ERR_UNKNOWN";
+      let errorText = "Error tidak diketahui";
+
       if (e.response?.status === 401) {
-        console.log("i'm here");
+        // console.log("i'm here");
         isAnswering.current = false;
 
         for (let i = 0; i < config.MAX_REFRESH_RETRIES; i++) {
@@ -514,19 +518,52 @@ const StudentExam = () => {
             const res = await getRefreshToken();
 
             if (res.status === 200) {
-              console.log("i'm here too");
+              // console.log("i'm here too");
               // re-run this function
               handleOptionClick(index);
               // no need to loop after a success
               break;
             } else {
               console.error("Unable to refresh token: ", res.message);
+
+              if (res.message.toLowerCase().includes("no refresh token")) {
+                errorType = "ERR_REFRESH_FAIL_01";
+                errorText = "Refresh token tidak ada";
+              } else if (res.message.toLowerCase().includes("missing or invalid refresh token")) {
+                errorType = "ERR_REFRESH_FAIL_02";
+                errorText = "Refresh token tidak valid atau hilang";
+              }
+
+              setSnackbarMsg(`${errorText}. Silahkan hubungi admin.
+              (Error: ${errorType == "ERR_UNKNOWN" ? errorType + " (Status: "+ res.status +")" : errorType })`);
+              setOpenSnackbar(true);
             }
           } catch (refreshErr) {
             console.error("Token refresh failed:", refreshErr);
           }
         }
       }
+
+      if (e.response?.data.message.toLowerCase().includes("internal server error")) {
+        errorType = "ERR_INTERNAL_SERVER";
+        errorText = "Server internal bermasalah";
+      } else if (e.response?.data.message.toLowerCase().includes("invalid exam id")) {
+        errorType = "ERR_BAD_REQUEST_01";
+        errorText = "ID ujian tidak valid";
+      } else if (e.response?.data.message.toLowerCase().includes("exam id mismatched")) {
+        errorType = "ERR_BAD_REQUEST_02";
+        errorText = "ID ujian tidak sesuai";
+      } else if (e.response?.data.message.toLowerCase().includes("invalid json data")) {
+        errorType = "ERR_BAD_REQUEST_03";
+        errorText = "Data input jawaban tidak valid";
+      } else if (e.message.toLowerCase().includes("network error")) {
+        errorType = "ERR_NETWORK";
+        errorText = "Tidak bisa menghubungi server";
+      }
+
+      setSnackbarMsg(`${errorText}. Silahkan hubungi admin.
+      (Error: ${errorType == "ERR_UNKNOWN" ? errorType + " (Status: "+ e.response?.status +")" : errorType })`);
+      setOpenSnackbar(true);
 
       return;
     } finally {
@@ -725,6 +762,9 @@ const StudentExam = () => {
   //console.log(examQuestions[currentQuestion.type][currentQuestion.index]);
   //console.log(currentQuestion.type, examQuestions[currentQuestion.type][currentQuestion.index].question_id);
   //console.log(instructionsSeen);
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState("");
 
   return (
     <div
@@ -1050,6 +1090,15 @@ const StudentExam = () => {
         )}
       </div>
     </div>
+    
+    <Snackbar
+      isOpen={openSnackbar}
+      setOpen={setOpenSnackbar}
+      duration={3000}
+      text={snackbarMsg}
+      className="bg-red-500 text-white"
+      buttonClassName="hover:bg-red-300 hover:text-black"
+    />
   </div>
   );
 };

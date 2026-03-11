@@ -7,6 +7,7 @@ import Loading from "../Components/Loading";
 import { useUser } from "../Components/UserContext";
 import ModalFinished from "../Components/ModalFinished";
 import { getRefreshToken } from "../../data/helper";
+import Snackbar from "../Components/Snackbar";
 
 function StudentDashboard() {
   const { user } = useUser();
@@ -30,7 +31,6 @@ function StudentDashboard() {
   const [modalFinishedOpen, setModalFinishedOpen] = useState(finishedExam);
 
   const navigate = useNavigate();
-
 
   const handleExamClick = async (exam) => { 
     try {
@@ -545,6 +545,13 @@ function StudentDashboard() {
                 </div>
               )}
             </div>
+
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              onClick={() => setOpenSnackbar(!openSnackbar)}
+            >
+              Open snackbar
+            </button>
           </div>
         </main>
       ) : (
