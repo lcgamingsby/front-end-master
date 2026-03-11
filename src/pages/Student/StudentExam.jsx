@@ -18,7 +18,6 @@ const StudentExam = () => {
     reading: 55 * 60,
   };
 
- 
   const location = useLocation();
   const examID = location.state?.examID || 0;
   const examQuestions = location.state?.questions || [];
@@ -356,6 +355,7 @@ const StudentExam = () => {
           alert("Time's up! Moving to the next section.");
           if (currentQuestion.type === "listening") {
             setListeningDone(true);
+
             setCurrentQuestion({ type: "grammar", index: 0 });
           } else if (currentQuestion.type === "grammar") {
             setGrammarDone(true);
@@ -984,6 +984,7 @@ const StudentExam = () => {
                         ? "bg-gradient-to-r from-sky-500 to-sky-600 border-sky-800 text-white"
                         : "border-slate-900 hover:bg-sky-200"
                     }`}
+                    disabled={isAnswering.current}
                   >
                     {c.text}
                   </button>

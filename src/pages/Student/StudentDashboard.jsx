@@ -280,7 +280,7 @@ function StudentDashboard() {
 
           {/* ✅ Modal Form Daftar */}
           {showRegisterForm && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+            <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
               <div className="bg-white p-6 rounded-2xl shadow-lg w-96">
                 <h3 className="text-lg font-semibold mb-4 text-center">Form Pendaftaran Ujian</h3>
                 <form onSubmit={handleRegisterExam}>

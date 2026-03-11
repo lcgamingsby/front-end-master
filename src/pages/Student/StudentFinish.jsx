@@ -57,13 +57,21 @@ const StudentFinish = () => {
         setAnsweredQuestions(answerArray);
     }
 
+    const isFinishing = useRef(false);
+
     const handleFinishExam = async (e) => {
+        if (isFinishing.current) {
+            return;
+        }
+
         if (flaggedQuestions.length > 0) {
             alert("You cannot finish the exam with questions flagged.")
-            return
-        };
+            return;
+        }
 
         if (confirm("Are you sure to end this exam now?")) {
+            isFinishing.current = false;
+
             // Reset semua data ujian
             localStorage.removeItem("seenInstructions");
             localStorage.removeItem(`exam_session_${examID}_${storagePrefix}`);
@@ -125,6 +133,8 @@ const StudentFinish = () => {
                         }
                     }
                 }
+            } finally {
+                isFinishing.current = false;
             }
         }
     }
@@ -314,8 +324,13 @@ const StudentFinish = () => {
                         className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold
                         rounded-lg cursor-pointer"
                         onClick={handleFinishExam}
+                        disabled={isFinishing.current}
                     >
-                        Finish Exam
+                        {
+                            isFinishing.current
+                            ? "Submitting..."
+                            : "Finish Exam"
+                        }
                     </button>
                 </div>
             </main>
