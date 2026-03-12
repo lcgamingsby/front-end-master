@@ -161,7 +161,11 @@ function ExamsPage() {
             <label className="font-semibold text-tec-darker">Show:</label>
             <select
               value={examMode}
-              onChange={(e) => setExamMode(e.target.value)}
+              onChange={(e) => {
+                setExamMode(e.target.value);
+                // reset page number for no visual bug
+                setCurrentPage(1);
+              }}
               className="border-2 border-slate-400 rounded-lg px-3 py-1.5 font-semibold text-tec-darker hover:border-tec-light focus:border-tec-light focus:outline-none"
             >
               <option value="online">Online Exams</option>
@@ -310,6 +314,87 @@ function ExamsPage() {
             )}
           </tbody>
         </table>
+
+        <div className="flex justify-between">
+          <p className="text-slate-600 font-semibold">
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredExams.length)} out of {" "}
+              {searchTerm === ""
+                ? exams.length
+                : `${filteredExams.length} (filtered out of ${exams.length} total entries)`}
+          </p>
+
+          <div className="flex gap-2 justify-center">
+            <button
+              className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              <FaAngleDoubleLeft className="w-5 h-5" />
+            </button>
+            <button
+              className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <FaAngleLeft className="w-5 h-5" />
+            </button>
+            {Array.from(
+              { length: totalPages },
+              (_, i) => {
+                const displaySize = 5;
+                let lowerLimit = currentPage - 2;
+                let upperLimit = currentPage + 2;
+
+                if (currentPage < 3) {
+                  lowerLimit = 1;
+                  upperLimit = displaySize;
+                }
+
+                if (currentPage > totalPages - 2) {
+                  lowerLimit = totalPages + 1 - displaySize;
+                  upperLimit = totalPages;
+                }
+
+                console.log(i + 1, lowerLimit, upperLimit);
+
+                if (i + 1 < Math.max(1, lowerLimit) || i + 1 > Math.min(totalPages, upperLimit)) {
+                  return;
+                }
+
+                return (
+                  <button
+                    key={i + 1}
+                    className={`${currentPage === i + 1 ?
+                      "bg-tec-darker text-white font-bold" : "text-tec-darker font-semibold"} p-2
+                      rounded-full w-8 h-8 text-sm flex items-center justify-center cursor-pointer
+                      disabled:cursor-not-allowed`}
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              }
+            )}
+            <button
+              className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              <FaAngleRight className="w-5 h-5" />
+            </button>
+            <button
+              className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
+                flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              <FaAngleDoubleRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </main>
 
       {showConfirm && (

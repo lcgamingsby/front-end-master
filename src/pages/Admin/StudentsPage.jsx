@@ -239,7 +239,7 @@ function StudentsPage() {
           <div className="flex gap-2 justify-center">
             <button
               className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
-                flex items-center justify-center"
+                flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
             >
@@ -247,26 +247,52 @@ function StudentsPage() {
             </button>
             <button
               className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
-                flex items-center justify-center"
+                flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
               <FaAngleLeft className="w-5 h-5" />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                className={`${currentPage === i + 1 ?
-                  "bg-tec-darker text-white font-bold" : "text-tec-darker font-semibold"} p-2 rounded-full
-                  w-8 h-8 text-sm flex items-center justify-center`}
-                onClick={() => setCurrentPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
+            {Array.from(
+              { length: totalPages },
+              (_, i) => {
+                const displaySize = 5;
+                let lowerLimit = currentPage - 2;
+                let upperLimit = currentPage + 2;
+
+                if (currentPage < 3) {
+                  lowerLimit = 1;
+                  upperLimit = displaySize;
+                }
+
+                if (currentPage > totalPages - 2) {
+                  lowerLimit = totalPages + 1 - displaySize;
+                  upperLimit = totalPages;
+                }
+
+                console.log(i + 1, lowerLimit, upperLimit);
+
+                if (i + 1 < Math.max(1, lowerLimit) || i + 1 > Math.min(totalPages, upperLimit)) {
+                  return;
+                }
+
+                return (
+                  <button
+                    key={i + 1}
+                    className={`${currentPage === i + 1 ?
+                      "bg-tec-darker text-white font-bold" : "text-tec-darker font-semibold"} p-2
+                      rounded-full w-8 h-8 text-sm flex items-center justify-center cursor-pointer
+                      disabled:cursor-not-allowed`}
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              }
+            )}
             <button
               className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
-                flex items-center justify-center"
+                flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
             >
@@ -274,7 +300,7 @@ function StudentsPage() {
             </button>
             <button
               className="text-tec-darker disabled:text-slate-500 font-semibold p-2 rounded-full w-8 h-8
-                flex items-center justify-center"
+                flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
             >
