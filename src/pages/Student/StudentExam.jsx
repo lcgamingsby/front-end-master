@@ -544,25 +544,32 @@ const StudentExam = () => {
         }
       }
 
-      if (e.response?.data.message.toLowerCase().includes("internal server error")) {
+      const errMessage = e.response?.data.message.toLowerCase();
+
+      if (errMessage.includes("internal server error")) {
         errorType = "ERR_INTERNAL_SERVER";
         errorText = "Server internal bermasalah";
-      } else if (e.response?.data.message.toLowerCase().includes("invalid exam id")) {
+
+      } else if (errMessage.includes("invalid exam id")) {
         errorType = "ERR_BAD_REQUEST_01";
         errorText = "ID ujian tidak valid";
-      } else if (e.response?.data.message.toLowerCase().includes("exam id mismatched")) {
+
+      } else if (errMessage.includes("exam id mismatched")) {
         errorType = "ERR_BAD_REQUEST_02";
         errorText = "ID ujian tidak sesuai";
-      } else if (e.response?.data.message.toLowerCase().includes("invalid json data")) {
+
+      } else if (errMessage.includes("invalid json data")) {
         errorType = "ERR_BAD_REQUEST_03";
         errorText = "Data input jawaban tidak valid";
-      } else if (e.message.toLowerCase().includes("network error")) {
+
+      } else if (e.code === "ERR_NETWORK") {
         errorType = "ERR_NETWORK";
         errorText = "Tidak bisa menghubungi server";
+        
       }
 
       setSnackbarMsg(`${errorText}. Silahkan hubungi admin.
-      (Error: ${errorType == "ERR_UNKNOWN" ? errorType + " (Status: "+ e.response?.status +")" : errorType })`);
+      (Error: ${errorType === "ERR_UNKNOWN" ? errorType + " (Status: "+ e.response?.status +")" : errorType })`);
       setOpenSnackbar(true);
 
       return;
@@ -774,332 +781,332 @@ const StudentExam = () => {
         alert("Right clicking is disabled.");
       }}
     >
-    <Navbar examMode={true} />
+      <Navbar examMode={true} />
 
-    {/* ✅ Layout Responsif */}
-    <div className="flex flex-col lg:flex-row justify-between px-4 md:px-8 py-4 gap-4">
-      {/* === Sidebar === */}
-        <div
-          className={`
-            fixed lg:static top-0 left-0 z-5
-            w-3/4 sm:w-2/3 md:w-1/2 lg:w-1/4
-            h-full lg:h-auto
-            bg-slate-100 lg:bg-transparent
-            transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-            transition-transform duration-300 ease-in-out
-            flex flex-col gap-3 order-2 lg:order-1 p-4
-          `}
-        > 
-        {/* Tombol tutup sidebar di mobile */}
-        <div className="lg:hidden flex justify-end mb-2">
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="text-slate-800 font-bold text-xl"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Sisa isi sidebar (Time Remaining & daftar soal) tetap sama */}
-        <div className="bg-tec-card p-3 rounded-xl flex justify-between text-tec-darker shadow">
-          <span>Time Remaining:</span>
-          <b>
-            {readingInstructions ? formatTime(instructionsTime) : 
-              formatTime(
-                currentQuestion.type === "listening"
-                  ? listeningTime
-                  : currentQuestion.type === "grammar"
-                  ? grammarTime
-                  : readingTime
-              )
-            }
-          </b>
-        </div>
-
-        <div className="bg-slate-200 p-3 rounded-xl overflow-y-auto max-h-[60vh] md:max-h-[70vh]">
-          {/* Listening */}
-          <div className="font-bold pb-2 text-tec-darker">Listening</div>
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-            {examQuestions.listening.map((v, i) => {
-              const flagged = flaggedQuestions.includes(v.question_id);
-              const answered = answeredQuestions.some(
-                (a) => a.question_id === v.question_id
-              );
-              const current =
-                currentQuestion.index === i &&
-                currentQuestion.type === "listening";
-              const cssState = current
-                ? flagged
-                  ? "bg-amber-500 text-white"
-                  : answered
-                  ? "bg-sky-500 text-white"
-                  : "bg-tec-darker text-white"
-                : flagged
-                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                : answered
-                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                : "bg-white text-tec-darker hover:bg-tec-card";
-              return (
-                <button
-                  key={i}
-                  disabled={disabledListening || readingInstructions}
-                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
-                    ${cssState} ${
-                    disabledListening ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-                  }`}
-                  onClick={() => {
-                    if (disabledListening) return;
-                    setCurrentQuestion({ type: "listening", index: i });
-                  }}
-                >
-                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Grammar */}
-          <div className="font-bold pb-2 pt-4 text-tec-darker">Grammar</div>
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-            {examQuestions.grammar.map((v, i) => {
-              const flagged = flaggedQuestions.includes(v.question_id);
-              const answered = answeredQuestions.some(
-                (a) => a.question_id === v.question_id
-              );
-              const current =
-                currentQuestion.index === i &&
-                currentQuestion.type === "grammar";
-              const cssState = current
-                ? flagged
-                  ? "bg-amber-500 text-white"
-                  : answered
-                  ? "bg-sky-500 text-white"
-                  : "bg-tec-darker text-white"
-                : flagged
-                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                : answered
-                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                : "bg-white text-tec-darker hover:bg-tec-card";
-              return (
-                <button
-                  key={i}
-                  disabled={disabledGrammar || readingInstructions}
-                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
-                    ${cssState} ${
-                    disabledGrammar ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-                  }`}
-                  onClick={() => {
-                    if (disabledGrammar) return;
-                    setCurrentQuestion({ type: "grammar", index: i });
-                  }}
-                >
-                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Reading */}
-          <div className="font-bold pb-2 pt-4 text-tec-darker">Reading</div>
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-            {examQuestions.reading.map((v, i) => {
-              const flagged = flaggedQuestions.includes(v.question_id);
-              const answered = answeredQuestions.some(
-                (a) => a.question_id === v.question_id
-              );
-              const current =
-                currentQuestion.index === i &&
-                currentQuestion.type === "reading";
-              const cssState = current
-                ? flagged
-                  ? "bg-amber-500 text-white"
-                  : answered
-                  ? "bg-sky-500 text-white"
-                  : "bg-tec-darker text-white"
-                : flagged
-                ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                : answered
-                ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
-                : "bg-white text-tec-darker hover:bg-tec-card";
-              return (
-                <button
-                  key={i}
-                  disabled={disabledReading || readingInstructions}
-                  className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
-                    ${cssState} ${
-                    disabledReading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-                  }`}
-                  onClick={() => {
-                    if (disabledReading) return;
-                    setCurrentQuestion({ type: "reading", index: i });
-                  }}
-                >
-                  {answered ? <FaCheck /> : <span>{i + 1}</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* === Soal dan Audio === */}
-      <div className="flex-1 order-1 lg:order-2">
-        {/* Question Card */}
-        {readingInstructions ? (
-          <div className="bg-blue-300 rounded-xl p-4 md:p-6 mb-4 shadow-md">
-            <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto max-h-40
-              md:max-h-60 mt-2 text-sm sm:text-base"
-            >
-              You are given 15 seconds to read this instruction.<br/><br/>
-              {instructions[readingIndex].instructions}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Tombol garis tiga hanya muncul di layar kecil */}
+      {/* ✅ Layout Responsif */}
+      <div className="flex flex-col lg:flex-row justify-between px-4 md:px-8 py-4 gap-4">
+        {/* === Sidebar === */}
+          <div
+            className={`
+              fixed lg:static top-0 left-0 z-5
+              w-3/4 sm:w-2/3 md:w-1/2 lg:w-1/4
+              h-full lg:h-auto
+              bg-slate-100 lg:bg-transparent
+              transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+              transition-transform duration-300 ease-in-out
+              flex flex-col gap-3 order-2 lg:order-1 p-4
+            `}
+          > 
+          {/* Tombol tutup sidebar di mobile */}
+          <div className="lg:hidden flex justify-end mb-2">
             <button
-              className="lg:hidden fixed top-20 left-4 z-5 bg-sky-600 text-white p-2 rounded-lg shadow-lg"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={() => setSidebarOpen(false)}
+              className="text-slate-800 font-bold text-xl"
             >
-              <FaBars size={20} />
+              ✕
             </button>
-            {/* Audio & Passage Section */}
-            {examQuestions[currentQuestion.type][currentQuestion.index].audio_path !== "" ||
-            examQuestions[currentQuestion.type][currentQuestion.index].batch_text !== "" ? (
-              <div className="bg-blue-300 rounded-xl p-4 md:p-6 mb-4 shadow-md">
-                {currentQuestion.type === "listening" && audioRef.current && (
-                  <div className="gap-2 flex items-center flex-wrap">
-                    <button
-                      onClick={handlePlayPause}
-                      disabled={hasPlayed.includes(
-                        examQuestions[currentQuestion.type][currentQuestion.index].audio_path
-                      )}
-                      className="w-10 h-10 rounded-full bg-tec-darker hover:bg-tec-dark disabled:bg-slate-500
-                      text-white flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
-                      title={
-                        hasPlayed.includes(
-                          examQuestions[currentQuestion.type][currentQuestion.index].audio_path
-                        ) ? "This audio is already played." : (
-                          playing && !hasPlayed.includes(
-                            examQuestions[currentQuestion.type][currentQuestion.index].audio_path
-                          ) ? "An audio is already playing for a different section." : ""
-                        )
-                      }
-                    >
-                      <FaPlay />
-                    </button>
-                    <p className="font-semibold text-tec-darker text-sm sm:text-base">
-                      You may only play the audio once.
-                    </p>
-                  </div>
-                )}
-                {examQuestions[currentQuestion.type][currentQuestion.index].batch_text && (
-                  <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto
-                    max-h-36 md:max-h-48 text-sm sm:text-base"
-                  >
-                    <span className="ml-8 sm:ml-16" />
-                    {displayFormattingParagraphs(
-                      examQuestions[currentQuestion.type][currentQuestion.index].batch_text
-                    )}
-                  </p>
-                )}
-              </div>
-            ) : null}
-          
-            <div className="bg-white rounded-xl p-4 md:p-6 shadow-md">
-              <p className="text-justify font-medium select-none text-sm/4 sm:text-base/8">
-                {currentQuestion.type !== "grammar"
-                  ? examQuestions[currentQuestion.type][currentQuestion.index].question_text
-                  : displayFormattingGrammar()}
-              </p>
+          </div>
 
-              <div className="flex flex-col gap-2.5 my-5 relative">
-                {answerChoices.map((c) => (
+          {/* Sisa isi sidebar (Time Remaining & daftar soal) tetap sama */}
+          <div className="bg-tec-card p-3 rounded-xl flex justify-between text-tec-darker shadow">
+            <span>Time Remaining:</span>
+            <b>
+              {readingInstructions ? formatTime(instructionsTime) : 
+                formatTime(
+                  currentQuestion.type === "listening"
+                    ? listeningTime
+                    : currentQuestion.type === "grammar"
+                    ? grammarTime
+                    : readingTime
+                )
+              }
+            </b>
+          </div>
+
+          <div className="bg-slate-200 p-3 rounded-xl overflow-y-auto max-h-[60vh] md:max-h-[70vh]">
+            {/* Listening */}
+            <div className="font-bold pb-2 text-tec-darker">Listening</div>
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {examQuestions.listening.map((v, i) => {
+                const flagged = flaggedQuestions.includes(v.question_id);
+                const answered = answeredQuestions.some(
+                  (a) => a.question_id === v.question_id
+                );
+                const current =
+                  currentQuestion.index === i &&
+                  currentQuestion.type === "listening";
+                const cssState = current
+                  ? flagged
+                    ? "bg-amber-500 text-white"
+                    : answered
+                    ? "bg-sky-500 text-white"
+                    : "bg-tec-darker text-white"
+                  : flagged
+                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                  : answered
+                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                  : "bg-white text-tec-darker hover:bg-tec-card";
+                return (
                   <button
-                    key={c.value}
-                    onClick={() => handleOptionClick(c.value)}
-                    className={`text-center border-2 text-slate-900 rounded-lg py-2 px-3 font-semibold
-                      text-sm sm:text-base cursor-pointer ${
-                      selectedOption === c.value
-                        ? "bg-gradient-to-r from-sky-500 to-sky-600 border-sky-800 text-white"
-                        : "border-slate-900 hover:bg-sky-200"
+                    key={i}
+                    disabled={disabledListening || readingInstructions}
+                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                      ${cssState} ${
+                      disabledListening ? "cursor-not-allowed opacity-50" : "cursor-pointer"
                     }`}
-                    disabled={isAnswering.current}
+                    onClick={() => {
+                      if (disabledListening) return;
+                      setCurrentQuestion({ type: "listening", index: i });
+                    }}
                   >
-                    {c.text}
+                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
                   </button>
-                ))}
-                {isAnswering.current && (
-                  <div
-                    className="z-10 absolute bg-gray-700/70 w-full h-full text-center flex
-                      flex-col items-center justify-center"
+                );
+              })}
+            </div>
+
+            {/* Grammar */}
+            <div className="font-bold pb-2 pt-4 text-tec-darker">Grammar</div>
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {examQuestions.grammar.map((v, i) => {
+                const flagged = flaggedQuestions.includes(v.question_id);
+                const answered = answeredQuestions.some(
+                  (a) => a.question_id === v.question_id
+                );
+                const current =
+                  currentQuestion.index === i &&
+                  currentQuestion.type === "grammar";
+                const cssState = current
+                  ? flagged
+                    ? "bg-amber-500 text-white"
+                    : answered
+                    ? "bg-sky-500 text-white"
+                    : "bg-tec-darker text-white"
+                  : flagged
+                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                  : answered
+                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                  : "bg-white text-tec-darker hover:bg-tec-card";
+                return (
+                  <button
+                    key={i}
+                    disabled={disabledGrammar || readingInstructions}
+                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                      ${cssState} ${
+                      disabledGrammar ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                    }`}
+                    onClick={() => {
+                      if (disabledGrammar) return;
+                      setCurrentQuestion({ type: "grammar", index: i });
+                    }}
                   >
-                    <p
-                      className="text-white font-bold text-shadow-xl
-                      text-shadow-slate-900 text-2xl"
+                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Reading */}
+            <div className="font-bold pb-2 pt-4 text-tec-darker">Reading</div>
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {examQuestions.reading.map((v, i) => {
+                const flagged = flaggedQuestions.includes(v.question_id);
+                const answered = answeredQuestions.some(
+                  (a) => a.question_id === v.question_id
+                );
+                const current =
+                  currentQuestion.index === i &&
+                  currentQuestion.type === "reading";
+                const cssState = current
+                  ? flagged
+                    ? "bg-amber-500 text-white"
+                    : answered
+                    ? "bg-sky-500 text-white"
+                    : "bg-tec-darker text-white"
+                  : flagged
+                  ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                  : answered
+                  ? "bg-sky-200 text-blue-800 hover:bg-sky-300"
+                  : "bg-white text-tec-darker hover:bg-tec-card";
+                return (
+                  <button
+                    key={i}
+                    disabled={disabledReading || readingInstructions}
+                    className={`flex w-8 h-8 items-center justify-center rounded-lg font-bold text-xs sm:text-base
+                      ${cssState} ${
+                      disabledReading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                    }`}
+                    onClick={() => {
+                      if (disabledReading) return;
+                      setCurrentQuestion({ type: "reading", index: i });
+                    }}
+                  >
+                    {answered ? <FaCheck /> : <span>{i + 1}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* === Soal dan Audio === */}
+        <div className="flex-1 order-1 lg:order-2">
+          {/* Question Card */}
+          {readingInstructions ? (
+            <div className="bg-blue-300 rounded-xl p-4 md:p-6 mb-4 shadow-md">
+              <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto max-h-40
+                md:max-h-60 mt-2 text-sm sm:text-base"
+              >
+                You are given 15 seconds to read this instruction.<br/><br/>
+                {instructions[readingIndex].instructions}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Tombol garis tiga hanya muncul di layar kecil */}
+              <button
+                className="lg:hidden fixed top-20 left-4 z-5 bg-sky-600 text-white p-2 rounded-lg shadow-lg"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+              >
+                <FaBars size={20} />
+              </button>
+              {/* Audio & Passage Section */}
+              {examQuestions[currentQuestion.type][currentQuestion.index].audio_path !== "" ||
+              examQuestions[currentQuestion.type][currentQuestion.index].batch_text !== "" ? (
+                <div className="bg-blue-300 rounded-xl p-4 md:p-6 mb-4 shadow-md">
+                  {currentQuestion.type === "listening" && audioRef.current && (
+                    <div className="gap-2 flex items-center flex-wrap">
+                      <button
+                        onClick={handlePlayPause}
+                        disabled={hasPlayed.includes(
+                          examQuestions[currentQuestion.type][currentQuestion.index].audio_path
+                        )}
+                        className="w-10 h-10 rounded-full bg-tec-darker hover:bg-tec-dark disabled:bg-slate-500
+                        text-white flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                        title={
+                          hasPlayed.includes(
+                            examQuestions[currentQuestion.type][currentQuestion.index].audio_path
+                          ) ? "This audio is already played." : (
+                            playing && !hasPlayed.includes(
+                              examQuestions[currentQuestion.type][currentQuestion.index].audio_path
+                            ) ? "An audio is already playing for a different section." : ""
+                          )
+                        }
+                      >
+                        <FaPlay />
+                      </button>
+                      <p className="font-semibold text-tec-darker text-sm sm:text-base">
+                        You may only play the audio once.
+                      </p>
+                    </div>
+                  )}
+                  {examQuestions[currentQuestion.type][currentQuestion.index].batch_text && (
+                    <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto
+                      max-h-36 md:max-h-48 text-sm sm:text-base"
                     >
-                      Saving your answer...
+                      <span className="ml-8 sm:ml-16" />
+                      {displayFormattingParagraphs(
+                        examQuestions[currentQuestion.type][currentQuestion.index].batch_text
+                      )}
                     </p>
-                    <Loading text=" " useAlt={true} />
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              ) : null}
+            
+              <div className="bg-white rounded-xl p-4 md:p-6 shadow-md">
+                <p className="text-justify font-medium select-none text-sm/4 sm:text-base/8">
+                  {currentQuestion.type !== "grammar"
+                    ? examQuestions[currentQuestion.type][currentQuestion.index].question_text
+                    : displayFormattingGrammar()}
+                </p>
 
-              {/* Navigation Buttons */}
-              <div className="flex justify-between items-center flex-wrap gap-3">
-                <button
-                  onClick={handlePrev}
-                  className="flex items-center gap-2 bg-slate-300 hover:bg-slate-400 text-tec-darker
-                  font-semibold px-4 py-2 rounded-full transition-all cursor-pointer"
-                >
-                  <FaChevronLeft /> Previous
-                </button>
+                <div className="flex flex-col gap-2.5 my-5 relative">
+                  {answerChoices.map((c) => (
+                    <button
+                      key={c.value}
+                      onClick={() => handleOptionClick(c.value)}
+                      className={`text-center border-2 text-slate-900 rounded-lg py-2 px-3 font-semibold
+                        text-sm sm:text-base cursor-pointer ${
+                        selectedOption === c.value
+                          ? "bg-gradient-to-r from-sky-500 to-sky-600 border-sky-800 text-white"
+                          : "border-slate-900 hover:bg-sky-200"
+                      }`}
+                      disabled={isAnswering.current}
+                    >
+                      {c.text}
+                    </button>
+                  ))}
+                  {isAnswering.current && (
+                    <div
+                      className="z-10 absolute bg-gray-700/70 w-full h-full text-center flex
+                        flex-col items-center justify-center"
+                    >
+                      <p
+                        className="text-white font-bold text-shadow-xl
+                        text-shadow-slate-900 text-2xl"
+                      >
+                        Saving your answer...
+                      </p>
+                      <Loading text=" " useAlt={true} />
+                    </div>
+                  )}
+                </div>
 
-                <button
-                  onClick={handleFlag}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all
-                    cursor-pointer ${
-                    flaggedQuestions.includes(
+                {/* Navigation Buttons */}
+                <div className="flex justify-between items-center flex-wrap gap-3">
+                  <button
+                    onClick={handlePrev}
+                    className="flex items-center gap-2 bg-slate-300 hover:bg-slate-400 text-tec-darker
+                    font-semibold px-4 py-2 rounded-full transition-all cursor-pointer"
+                  >
+                    <FaChevronLeft /> Previous
+                  </button>
+
+                  <button
+                    onClick={handleFlag}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all
+                      cursor-pointer ${
+                      flaggedQuestions.includes(
+                        examQuestions[currentQuestion.type][currentQuestion.index].question_id
+                      )
+                        ? "bg-amber-500 text-white hover:bg-amber-600"
+                        : "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                    }`}
+                  >
+                    <FaFlag />
+                    {flaggedQuestions.includes(
                       examQuestions[currentQuestion.type][currentQuestion.index].question_id
                     )
-                      ? "bg-amber-500 text-white hover:bg-amber-600"
-                      : "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                  }`}
-                >
-                  <FaFlag />
-                  {flaggedQuestions.includes(
-                    examQuestions[currentQuestion.type][currentQuestion.index].question_id
-                  )
-                    ? "Unflag"
-                    : "Flag"}
-                </button>
+                      ? "Unflag"
+                      : "Flag"}
+                  </button>
 
-                <button
-                  onClick={handleNext}
-                  className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold
-                  cursor-pointer px-4 py-2 rounded-full transition-all"
-                >
-                  {currentQuestion.index === examQuestions[currentQuestion.type].length - 1
-                    ? "Next Section"
-                    : "Next"}{" "}
-                  <FaChevronRight />
-                </button>
+                  <button
+                    onClick={handleNext}
+                    className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold
+                    cursor-pointer px-4 py-2 rounded-full transition-all"
+                  >
+                    {currentQuestion.index === examQuestions[currentQuestion.type].length - 1
+                      ? "Next Section"
+                      : "Next"}{" "}
+                    <FaChevronRight />
+                  </button>
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
+      
+      <Snackbar
+        isOpen={openSnackbar}
+        setOpen={setOpenSnackbar}
+        duration={3000}
+        text={snackbarMsg}
+        className="bg-red-500 text-white"
+        buttonClassName="hover:bg-red-300 hover:text-black"
+      />
     </div>
-    
-    <Snackbar
-      isOpen={openSnackbar}
-      setOpen={setOpenSnackbar}
-      duration={3000}
-      text={snackbarMsg}
-      className="bg-red-500 text-white"
-      buttonClassName="hover:bg-red-300 hover:text-black"
-    />
-  </div>
   );
 };
   

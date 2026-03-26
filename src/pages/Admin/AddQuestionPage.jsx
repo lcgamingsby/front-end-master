@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { config } from "../../data/config";
@@ -6,6 +6,7 @@ import ProgressBar from "../Components/ProgressBar";
 import Navbar from "../Components/Navbar";
 import { FaChevronLeft, FaPlus, FaTrash } from "react-icons/fa";
 import GrammarUnderline from "../Components/GrammarUnderline";
+import Snackbar from "../Components/Snackbar";
 
 function AddQuestionPage() {
   const navigate = useNavigate();
@@ -21,7 +22,12 @@ function AddQuestionPage() {
 
   //console.log(questions);
 
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState("");
+
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const isSubmitting = useRef(false);
 
   // Create-Update Questions
   // Read-Delete on QuestionsPage.jsx
@@ -42,6 +48,83 @@ function AddQuestionPage() {
       if (onProgress) onProgress(0);
 
       console.error("Failed to add question:", e);
+
+      let errorType = "ERR_UNKNOWN";
+      let errorText = "Unknown error";
+
+      const errResponse = e.response;
+      const errMessage = errResponse?.data.message.toLowerCase();
+
+      console.log(errMessage);
+
+      switch (errResponse?.status) {
+        case 400:
+          // FORM: GEN is general, REA is reading-specific, GRA is grammar-specific, LIS is listening-specific
+          if (errMessage.includes("invalid form data")) {
+            errorType = "ERR_BAD_REQUEST_FORM_GEN_01";
+            errorText = "Data on the form is invalid";
+
+          } else if (errMessage.includes("questions cannot be empty")) {
+            errorType = "ERR_BAD_REQUEST_FORM_GEN_02";
+            errorText = "A batch must have at least one question";
+
+          } else if (errMessage.includes("invalid question type")) {
+            errorType = "ERR_BAD_REQUEST_FORM_GEN_03";
+            errorText = "Invalid question type (valid: listening, reading, grammar)";
+
+          } else if (errMessage.includes("invalid questions JSON string")) {
+            errorType = "ERR_BAD_REQUEST_FORM_GEN_04";
+            errorText = "Data input soal batch tidak valid";
+
+          } else if (errMessage.includes("reading question batches must have a reading text")) {
+            errorType = "ERR_BAD_REQUEST_FORM_REA_01";
+            errorText = "Reading batch must have a batch text for students to read";
+
+          } else if (errMessage.includes("file is required")) {
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_01";
+            errorText = "Listening batch must have an audio file to upload";
+
+          } else if (errMessage.includes("invalid file upload")) {
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_02";
+            errorText = "File uploaded is invalid";
+
+          } else if (errMessage.includes("file size exceeds 50MB limit")) {
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_03";
+            errorText = "Uploaded file size exceeds 50 MB limit";
+
+          }
+          break;
+        case 415:
+          if (errMessage.includes("only audio files are allowed (.mp3, .wav, .ogg, .aac, .flac, .m4a, .wma, .opus)")) {
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_04";
+            errorText = "Only audio files are allowed (.mp3, .wav, .ogg, .aac, .flac, .m4a, .wma, .opus)";
+
+          } else if (errMessage.includes("file content is not a valid audio format")) {
+            let mimeType = errMessage.substring(errMessage.search("detected:"), errMessage.length - 1);
+
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_05";
+            errorText = `File content is not a valid audio format (detected format: ${mimeType})`;
+            
+          }
+          break;
+        case 500:
+          errorType = "ERR_INTERNAL"
+          errorText = "Server internal bermasalah. Silakan hubungi admin"
+
+          break;
+        default:
+          if (errMessage.includes("network error")) {
+            errorType = "ERR_NETWORK";
+            errorText = "Tidak bisa menghubungi server";
+          }
+      }
+
+      setSnackbarMsg(`${errorText}.
+      (Error: ${errorType === "ERR_UNKNOWN" ? (errorType + " (Status: "+errResponse?.status+")") : errorType})`);
+      setOpenSnackbar(true);
+      return;
+    } finally {
+      isSubmitting.current = false;
     }
   }
 
@@ -62,10 +145,94 @@ function AddQuestionPage() {
       if (onProgress) onProgress(0);
 
       console.error("Failed to add question:", e);
+
+      let errorType = "ERR_UNKNOWN";
+      let errorText = "Unknown error";
+
+      const errResponse = e.response;
+      const errMessage = errResponse?.data.message.toLowerCase();
+
+      console.log(errMessage);
+      console.log(e.message);
+
+      switch (errResponse?.status) {
+        case 400:
+          // FORM: GEN is general, REA is reading-specific, GRA is grammar-specific, LIS is listening-specific
+          if (errMessage.includes("invalid form data")) {
+            errorType = "ERR_BAD_REQUEST_FORM_GEN_01";
+            errorText = "Data on the form is invalid";
+
+          } else if (errMessage.includes("questions cannot be empty")) {
+            errorType = "ERR_BAD_REQUEST_FORM_GEN_02";
+            errorText = "A batch must have at least one question";
+
+          } else if (errMessage.includes("invalid question type")) {
+            errorType = "ERR_BAD_REQUEST_FORM_GEN_03";
+            errorText = "Invalid question type (valid: listening, reading, grammar)";
+
+          } else if (errMessage.includes("invalid questions JSON string")) {
+            errorType = "ERR_BAD_REQUEST_FORM_GEN_04";
+            errorText = "Data input soal batch tidak valid";
+
+          } else if (errMessage.includes("reading question batches must have a reading text")) {
+            errorType = "ERR_BAD_REQUEST_FORM_REA_01";
+            errorText = "Reading batch must have a batch text for students to read";
+
+          } else if (errMessage.includes("file is required")) {
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_01";
+            errorText = "Listening batch must have an audio file to upload";
+
+          } else if (errMessage.includes("invalid file upload")) {
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_02";
+            errorText = "File uploaded is invalid";
+
+          } else if (errMessage.includes("file size exceeds 50MB limit")) {
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_03";
+            errorText = "Uploaded file size exceeds 50 MB limit";
+
+          }
+          break;
+        case 415:
+          if (errMessage.includes("only audio files are allowed (.mp3, .wav, .ogg, .aac, .flac, .m4a, .wma, .opus)")) {
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_04";
+            errorText = "Only audio files are allowed (.mp3, .wav, .ogg, .aac, .flac, .m4a, .wma, .opus)";
+
+          } else if (errMessage.includes("file content is not a valid audio format")) {
+            let mimeType = errMessage.substring(errMessage.search("detected:"), errMessage.length - 1);
+
+            errorType = "ERR_BAD_REQUEST_FORM_LIS_05";
+            errorText = `File content is not a valid audio format (detected format: ${mimeType})`;
+
+          }
+          break;
+        case 500:
+          errorType = "ERR_INTERNAL"
+          errorText = "Server internal bermasalah. Silakan hubungi admin"
+
+          break;
+        default:
+          if (e.code === "ERR_NETWORK") {
+            errorType = "ERR_NETWORK";
+            errorText = "Tidak bisa menghubungi server";
+          }
+      }
+
+      setSnackbarMsg(`${errorText}.
+      (Error: ${errorType === "ERR_UNKNOWN" ? (errorType + " (Status: "+errResponse?.status+")") : errorType})`);
+      setOpenSnackbar(true);
+      return;
+    } finally {
+      isSubmitting.current = false;
     }
   }
 
   const handleSubmit = async (e) => {
+    if (isSubmitting.current) {
+      return;
+    }
+
+    isSubmitting.current = true;
+
     e.preventDefault();
 
     const form = e.target;
@@ -489,11 +656,24 @@ function AddQuestionPage() {
             className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold rounded-lg flex
               items-center gap-2 mt-5 cursor-pointer"
             type="submit"
+            disabled={isSubmitting.current}
           >
-            {isEdit ? "Save Changes" : "Add Question Batch"}
+            {isSubmitting.current
+              ? "Submitting"
+              : (isEdit ? "Save Changes" : "Add Question Batch")
+            }
           </button>
         </form>
       </main>
+
+      <Snackbar
+        isOpen={openSnackbar}
+        setOpen={setOpenSnackbar}
+        duration={3000}
+        text={snackbarMsg}
+        className="bg-red-500 text-white"
+        buttonClassName="hover:bg-red-300 hover:text-black"
+      />
     </div>
   );
 }
