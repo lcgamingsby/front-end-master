@@ -152,8 +152,8 @@ function AddQuestionPage() {
       const errResponse = e.response;
       const errMessage = errResponse?.data.message.toLowerCase();
 
-      console.log(errMessage);
-      console.log(e.message);
+      // console.log(errMessage);
+      // console.log(e.message);
 
       switch (errResponse?.status) {
         case 400:
@@ -379,8 +379,9 @@ function AddQuestionPage() {
       <main className="p-8">
         <div className="flex gap-2 items-baseline">
           <button
-            className="text-tec-darker hover:text-tec-light cursor-pointer"
+            className="text-tec-darker hover:text-tec-light cursor-pointer disabled:text-slate-600"
             onClick={() => navigate("/admin/questions")}
+            disabled={isSubmitting}
           >
             <FaChevronLeft className="w-6 h-6" />
           </button>
@@ -420,13 +421,15 @@ function AddQuestionPage() {
                 type="file"
                 name="file"
                 id="file"
-                className="w-full px-3 py-1.5 mb-4 border-2 border-slate-300 focus:outline-none
+                className="w-full px-3 py-1.5 mb-4 border-2 border-slate-300 cursor-pointer focus:outline-none
                   hover:border-tec-light focus:border-tec-light rounded-lg file:bg-tec-darker
                   file:hover:bg-tec-dark file:text-white file:py-1 file:px-2.5 file:font-bold
-                  file:rounded-lg file:text-sm file:mr-2"
+                  file:rounded-lg file:text-sm file:mr-2 disabled:file:bg-slate-400
+                  disabled:file:text-tec-darker"
                 accept="audio/*"
                 required
                 onChange={(e) => setAudioFile(e.target.files[0])}
+                disabled={isSubmitting.current}
               />
 
               {uploadProgress > 0 && (
@@ -451,6 +454,7 @@ function AddQuestionPage() {
               required={type === "reading"}
               value={batchText}
               onChange={(e) => setBatchText(e.target.value)}
+              disabled={isSubmitting.current}
             />
 
             {type === "grammar" && (
@@ -505,6 +509,7 @@ function AddQuestionPage() {
 
                         setQuestions(newQuestions);
                       }}
+                      disabled={isSubmitting.current}
                     />
 
                     {type === "grammar" && (
@@ -546,6 +551,7 @@ function AddQuestionPage() {
 
                             setQuestions(newQuestions);
                           }}
+                          disabled={isSubmitting.current}
                         />
 
                         <input
@@ -560,6 +566,7 @@ function AddQuestionPage() {
 
                             setQuestions(newQuestions);
                           }}
+                          disabled={isSubmitting.current}
                         />
                         <label htmlFor={`radio_answer_${letter}_${idx}`}>Set {letter.toUpperCase()} as the correct answer</label>
                       </div>
@@ -575,6 +582,7 @@ function AddQuestionPage() {
                         newQuestions.splice(idx, 1);
                         setQuestions(newQuestions);
                       }}
+                      disabled={isSubmitting.current}
                       title="Delete this question"
                     >
                       <FaTrash className="w-6 h-6" />
@@ -588,8 +596,10 @@ function AddQuestionPage() {
               <button
                 type="button"
                 className="border-2 border-tec-darker hover:border-tec-dark text-tec-darker hover:text-tec-dark
-                  py-2 px-5 font-bold rounded-lg flex items-center gap-2 cursor-pointer mb-5"
+                  py-2 px-5 font-bold rounded-lg flex items-center gap-2 cursor-pointer mb-5
+                  disabled:border-slate-700 disabled:text-slate-700 disabled:cursor-not-allowed"
                 onClick={addQuestion}
+                disabled={isSubmitting.current}
               >
                 <FaPlus /> Add Question
               </button>
@@ -654,7 +664,8 @@ function AddQuestionPage() {
 
           <button
             className="bg-tec-darker hover:bg-tec-dark text-white py-2 px-5 font-bold rounded-lg flex
-              items-center gap-2 mt-5 cursor-pointer"
+              items-center gap-2 mt-5 cursor-pointer disabled:bg-slate-400 disabled:text-tec-darker
+              disabled:cursor-not-allowed"
             type="submit"
             disabled={isSubmitting.current}
           >

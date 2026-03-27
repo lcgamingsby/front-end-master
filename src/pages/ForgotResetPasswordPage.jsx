@@ -16,11 +16,8 @@ function ForgotResetPasswordPage() {
   const [showWaitingResponse, setShowWaitingResponse] = useState(false);
 
   useEffect(() => {
-    if (token === null || nim === null) {
-      if (token.length !== 64) {
-        navigate("/login");
-        console.log("No access");
-      }
+    if ((token === null || nim === null) || (token?.length !== 64)) {
+      navigate("/login");
     }
   }, []);
 

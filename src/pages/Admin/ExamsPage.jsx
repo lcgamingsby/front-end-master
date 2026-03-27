@@ -61,9 +61,25 @@ function ExamsPage() {
 
       if (response.status === 200) {
         setShowConfirm(false);
-        setExams((prevExams) =>
-          prevExams.filter((exam) => exam.exam_id !== examID)
+
+        let newExams = [];
+        setExams((prevExams) => {
+          newExams = prevExams.filter((exam) => exam.exam_id !== examID);
+
+          return prevExams.filter((exam) => exam.exam_id !== examID);
+        });
+
+        const newFiltered = newExams.filter((exam) =>
+          exam.exam_title.toLowerCase().includes(searchTerm.toLowerCase())
         );
+
+        const newTotalPages = Math.max(Math.ceil(newFiltered.length / itemsPerPage), 1);
+
+        if (currentPage > newTotalPages) {
+          setCurrentPage(newTotalPages);
+        }
+
+        await getExams();
       }
     } catch (e) {
       console.error("Error deleting exam:", e);
@@ -357,7 +373,7 @@ function ExamsPage() {
                   upperLimit = totalPages;
                 }
 
-                console.log(i + 1, lowerLimit, upperLimit);
+                // console.log(i + 1, lowerLimit, upperLimit);
 
                 if (i + 1 < Math.max(1, lowerLimit) || i + 1 > Math.min(totalPages, upperLimit)) {
                   return;

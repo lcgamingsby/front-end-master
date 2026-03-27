@@ -61,10 +61,37 @@ function QuestionsPage() {
       if (response.status === 200) {
         setShowConfirm(false);
         
+        /*
+          change question batches array to not have the old one
+          (store the new batch for reorganizing pages)
+        */
+        let newBatch = [];
+        setQuestionBatches((prevQuestions) => {
+          newBatch = prevQuestions.filter((question) => question.question_id !== questionId);
 
-        setQuestionBatches((prevQuestions) =>
-          prevQuestions.filter((question) => question.question_id !== questionId)
-        );
+          return prevQuestions.filter((question) => question.question_id !== questionId);
+        });
+
+        // set things up before determining if we need to move page or not
+        const newFiltered = newBatch.filter((b) => {
+          const search = searchTerm.toLowerCase();
+
+          const matchSearch =
+            b.batch_id.toString().includes(search) ||
+            b.batch_text.toLowerCase().includes(search);
+
+          const matchType =
+            selectedType === "All Types" || b.batch_type.toLowerCase() === selectedType.toLowerCase();
+
+          return matchSearch && matchType;
+        });
+
+        const newTotalPages = Math.max(Math.ceil(newFiltered.length / itemsPerPage), 1);
+
+        if (currentPage > newTotalPages) {
+          setCurrentPage(newTotalPages);
+        }
+
         await getQuestions();
       }
     } catch (error) {
@@ -523,7 +550,7 @@ function QuestionsPage() {
                   upperLimit = totalPages;
                 }
 
-                console.log(i + 1, lowerLimit, upperLimit);
+                // console.log(i + 1, lowerLimit, upperLimit);
 
                 if (i + 1 < Math.max(1, lowerLimit) || i + 1 > Math.min(totalPages, upperLimit)) {
                   return;

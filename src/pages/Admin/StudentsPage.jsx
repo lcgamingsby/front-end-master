@@ -49,9 +49,30 @@ function StudentsPage() {
   
       if (response.status === 200) {
         setShowConfirm(false);
-        setStudents((prev) =>
-          prev.filter((student) => student.nim !== nim)
-        );
+
+        let newStudents = [];
+        setStudents((prev) => {
+          newStudents = prev.filter((student) => student.nim !== nim);
+          return prev.filter((student) => student.nim !== nim);
+        });
+
+        const newFiltered = newStudents.filter((s) => {
+          const search = searchTerm.toLowerCase();
+
+          return (
+            s.name.toLowerCase().includes(search) ||
+            s.nim.toLowerCase().includes(search) ||
+            s.email.toLowerCase().includes(search)
+          );
+        });
+
+        const newTotalPages = Math.max(Math.ceil(newFiltered.length / itemsPerPage), 1);
+
+        if (currentPage > newTotalPages) {
+          setCurrentPage(newTotalPages);
+        }
+
+        await getStudents();
       }
     } catch (error) {
       console.error("❌ Error deleting student:", error);
@@ -270,7 +291,7 @@ function StudentsPage() {
                   upperLimit = totalPages;
                 }
 
-                console.log(i + 1, lowerLimit, upperLimit);
+                // console.log(i + 1, lowerLimit, upperLimit);
 
                 if (i + 1 < Math.max(1, lowerLimit) || i + 1 > Math.min(totalPages, upperLimit)) {
                   return;

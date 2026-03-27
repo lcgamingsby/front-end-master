@@ -33,7 +33,7 @@ function ExamScoreDetailPage() {
         `${config.BACKEND_URL}/api/admin/logs/${examID}`,
         { withCredentials: true }
       );
-      console.log(res.data);
+      // console.log(res.data);
 
       setLogs(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
