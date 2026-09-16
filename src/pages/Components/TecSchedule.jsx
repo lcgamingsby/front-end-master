@@ -1,27 +1,98 @@
 import React from "react";
 
-// Data dari gambar (mengabaikan banner/peringatan kuning)
-const schedules = [
-  { month: "Januari 2025",   date: "Jumat, 10-01-2025" },
-  { month: "Februari 2025",  date: "Jumat, 14-02-2025" },
-  { month: "Maret 2025",     date: "Jumat, 14-03-2025" },
-  { month: "April 2025",     date: "Jumat, 11-04-2025" },
-  { month: "Mei 2025",       date: "Jumat, 09-05-2025" },
-  { month: "Juni 2025",      date: "Jumat, 13-06-2025" },
-  { month: "Juli 2025",      date: "Jumat, 11-07-2025" },
-  { month: "Agustus 2025",   date: "Jumat, 08-08-2025" },
-  { month: "September 2025", date: "Jumat, 12-09-2025" },
-  { month: "Oktober 2025",   date: "Jumat, 10-10-2025" },
-  { month: "November 2025",  date: "Jumat, 14-11-2025" },
-  { month: "Desember 2025",  date: "Jumat, 12-12-2025" },
-];
-
-const S1 = "14:00-16:30";
-const S2 = "16:30-19:00";
+const schedules = {
+  year: 2025,
+  monthly_schedules: [
+    {
+      display_name: "Januari",
+      schedules: [
+        "2025-01-10 14:00:00",
+        "2025-01-10 16:30:00",
+      ],
+    },
+    {
+      display_name: "Februari",
+      schedules: [
+        "2025-02-14 14:00:00",
+        "2025-02-14 16:30:00",
+      ],
+    },
+    {
+      display_name: "Maret",
+      schedules: [
+        "2025-03-14 14:00:00",
+        "2025-03-14 16:30:00",
+      ],
+    },
+    {
+      display_name: "April",
+      schedules: [
+        "2025-04-11 14:00:00",
+        "2025-04-11 16:30:00",
+      ],
+    },
+    {
+      display_name: "Mei",
+      schedules: [
+        "2025-05-09 14:00:00",
+        "2025-05-09 16:30:00",
+      ],
+    },
+    {
+      display_name: "Juni",
+      schedules: [
+        "2025-06-13 14:00:00",
+        "2025-06-13 16:30:00",
+      ],
+    },
+    {
+      display_name: "Juli",
+      schedules: [
+        "2025-07-11 14:00:00",
+        "2025-07-11 16:30:00",
+      ],
+    },
+    {
+      display_name: "Agustus",
+      schedules: [
+        "2025-08-08 14:00:00",
+        "2025-08-08 16:30:00",
+      ],
+    },
+    {
+      display_name: "September",
+      schedules: [
+        "2025-09-12 14:00:00",
+        "2025-09-12 16:30:00",
+      ],
+    },
+    {
+      display_name: "Oktober",
+      schedules: [
+        "2025-10-10 14:00:00",
+        "2025-10-10 16:30:00",
+      ],
+    },
+    {
+      display_name: "November",
+      schedules: [
+        "2025-11-14 14:00:00",
+        "2025-11-14 16:30:00",
+      ],
+    },
+    {
+      display_name: "Desember",
+      schedules: [
+        "2025-12-12 14:00:00",
+        "2025-12-12 16:30:00",
+      ],
+    },
+  ],
+};
 
 // Bagi data jadi 2 tabel agar ringkas (Jan–Jun, Jul–Des)
-const firstHalf  = schedules.slice(0, 6);
-const secondHalf = schedules.slice(6);
+const firstHalf  = schedules.monthly_schedules.slice(0, 6);
+const secondHalf = schedules.monthly_schedules.slice(6);
 
 function ScheduleTable({ title, rows }) {
   return (
@@ -58,17 +129,36 @@ function ScheduleTable({ title, rows }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ month, date }) => (
-            <tr key={month}>
-              <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">
-                <span className="font-semibold">{month}</span><br />
-                <span className="inline-block text-xs py-0.5 px-2 rounded-full bg-slate-200 ml-2">2 sesi</span>
-              </td>
-              <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">{date}</td>
-              <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">{S1}</td>
-              <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">{S2}</td>
-            </tr>
-          ))}
+          {rows.map((v, i) => {
+            const monthName = v.display_name;
+            const monthSchedule = v.schedules;
+            let dayMap = {};
+
+            const sessions = monthSchedule.map((v, i) => {
+              const dateObj = new Date(v);
+
+              dayMap[dateObj.getDate()] = [...(dayMap[dateObj.getDate()] || []), i];
+
+              return dateObj;
+            });
+            console.log(dayMap);
+
+            return (
+              <tr key={i}>
+                <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">
+                  <span className="font-semibold">{monthName + " " + schedules.year}</span><br />
+                  <span className="inline-block text-xs py-0.5 px-2 rounded-full bg-slate-200 ml-2">
+                    {monthSchedule.length} sesi
+                  </span>
+                </td>
+                <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">
+                  {sessions[0].toLocaleDateString("id-ID").replaceAll("/", "-")}
+                </td>
+                <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">{sessions[0].toLocaleTimeString("en-GB", {timeStyle: "short"})}</td>
+                <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">{sessions[1].toLocaleTimeString("en-GB", {timeStyle: "short"})}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
@@ -80,8 +170,7 @@ export default function TecSchedule() {
     <div className="mx-auto">
       <h3 className="text-xl font-bold mt-3 mb-1.5 text-tec-dark px-2 sm:px-4">Jadwal Tes TEC 2025</h3>
       <p className="text-sm mb-3 px-2 sm:px-4">
-        Tes TEC akan dilaksanakan pada hari Jumat setiap bulannya. Setiap bulan terdiri dari 2 sesi: <br />
-        <strong>Sesi 1</strong> pukul {S1} dan <strong>Sesi 2</strong> pukul {S2}.
+        Tes TEC akan dilaksanakan pada hari Jumat setiap bulannya dengan jadwal seperti berikut.
       </p>
 
       <div className="flex flex-wrap gap-3 text-slate-800 px-2 sm:px-4">

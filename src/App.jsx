@@ -1,6 +1,19 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
+import { UserProvider } from "./pages/Components/UserContext";
+import PublicRoute from "./pages/Components/PublicRoute";
+import PrivateRoute from "./pages/Components/PrivateRoute";
+// MISC PAGES
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ForgotResetPasswordPage from "./pages/ForgotResetPasswordPage";
+// STUDENT PAGES
+import StudentDashboard from "./pages/Student/StudentDashboard";
+import StudentExam from "./pages/Student/StudentExam";
+import StudentFinish from "./pages/Student/StudentFinish";
+// ADMIN PAGES
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ExamsPage from './pages/Admin/ExamsPage';
 import AddExamPage from "./pages/Admin/AddExamPage";
@@ -8,22 +21,11 @@ import QuestionsPage from "./pages/Admin/QuestionsPage";
 import AddQuestionPage from "./pages/Admin/AddQuestionPage";
 import StudentsPage from "./pages/Admin/StudentsPage";
 import AddStudentPage from "./pages/Admin/AddStudentPage";
-import RegisterPage from "./pages/RegisterPage";
-import StudentDashboard from "./pages/Student/StudentDashboard";
 import ExamScoresPage from "./pages/Admin/ExamScorePage";
 import ExamScoreDetailPage from "./pages/Admin/ExamScoreDetailPage";
-import PublicRoute from "./pages/Components/PublicRoute";
-import PrivateRoute from "./pages/Components/PrivateRoute";
-import { UserProvider } from "./pages/Components/UserContext";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import StudentExam from "./pages/Student/StudentExam";
-import StudentFinish from "./pages/Student/StudentFinish";
 import ExamTrackingPage from "./pages/Admin/ExamTrackingPage";
 import StudentLogDetailPage from "./pages/Admin/StudentLogDetailPage";
 import ExamRegistrationPage from "./pages/Admin/ExamRegistrationPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ForgotResetPasswordPage from "./pages/ForgotResetPasswordPage";
-
 
 function App() {
   return (

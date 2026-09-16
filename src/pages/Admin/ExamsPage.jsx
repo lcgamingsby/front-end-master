@@ -257,9 +257,6 @@ function ExamsPage() {
                 const daysAway = getDaysAway(startDatetime);
                 const isOdd = index % 2 === 1;
 
-                // Determine if the exam can be deleted (if it's not less than 3 days away from the exam date)
-                const deleteDisabled = daysAway <= 3;
-
                 return (
                   <tr
                     key={exam.exam_id}
@@ -307,11 +304,7 @@ function ExamsPage() {
                         className="bg-red-500 hover:bg-red-600 cursor-pointer disabled:cursor-not-allowed
                           p-2 rounded-lg disabled:bg-slate-500"
                         onClick={() => confirmDelete(exam)}
-                        disabled={deleteDisabled}
-                        title={deleteDisabled ?
-                          "Cannot delete this exam (less than 3 days away from the start date)"
-                          : "Delete this exam"
-                        }
+                        title="Delete this exam"
                       >
                         <FaTrash className="w-4 h-4 text-white" />
                       </button>
@@ -419,7 +412,19 @@ function ExamsPage() {
           openModal={setShowConfirm}
           onTrue={handleConfirmDelete}
           title="Confirm Deletion"
-          message="Are you sure you want to delete this exam? This action cannot be undone."
+          message={(
+            <>
+              <p><b>If you delete this exam:</b></p>
+              <ul className="list-outside list-disc ml-4">
+                <li>Enrolled students will be removed from this exam.</li>
+                <li>Question batches will be able to be deleted if no other exams use them.</li>
+                <li>Activity Log contents during the exam will be removed <span className="text-red-600 font-bold">permanently</span>.</li>
+                <li>Students' answers and scores will be removed <span className="text-red-600 font-bold">permanently</span>.</li>
+              </ul>
+              <br />
+              <p>Are you sure you want to delete this exam? This action cannot be undone.</p>
+            </>
+          )}
         />
       )}
     </div>

@@ -39,7 +39,7 @@ function HomePage() {
         <div className="flex justify-center mt-6 space-x-4">
           <button
             onClick={() => setActiveTab("jadwal")}
-            className={`px-6 py-2 rounded-lg font-semibold border transition-all duration-150 cursor-pointer ${
+            className={`px-6 py-2 rounded-t-lg rounded-x-lg font-semibold border-t border-x transition-all duration-150 cursor-pointer ${
               activeTab === "jadwal"
                 ? "bg-tec-dark text-white border-tec-dark"
                 : "bg-white text-tec-dark border-tec-dark hover:bg-tec-light hover:text-white"
@@ -49,7 +49,7 @@ function HomePage() {
           </button>
           <button
             onClick={() => setActiveTab("instruksi")}
-            className={`px-6 py-2 rounded-lg font-semibold border transition-all duration-150 cursor-pointer ${
+            className={`px-6 py-2 rounded-t-lg rounded-x-lg font-semibold border-t border-x transition-all duration-150 cursor-pointer ${
               activeTab === "instruksi"
                 ? "bg-tec-dark text-white border-tec-dark"
                 : "bg-white text-tec-dark border-tec-dark hover:bg-tec-light hover:text-white"
@@ -60,7 +60,7 @@ function HomePage() {
         </div>
 
         {/* Konten Berdasarkan Tab */}
-        <div className="mt-3 text-left px-4 sm:px-10">
+        <div className="border-t border-tec-dark text-left pt-3 px-4 sm:px-10">
           {activeTab === "jadwal" ? (
             <TecSchedule />
           ) : (

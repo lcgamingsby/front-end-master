@@ -109,13 +109,13 @@ function AddQuestionPage() {
           break;
         case 500:
           errorType = "ERR_INTERNAL"
-          errorText = "Server internal bermasalah. Silakan hubungi admin"
+          errorText = "Internal server error. Please contact admin."
 
           break;
         default:
           if (errMessage.includes("network error")) {
             errorType = "ERR_NETWORK";
-            errorText = "Tidak bisa menghubungi server";
+            errorText = "Network error. Unable to reach the server.";
           }
       }
 

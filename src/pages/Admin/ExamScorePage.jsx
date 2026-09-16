@@ -33,7 +33,7 @@ function ExamScoresPage() {
     if (!dateStr) return "-";
     try {
       const date = new Date(dateStr);
-      return date.toLocaleString("id-ID", {
+      return date.toLocaleString("en-GB", {
         timeZone: "Asia/Jakarta",
         day: "2-digit",
         month: "short",

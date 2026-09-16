@@ -1,7 +1,13 @@
 import React, { useState } from "react";
+import {
+    Dialog,
+    DialogBackdrop,
+    DialogPanel,
+    DialogTitle,
+} from "@headlessui/react";
 import { FaExclamationTriangle } from "react-icons/fa";
 
-const ModalFailed = ({ isOpen, openModal, onClose, title, message }) => {
+const ModalFailed = ({ isOpen, openModal, onClose, title, message, closeText }) => {
     const close = () => {
         openModal(false);
 
@@ -11,31 +17,40 @@ const ModalFailed = ({ isOpen, openModal, onClose, title, message }) => {
     }
 
     return (
-        <div className="relative z-10" aria-labelledby="dialog-title" role="dialog" aria-modal="true">
-            <div
-                className="fixed inset-0 bg-gray-500/75 transition-opacity"
-                aria-hidden="true"
-                onClick={close}
+        <Dialog
+            open={isOpen}
+            onClose={() => {
+                openModal(false);
+
+                if (onClose != null) {
+                    onClose();
+                }
+            }}
+            className="relative z-10"
+        >
+            <DialogBackdrop
+                transition
+                className="fixed inset-0 bg-gray-800/75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in"
             />
             <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
                 <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                    <div
-                        className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl
-                        transition-all sm:my-8 sm:w-full sm:max-w-lg"
+                    <DialogPanel
+                        transition
+                        className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-sm data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95"
                     >
-                        <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                            <div
-                                className={`mx-auto flex size-12 shrink-0 items-center justify-center rounded-full
-                                bg-red-200 sm:mx-0 sm:size-10`}
-                            >
-                                <FaExclamationTriangle className={`h-6 w-6 text-red-600`} />
+                        <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 flex flex-col items-center justify-center">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
+                                <FaExclamationTriangle className={`h-6 w-6 sm:h-8 sm:w-8 text-red-600`} />
                             </div>
                             <div class="mt-4 text-center">
-                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="dialog-title">
-                                    {title !== null && title !== undefined ? title : "Failed"}
-                                </h3>
+                                <DialogTitle
+                                    as="h3"
+                                    className="text-base font-semibold leading-6 text-gray-900"
+                                >
+                                    {title != null ? title : "Failed"}
+                                </DialogTitle>
                                 <div class="mt-2">
-                                <p class="text-sm text-gray-500">
+                                <p class="text-sm text-gray-600">
                                     {message !== null && message !== undefined
                                         ? message
                                         : "The operation failed."
@@ -44,20 +59,20 @@ const ModalFailed = ({ isOpen, openModal, onClose, title, message }) => {
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-white px-4 py-3 sm:px-6">
+                        <div className="bg-white px-4 py-3 sm:px-6">
                             <button
                                 type="button"
-                                class={`inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm
-                                font-semibold text-white shadow-xs hover:bg-red-500 sm:ml-3 sm:w-auto`}
+                                className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2
+                                text-sm font-semibold text-white shadow-sm hover:bg-red-500 cursor-pointer"
                                 onClick={close}
                             >
-                                OK
+                                {(closeText !== null && closeText !== undefined) ? closeText : "OK"}
                             </button>
                         </div>
-                    </div>
+                    </DialogPanel>
                 </div>
             </div>
-        </div>
+        </Dialog>
     );
 }
 

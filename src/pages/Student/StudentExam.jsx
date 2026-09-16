@@ -36,6 +36,8 @@ const StudentExam = () => {
   const [grammarDone, setGrammarDone] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [audioLoading, setAudioLoading] = useState(false);
+
   const [readingInstructions, setReadingInstructions] = useState(false);
   const [instructionsTime, setInstructionsTime] = useState(0);
   const [readingIndex, setReadingIndex] = useState(0);
@@ -245,6 +247,7 @@ const StudentExam = () => {
       currentQuestion.type === "listening" &&
       (prevType !== "listening" || !audioRef.current)
     ) {
+      setAudioLoading(true);
       const newAudio = new Audio(
         `${config.BACKEND_URL}/audio/${
           examQuestions[currentQuestion.type][currentQuestion.index].audio_path
@@ -255,6 +258,7 @@ const StudentExam = () => {
       setPlaying(false);
     }
     prevTypeRef.current = currentQuestion.type;
+    setAudioLoading(false);
   }, [currentQuestion.type, currentQuestion.index]);
 
   useEffect(() => {
@@ -811,7 +815,23 @@ const StudentExam = () => {
           <div className="bg-tec-card p-3 rounded-xl flex justify-between text-tec-darker shadow">
             <span>Time Remaining:</span>
             <b>
-              {readingInstructions ? formatTime(instructionsTime) : 
+              {readingInstructions ? (
+                <div className="relative h-12">
+                  <div
+                    className="relative h-12 w-12 animate-timer rounded-full bg-linear-to-r
+                    from-sky-500 from-50% to-gray-200 to-50% mask-radial-from-transparent
+                    mask-radial-from-50% mask-radial-to-black mask-radial-to-50%" id="timer"
+                  >
+                    <div
+                      className="absolute top-0 left-0 h-full w-1/2 origin-[100%_50%] animate-timer-mask
+                      rounded-tl-full rounded-bl-full" id="mask"
+                    />
+                  </div>
+                  <p className="-translate-y-9 text-center">
+                    {instructionsTime}
+                  </p>
+                </div>
+              ) : 
                 formatTime(
                   currentQuestion.type === "listening"
                     ? listeningTime
@@ -974,7 +994,11 @@ const StudentExam = () => {
               {examQuestions[currentQuestion.type][currentQuestion.index].audio_path !== "" ||
               examQuestions[currentQuestion.type][currentQuestion.index].batch_text !== "" ? (
                 <div className="bg-blue-300 rounded-xl p-4 md:p-6 mb-4 shadow-md">
-                  {currentQuestion.type === "listening" && audioRef.current && (
+                  {audioLoading ? (
+                    <div className="gap-2 flex items-center flex-wrap">
+                      <Loading useSmall={true} text={"Waiting for the audio to load..."} />
+                    </div>
+                  ) : (currentQuestion.type === "listening" && audioRef.current && (
                     <div className="gap-2 flex items-center flex-wrap">
                       <button
                         onClick={handlePlayPause}
@@ -999,7 +1023,7 @@ const StudentExam = () => {
                         You may only play the audio once.
                       </p>
                     </div>
-                  )}
+                  ))}
                   {examQuestions[currentQuestion.type][currentQuestion.index].batch_text && (
                     <p className="text-justify font-medium select-none pl-2 pr-2 overflow-y-auto
                       max-h-36 md:max-h-48 text-sm sm:text-base"

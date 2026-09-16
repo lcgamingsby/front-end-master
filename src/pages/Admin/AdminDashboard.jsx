@@ -59,7 +59,8 @@ function AdminDashboard() {
   }
 
   const handleExamClick = (e) => {
-    navigate("/admin/track", { state: {exam_id: e.exam_id} });
+    // navigate("/admin/track", { state: {exam_id: e.exam_id} });
+    navigate(`/admin/scores/${e.exam_id}`);
   }
 
   useEffect(() => {

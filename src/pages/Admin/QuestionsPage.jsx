@@ -4,6 +4,7 @@ import { FaEdit, FaTrash, FaFilter, FaAngleDoubleLeft, FaAngleLeft, FaAngleRight
 import { config } from "../../data/config";
 import axios from "axios";
 import ModalConfirmDelete from "../Components/ModalConfirmDelete";
+import ModalFailed from "../Components/ModalFailed";
 import Navbar from "../Components/Navbar";
 import Loading from "../Components/Loading";
 import GrammarUnderline from "../Components/GrammarUnderline";
@@ -16,7 +17,11 @@ function QuestionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("All Types");
+  
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showFailed, setShowFailed] = useState(false);
+  const [failedMsg, setFailedMsg] = useState("");
+
   const [toDelete, setToDelete] = useState(null);
   const [finishedLoading, setFinishedLoading] = useState(false);
 
@@ -58,9 +63,9 @@ function QuestionsPage() {
         { withCredentials: true },
       );
 
+      setShowConfirm(false);
+
       if (response.status === 200) {
-        setShowConfirm(false);
-        
         /*
           change question batches array to not have the old one
           (store the new batch for reorganizing pages)
@@ -95,7 +100,41 @@ function QuestionsPage() {
         await getQuestions();
       }
     } catch (error) {
+      setShowConfirm(false);
       console.error("Error deleting question:", error);
+
+      let errType = "ERR_UNKNOWN";
+      let errText = "Unknown error";
+
+      const errResponse = error.response;
+      const errMessage = errResponse?.data.message.toLowerCase();
+
+      console.log(errMessage);
+
+      switch (errResponse?.status) {
+        case 400:
+          errType = "ERR_BAD_REQUEST";
+          errText = "This question batch is used in at least one exam. (Legacy error code)";
+
+          break;
+        case 409:
+          errType = "ERR_CONFLICT";
+          errText = "This question batch is used in at least one exam.";
+
+          break;
+        case 500:
+          errType = "ERR_INTERNAL";
+          errText = "Internal server error. Please contact admin.";
+
+          break;
+        default:
+          if (errMessage.includes("network error")) {
+            errType = "ERR_NETWORK";
+            errText = "Network error. Unable to reach the server.";
+          }
+      }
+      setFailedMsg(`Error (${errType})${errText !== "" ? (": " + errText) : errText}`);
+      setShowFailed(true);
     }
   }
 
@@ -355,8 +394,8 @@ function QuestionsPage() {
                     </thead>
                     {openedBatch.includes(b.batch_id) ? (
                       b.questions.map((q, i) => {
-                        let answerText = q.answers.join(", ");
-                        let limit = 140;
+                        const limit = 140;
+                        const answerCharLimit = 60;
 
                         const isOdd = i % 2 === 1;
 
@@ -400,8 +439,18 @@ function QuestionsPage() {
                                   )
                                 }
                               </td>
-                              <td className="px-4 py-1 border-2 border-slate-400" colSpan="2">
-                                {answerText.length > limit ? answerText.slice(0, limit).trim() + "..." : answerText}
+                              <td className="px-4 py-1 border-2 border-slate-400 text-justify" colSpan="2">
+                                <ul className="list-outside list-disc ml-4">
+                                  {q.answers.map((a, j) => {
+                                    return (
+                                      <li>
+                                        {a.slice > answerCharLimit
+                                          ? a.slice(0, answerCharLimit).trim() + "..."
+                                          : a}
+                                      </li>
+                                    )
+                                  })}
+                                </ul>
                               </td>
                             </tr>
                           </tbody>
@@ -423,89 +472,6 @@ function QuestionsPage() {
               </tbody>
             )
           }
-          {/*
-            finishedLoading && currentQuestionBatches.length > 0 ? (
-              currentQuestionBatches.map((q, idx) => {
-              let answerText = q.answers.join(", ");
-              let limit = 112;
-
-              const isOdd = idx % 2 === 1;
-
-              const regex = /__([^_]+?)__/g;
-
-              // This will be used to determine the length of the question text
-              const questionText = q.question_text.replace(regex, (match, extract) => {
-                return `${extract}`;
-              }).trim();
-
-              // Get the number of characters removed by the regex up to a certain point
-              let removedChars = 0;
-              let match;
-
-              while ((match = regex.exec(q.question_text)) !== null) {
-                console.log(match, match.index);
-                if (match.index <= limit + removedChars) {
-                  if (match.index + match[0].length > limit + removedChars) {
-                    removedChars += match[0].length - (limit + removedChars - match.index);
-                  } else {
-                    removedChars += match[0].length - match[1].length;
-                  }
-                } else {
-                  break;
-                }
-              }
-
-              return (
-                <tr
-                  key={q.question_id}
-                  className={`${isOdd ? "bg-slate-200" : "bg-white"} hover:bg-slate-300`}
-                >
-                  <td className="px-4 py-2 border-2 border-slate-400 text-center">{q.question_id}</td>
-                  <td className="px-4 py-2 border-2 border-slate-400">{q.question_type[0].toUpperCase() + q.question_type.slice(1)}</td>
-                  <td className="px-4 py-2 border-2 border-slate-400 text-justify text-ellipsis text-base/8" title={questionText}>
-                    {q.audio_path ? (
-                      <audio controls src={`${config.BACKEND_URL}/audio/${q.audio_path}`} />
-                    ) : null}
-                    {
-                      questionText.length > limit ? (
-                        <>
-                          {formatText(q.question_text.slice(0, limit + removedChars).trim())}
-                          <span>...</span>
-                        </>
-                      ) : (
-                        formatText(q.question_text)
-                      )
-                    }
-                  </td>
-                  <td className="px-4 py-2 border-2 border-slate-400 text-justify text-ellipsis" title={answerText}>
-                    {answerText.length > 85 ? answerText.slice(0, 85).trim() + "..." : answerText}
-                  </td>
-                  <td className="px-4 py-2 border-2 border-slate-400 text-center">
-                    <button
-                      className="bg-amber-500 hover:bg-orange-600 mr-1 p-2 rounded-lg cursor-pointer"
-                      onClick={() => handleEdit(q)}
-                    >
-                      <FaEdit className="w-4 h-4 text-white" />
-                    </button>
-                    <button
-                      className="bg-red-500 hover:bg-red-600 cursor-pointer disabled:cursor-not-allowed
-                        p-2 rounded-lg disabled:bg-slate-500"
-                      onClick={() => confirmDelete(q)}
-                    >
-                      <FaTrash className="w-4 h-4 text-white" />
-                    </button>
-                  </td>
-                </tr>
-            )})) : (
-              <tr>
-                <td colSpan="5" className="px-4 py-3 border-2 border-slate-400 text-center">
-                  {finishedLoading ? "No questions found." : (
-                    <Loading text={"Loading questions..."} useSmall={true} />
-                  )}
-                </td>
-              </tr>
-            )
-          */}
         </table>
 
         <div className="flex justify-between">
@@ -597,6 +563,15 @@ function QuestionsPage() {
           onTrue={handleConfirmDelete}
           title="Confirm Deletion"
           message="Are you sure you want to delete this question? This action cannot be undone."
+        />
+      )}
+
+      {showFailed && (
+        <ModalFailed
+          isOpen={showFailed}
+          openModal={setShowFailed}
+          title="Deletion Failed"
+          message={failedMsg}
         />
       )}
     </div>

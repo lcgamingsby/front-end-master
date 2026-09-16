@@ -2,7 +2,7 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/re
 import React, { useState } from "react";
 import { FaCheck } from "react-icons/fa";
 
-const ModalFinished = ({ isOpen, openModal, onClose, title, message }) => {
+const ModalFinished = ({ isOpen, openModal, onClose, title, message, closeText }) => {
 	return (
 		<Dialog
 			open={isOpen}
@@ -16,7 +16,7 @@ const ModalFinished = ({ isOpen, openModal, onClose, title, message }) => {
 			className="relative z-10"
 		>
 			<DialogBackdrop
-				className="fixed inset-0 bg-gray-500/75 transition-opacity data-[closed]:opacity-0
+				className="fixed inset-0 bg-gray-700/75 transition-opacity data-[closed]:opacity-0
 				data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out
 				data-[leave]:ease-in"
 				transition
@@ -45,7 +45,7 @@ const ModalFinished = ({ isOpen, openModal, onClose, title, message }) => {
 									{title !== null && title !== undefined ? title : "Success"}
 								</DialogTitle>
 								<div class="mt-2">
-									<p class="text-sm text-gray-500">
+									<p class="text-sm text-gray-600">
 										{message !== null && message !== undefined
 										? message
 										: "The operation was completed successfully."
@@ -67,7 +67,7 @@ const ModalFinished = ({ isOpen, openModal, onClose, title, message }) => {
 									}
 								}}
 							>
-								OK
+								{(closeText !== null && closeText !== undefined) ? closeText : "OK"}
 							</button>
 						</div>
 					</DialogPanel>

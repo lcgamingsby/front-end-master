@@ -16,7 +16,7 @@ const ModalSuccess = ({ isOpen, openModal, onClose, title, message, action }) =>
       className="relative z-10"
     >
       <DialogBackdrop
-        className="fixed inset-0 bg-slate-500/75 transition-opacity data-[closed]:opacity-0
+        className="fixed inset-0 bg-slate-700/75 transition-opacity data-[closed]:opacity-0
           data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out
           data-[leave]:ease-in"
         transition

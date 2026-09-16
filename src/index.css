@@ -31,5 +31,33 @@
   --color-tec-darker-hover: #A4ACFF;
 
   --default-font-family: var(--font-sans);
+
+  --duration: 15;
+  --animate-timer: timer calc(var(--duration) * 1s) steps(1000, start) infinite;
+  --animate-timer-mask: mask calc(var(--duration) * 1s) steps(500, start) infinite;
+
+  @keyframes timer {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes mask {
+    0% {
+      background: oklch(92.8% 0.006 264.531);
+      transform: rotate(0deg);
+    }
+    50% {
+      background: oklch(92.8% 0.006 264.531);
+      transform: rotate(-180deg);
+    }
+    50.01% {
+      background: oklch(68.5% 0.169 237.323);
+      transform: rotate(0deg);
+    }
+    100% {
+      background: oklch(68.5% 0.169 237.323);
+      transform: rotate(-180deg);
+    }
+  }
 }
 

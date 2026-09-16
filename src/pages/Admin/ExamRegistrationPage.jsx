@@ -103,7 +103,23 @@ function ExamRegistrationPage() {
                           Lihat Bukti
                         </a>
                       </td>
-                      <td className="py-2 px-4 capitalize">{reg.status}</td>
+                      <td className="py-2 px-4 capitalize text-center flex items-center justify-center">
+                        <div
+                          className={`font-semibold px-2 py-1 rounded-full w-30 ${
+                            reg.status === "approved"
+                              ? "bg-green-700 text-white"
+                              : reg.status === "rejected"
+                              ? "bg-red-700 text-white"
+                              : ""
+                          }`}
+                        >
+                          {reg.status === "approved"
+                            ? `✓ ${reg.status}`
+                            : reg.status === "rejected"
+                            ? `✗ ${reg.status}`
+                            : reg.status}
+                        </div>
+                      </td>
                       <td className="py-2 px-4 text-center">
                         {reg.status === "pending" ? (
                           <div className="flex gap-2 justify-center">
@@ -120,19 +136,7 @@ function ExamRegistrationPage() {
                               Reject
                             </button>
                           </div>
-                        ) : (
-                          <span
-                            className={`font-semibold ${
-                              reg.status === "approved"
-                                ? "text-green-700"
-                                : reg.status === "rejected"
-                                ? "text-red-700"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            {reg.status}
-                          </span>
-                        )}
+                        ) : null}
                       </td>
                     </tr>
                   ))}
