@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../Components/Navbar";
 import axios from "axios";
 import { config } from "../../data/config";
-import { FaDownload } from "react-icons/fa";
+import { FaChevronLeft, FaDownload } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
 
@@ -146,23 +146,22 @@ function ExamScoreDetailPage() {
         <Loading />
       ) : (
         <main className="p-8">
-          <button
-            className="mb-4 bg-slate-300 hover:bg-slate-400 text-black px-4 py-2 rounded-lg"
-            onClick={() => navigate("/admin/scores")}
-          >
-            ← Back
-          </button>
-
-          <h2 className="text-4xl mb-5 text-tec-darker font-bold">
-            Exam Scores Details
-          </h2>
+          <div className="flex gap-2 items-baseline">
+            <button
+              className="text-tec-darker hover:text-tec-light cursor-pointer"
+              onClick={() => navigate("/admin/scores")}
+            >
+              <FaChevronLeft className="w-6 h-6" />
+            </button>
+            <h2 className="text-4xl mb-5 text-tec-darker font-bold">Exam Scores Details</h2>
+          </div>
 
           {/* Scores Table */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-2xl font-semibold text-tec-darker">Scores</h3>
               <button
-                className="flex items-center gap-2 bg-tec-darker hover:bg-tec-dark text-white px-4 py-2 rounded-lg"
+                className="flex items-center gap-2 bg-tec-darker hover:bg-tec-dark text-white px-4 py-2 rounded-lg cursor-pointer"
                 onClick={() => exportCSV(scores, "exam_scores.csv")}
               >
                 <FaDownload /> Export Scores
@@ -220,13 +219,13 @@ function ExamScoreDetailPage() {
                     <td className="border px-4 py-2">
                       <div className="flex gap-4">
                         <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded cursor-pointer"
                           onClick={() => navigate(`/admin/logs/${examID}/${entry.nim}`)}
                         >
                           View Details
                         </button>
                         <button
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded cursor-pointer"
                           onClick={() => setDeleteTarget(entry.nim)}
                         >
                           Delete Logs
@@ -241,7 +240,7 @@ function ExamScoreDetailPage() {
 
           {/* Popup Konfirmasi Hapus */}
           {deleteTarget && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg shadow-xl p-6 w-[400px]">
                 <h3 className="text-xl font-bold text-tec-darker mb-4">
                   Konfirmasi Hapus
@@ -252,13 +251,13 @@ function ExamScoreDetailPage() {
                 </p>
                 <div className="flex justify-end gap-4">
                   <button
-                    className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded"
+                    className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded cursor-pointer"
                     onClick={() => setDeleteTarget(null)}
                   >
                     Batal
                   </button>
                   <button
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
                     onClick={async () => {
                       try {
                         await axios.delete(

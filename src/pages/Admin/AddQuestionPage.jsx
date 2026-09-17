@@ -55,7 +55,7 @@ function AddQuestionPage() {
       const errResponse = e.response;
       const errMessage = errResponse?.data.message.toLowerCase();
 
-      console.log(errMessage);
+      // console.log(errMessage);
 
       switch (errResponse?.status) {
         case 400:
@@ -381,7 +381,7 @@ function AddQuestionPage() {
           <button
             className="text-tec-darker hover:text-tec-light cursor-pointer disabled:text-slate-600"
             onClick={() => navigate("/admin/questions")}
-            disabled={isSubmitting}
+            disabled={isSubmitting.current}
           >
             <FaChevronLeft className="w-6 h-6" />
           </button>

@@ -182,7 +182,8 @@ function ExamsPage() {
                 // reset page number for no visual bug
                 setCurrentPage(1);
               }}
-              className="border-2 border-slate-400 rounded-lg px-3 py-1.5 font-semibold text-tec-darker hover:border-tec-light focus:border-tec-light focus:outline-none"
+              className="border-2 border-slate-400 rounded-lg px-3 py-1.5 font-semibold cursor-pointer
+              text-tec-darker hover:border-tec-light focus:border-tec-light focus:outline-none"
             >
               <option value="online">Online Exams</option>
               <option value="offline">Offline Exams</option>

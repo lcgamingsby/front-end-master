@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaChevronDown, FaChevronUp, FaKey, FaSignOutAlt } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaEdit, FaKey, FaList, FaSignOutAlt, FaStar } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
 import axios from "axios";
@@ -11,7 +11,8 @@ function Navbar({ examMode = false }) {
 
     const { user, setUser } = useUser();
 
-    const [showDropdown, setShowDropdown] = useState(false);
+    const [showExamDropdown, setShowExamDropdown] = useState(false);
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
     const handleLogout = async () => {
         try {
@@ -56,14 +57,45 @@ function Navbar({ examMode = false }) {
                     >
                         Home
                     </button>
-                    <button
-                        className={`${location.pathname == "/admin/exams" ? "bg-tec-dark hover:bg-tec-light text-white"
-                            : "text-tec-dark hover:bg-slate-200"} py-5 px-6 border-0 font-semibold transition-colors
-                            duration-150 cursor-pointer`}
-                        onClick={() => navigate("/admin/exams")}
-                    >
-                        Exams
-                    </button>
+                    <div className="relative">
+                        <button
+                            className={`${(location.pathname == "/admin/exams" || location.pathname == "/admin/registrations" || location.pathname == "/admin/scores")
+                                ? "bg-tec-dark hover:bg-tec-light text-white"
+                                : "text-tec-dark hover:bg-slate-200"}
+                                py-5 px-6 border-0 font-semibold transition-colors
+                                duration-150 cursor-pointer flex items-center gap-2`}
+                            // onClick={() => navigate("/admin/exams")}
+                            onClick={() => {
+                                setShowExamDropdown(!showExamDropdown);
+                            }}
+                        >
+                            Exams
+                            {(showExamDropdown ? <FaChevronUp /> : <FaChevronDown />)}
+                        </button>
+
+                        {showExamDropdown ? (
+                            <div className="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-xl py-1 z-20">
+                                <button
+                                    className="block px-4 py-2 text-tec-dark hover:bg-slate-200 w-full text-left font-semibold cursor-pointer"
+                                    onClick={() => navigate("/admin/exams")}
+                                >
+                                    <FaList className="inline" /> Exam List
+                                </button>
+                                <button
+                                    className="block px-4 py-2 text-tec-dark hover:bg-slate-200 w-full text-left font-semibold cursor-pointer"
+                                    onClick={() => navigate("/admin/scores")}
+                                >
+                                    <FaStar className="inline" /> Scores
+                                </button>
+                                <button
+                                    className="block px-4 py-2 text-tec-dark hover:bg-slate-200 w-full text-left font-semibold cursor-pointer"
+                                    onClick={() => navigate("/admin/registrations")}
+                                >
+                                    <FaEdit className="inline" /> Registrations
+                                </button>
+                            </div>
+                        ) : null}
+                    </div>
                     <button
                         className={`${location.pathname == "/admin/questions" ? "bg-tec-dark hover:bg-tec-light text-white"
                             : "text-tec-dark hover:bg-slate-200"} py-5 px-6 border-0 font-semibold transition-colors
@@ -80,33 +112,15 @@ function Navbar({ examMode = false }) {
                     >
                         Students
                     </button>
-                    <button
-                        className={`${location.pathname == "/admin/scores" ? "bg-tec-dark hover:bg-tec-light text-white"
-                            : "text-tec-dark hover:bg-slate-200"} py-5 px-6 border-0 font-semibold transition-colors
-                            duration-150 cursor-pointer`}
-                        onClick={() => navigate("/admin/scores")}
-                        >
-                        Scores
-                    </button>
-                    <button
-                        className={`${location.pathname == "/admin/registrations"
-                            ? "bg-tec-dark hover:bg-tec-light text-white"
-                            : "text-tec-dark hover:bg-slate-200"} 
-                            py-5 px-6 border-0 font-semibold transition-colors
-                            duration-150 cursor-pointer`}
-                        onClick={() => navigate("/admin/registrations")}
-                    >
-                        Registrations
-                    </button>
                 </div>
             ) : null}
         </div>
         <div className="relative">
             <button
-                className="text-right text-sm hover:bg-slate-200 py-3 px-2 text-tec-darker flex items-center gap-2"
+                className="text-right text-sm hover:bg-slate-200 py-3 px-2 text-tec-darker flex items-center gap-2 cursor-pointer"
                 onClick={() => {
                     if (!examMode) {
-                        setShowDropdown(!showDropdown)
+                        setShowProfileDropdown(!showProfileDropdown);
                     }
                 }}
             >
@@ -115,19 +129,19 @@ function Navbar({ examMode = false }) {
                     <span>{user.name.length > 50 ? user.name.slice(0, 50 + 1).trim() + "..." : user.name}
                     </span>
                 </span>
-            {!examMode ? (showDropdown ? <FaChevronUp /> : <FaChevronDown />) : null}
+            {!examMode ? (showProfileDropdown ? <FaChevronUp /> : <FaChevronDown />) : null}
             </button>
 
-            {showDropdown && !examMode ? (
+            {showProfileDropdown && !examMode ? (
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-xl py-1 z-20">
                     <button
-                        className="block px-4 py-2 text-slate-600 hover:bg-slate-200 w-full text-left font-semibold"
+                        className="block px-4 py-2 text-slate-600 hover:bg-slate-200 w-full text-left font-semibold cursor-pointer"
                         onClick={handleResetPassword}
                     >
                         <FaKey className="inline" /> Reset Password
                     </button>
                     <button
-                        className="block px-4 py-2 text-red-600 hover:bg-red-200 w-full text-left font-semibold"
+                        className="block px-4 py-2 text-red-600 hover:bg-red-200 w-full text-left font-semibold cursor-pointer"
                         onClick={handleLogout}>
                         <FaSignOutAlt className="inline" /> Sign Out
                     </button>

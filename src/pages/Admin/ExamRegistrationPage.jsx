@@ -4,6 +4,7 @@ import axios from "axios";
 import { config } from "../../data/config";
 import Loading from "../Components/Loading";
 import { useNavigate } from "react-router-dom";
+import { FaChevronLeft } from "react-icons/fa";
 
 function ExamRegistrationPage() {
   const [registrations, setRegistrations] = useState([]);
@@ -55,17 +56,15 @@ function ExamRegistrationPage() {
     <div className="absolute bg-slate-50 w-full min-h-full h-auto">
       <Navbar />
 
-      <main className="px-8 py-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-tec-darker">
-            Daftar Pendaftaran Ujian
-          </h2>
+      <main className="p-8">
+        <div className="flex gap-2 items-baseline">
           <button
-            onClick={() => navigate("/admin")}
-            className="bg-tec-darker text-white px-4 py-2 rounded-md hover:bg-tec-light transition"
+            className="text-tec-darker hover:text-tec-light cursor-pointer"
+            onClick={() => navigate("/admin/exams")}
           >
-            ← Kembali
+            <FaChevronLeft className="w-6 h-6" />
           </button>
+          <h2 className="text-4xl mb-5 text-tec-darker font-bold">Exam Registrations</h2>
         </div>
 
         {loading ? (
@@ -81,10 +80,10 @@ function ExamRegistrationPage() {
                   <tr>
                     <th className="py-2 px-4">ID</th>
                     <th className="py-2 px-4">NIM</th>
-                    <th className="py-2 px-4">Tipe Ujian</th>
-                    <th className="py-2 px-4">Bukti Pembayaran</th>
+                    <th className="py-2 px-4">Exam Type</th>
+                    <th className="py-2 px-4">Payment Proof</th>
                     <th className="py-2 px-4">Status</th>
-                    <th className="py-2 px-4 text-center">Aksi</th>
+                    <th className="py-2 px-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -100,7 +99,7 @@ function ExamRegistrationPage() {
                           rel="noopener noreferrer"
                           className="text-blue-600 underline"
                         >
-                          Lihat Bukti
+                          View File
                         </a>
                       </td>
                       <td className="py-2 px-4 capitalize text-center flex items-center justify-center">
@@ -125,13 +124,13 @@ function ExamRegistrationPage() {
                           <div className="flex gap-2 justify-center">
                             <button
                               onClick={() => handleVerification(reg.id, "approved")}
-                              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 cursor-pointer"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() => handleVerification(reg.id, "rejected")}
-                              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 cursor-pointer"
                             >
                               Reject
                             </button>

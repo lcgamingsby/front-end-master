@@ -157,7 +157,7 @@ function StudentsPage() {
                 value={itemsPerPage}
                 id="items_per_page"
                 className="text-tec-darker border-2 border-tec-darker hover:border-tec-light focus:outline-none
-                  focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium"
+                  focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium cursor-pointer"
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));
 

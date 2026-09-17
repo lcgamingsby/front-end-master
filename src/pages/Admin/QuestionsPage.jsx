@@ -249,7 +249,7 @@ function QuestionsPage() {
           <div className="flex items-center flex-wrap gap-2">
             <select
               className="text-tec-darker border-2 border-tec-darker hover:border-tec-light focus:outline-none
-                focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium"
+                focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium cursor-pointer"
               value={selectedType}
               onChange={(e) => {
                 setSelectedType(e.target.value);
@@ -275,7 +275,7 @@ function QuestionsPage() {
               <select
                 id="items_per_page"
                 className="text-tec-darker border-2 border-tec-darker hover:border-tec-light focus:outline-none
-                focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium"
+                focus:border-tec-light px-2 py-1 rounded-lg mx-1.5 font-medium cursor-pointer"
                 value={itemsPerPage}
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));

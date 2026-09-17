@@ -5,6 +5,7 @@ import { config } from "../../data/config";
 import { getRefreshToken } from "../../data/helper";
 import Loading from "../Components/Loading";
 import { useNavigate } from "react-router-dom";
+import { FaEdit } from "react-icons/fa";
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -127,7 +128,7 @@ function AdminDashboard() {
                       <div
                         key={idx}
                         className={`rounded-xl p-5 w-80 shadow-lg  ${exam.status === "ongoing"
-                          ? "bg-tec-darker text-white cursor-pointer"
+                          ? "bg-tec-darker hover:bg-tec-dark text-white cursor-pointer"
                           : "bg-tec-card text-tec-darker"}
                         `}
                         onClick={() => {
@@ -151,6 +152,20 @@ function AdminDashboard() {
                   </div>
                 )}
               </div>
+            </section>
+
+            <section className="mt-2 mb-5 py-5 px-10 text-tec-darker flex gap-8">
+              <div>
+                <h2 className="text-xl font-bold mb-1">Edit Schedules</h2>
+                <p className="text-slate-700">Affects the homepage for students to see.</p>
+              </div>
+              <button
+                className="bg-tec-darker hover:bg-tec-dark rounded-lg px-4 py-2 text-xl font-bold
+                flex items-center justify-end gap-4 text-white cursor-pointer"
+                onClick={() => navigate('/admin/homepage')}
+              >
+                <FaEdit className="w-8 h-8" /> Edit
+              </button>
             </section>
           </>
         ): (

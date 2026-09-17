@@ -1,6 +1,10 @@
-import React from "react";
+import axios from "axios";
+import React, {useEffect, useState} from "react";
+import { config } from "../../data/config";
+import Loading from "./Loading";
+import { FaExclamationTriangle } from "react-icons/fa";
 
-const schedules = {
+const fallbackSchedule = {
   year: 2025,
   monthly_schedules: [
     {
@@ -90,10 +94,6 @@ const schedules = {
   ],
 };
 
-// Bagi data jadi 2 tabel agar ringkas (Jan–Jun, Jul–Des)
-const firstHalf  = schedules.monthly_schedules.slice(0, 6);
-const secondHalf = schedules.monthly_schedules.slice(6);
-
 function ScheduleTable({ title, rows }) {
   return (
     <div
@@ -141,12 +141,12 @@ function ScheduleTable({ title, rows }) {
 
               return dateObj;
             });
-            console.log(dayMap);
+            // console.log(dayMap);
 
             return (
               <tr key={i}>
                 <td className="border-t border-slate-400 py-2.5 px-2 align-top text-center">
-                  <span className="font-semibold">{monthName + " " + schedules.year}</span><br />
+                  <span className="font-semibold">{monthName + " " + fallbackSchedule.year}</span><br />
                   <span className="inline-block text-xs py-0.5 px-2 rounded-full bg-slate-200 ml-2">
                     {monthSchedule.length} sesi
                   </span>
@@ -166,17 +166,67 @@ function ScheduleTable({ title, rows }) {
 }
 
 export default function TecSchedule() {
+  const [schedule, setSchedule] = useState(fallbackSchedule);
+  const [isLoading, setLoading] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    loadNewSchedule();
+  }, []);
+
+  const loadNewSchedule = async () => {
+    try {
+      const response = await axios.get(`${config.BACKEND_URL}/homedata`);
+
+      if (response.status === 200) {
+        // no need to parse JSON anymore because backend ensures the file given is a valid JSON file
+        const scheduleJson = response.data;
+
+        setSchedule(scheduleJson);
+        setUpdateSuccess(true);
+      }
+    } catch (e) {
+      console.error("Error loading schedule:", e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Bagi data jadi 2 tabel agar ringkas (Jan–Jun, Jul–Des)
+  const halfLength = Math.ceil(schedule.monthly_schedules.length / 2);
+  const firstHalf  = schedule.monthly_schedules.slice(0, halfLength);
+  const secondHalf = schedule.monthly_schedules.slice(halfLength);
+
   return (
     <div className="mx-auto">
-      <h3 className="text-xl font-bold mt-3 mb-1.5 text-tec-dark px-2 sm:px-4">Jadwal Tes TEC 2025</h3>
+      <h3 className="text-xl font-bold mt-3 mb-1.5 text-tec-dark px-2 sm:px-4">
+        Jadwal Tes TEC {schedule.year}
+      </h3>
       <p className="text-sm mb-3 px-2 sm:px-4">
         Tes TEC akan dilaksanakan pada hari Jumat setiap bulannya dengan jadwal seperti berikut.
       </p>
 
-      <div className="flex flex-wrap gap-3 text-slate-800 px-2 sm:px-4">
-        <ScheduleTable title="Januari - Juni" rows={firstHalf} />
-        <ScheduleTable title="Juli - Desember" rows={secondHalf} />
-      </div>
+      {isLoading ? (
+        <Loading
+          text="Loading updated schedule..."
+        />
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-3 text-slate-800 px-2 sm:px-4">
+            <ScheduleTable title="Januari - Juni" rows={firstHalf} />
+            <ScheduleTable title="Juli - Desember" rows={secondHalf} />
+          </div>
+
+          {!updateSuccess && (
+            <div className="bg-red-100 w-full rounded-full mt-4 px-4 py-2">
+              <p className="text-red-700 font-semibold text-center">
+                <FaExclamationTriangle className="w-5 h-5 inline" /> Gagal mendapatkan jadwal ujian terbaru.
+              </p>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

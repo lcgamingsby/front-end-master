@@ -26,6 +26,7 @@ import ExamScoreDetailPage from "./pages/Admin/ExamScoreDetailPage";
 import ExamTrackingPage from "./pages/Admin/ExamTrackingPage";
 import StudentLogDetailPage from "./pages/Admin/StudentLogDetailPage";
 import ExamRegistrationPage from "./pages/Admin/ExamRegistrationPage";
+import EditHomepage from "./pages/Admin/EditHomepage";
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
           </Route>
           <Route path="/admin" element={<PrivateRoute role="admin" />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="homepage" element={<EditHomepage />} />
             <Route path="exams" element={<ExamsPage />} />
             <Route path="exams/add" element={<AddExamPage />} />
             <Route path="exams/edit/" element={<AddExamPage />} />

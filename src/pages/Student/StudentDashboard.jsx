@@ -272,7 +272,7 @@ function StudentDashboard() {
             {/* ✅ Tombol Daftar Ujian */}
             <button
               onClick={() => setShowRegisterForm(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
             >
               Daftar Ujian
             </button>
@@ -303,7 +303,7 @@ function StudentDashboard() {
                         setOnlineExamList([]);
                       }
                     }}
-                    className="border rounded w-full mb-4 p-2"
+                    className="border rounded w-full mb-4 p-2 cursor-pointer"
                   >
                     <option value="">-- Pilih Tipe Ujian --</option>
                     <option value="online">Online</option>
@@ -317,7 +317,7 @@ function StudentDashboard() {
                       <select
                         value={selectedOfflineExam}
                         onChange={(e) => setSelectedOfflineExam(e.target.value)}
-                        className="border rounded w-full mb-4 p-2"
+                        className="border rounded w-full mb-4 p-2 cursor-pointer"
                         required
                       >
                         <option value="">-- Pilih Ujian Offline --</option>
@@ -373,7 +373,7 @@ function StudentDashboard() {
                       <select
                         value={selectedOnlineExam}
                         onChange={(e) => setSelectedOnlineExam(e.target.value)}
-                        className="border rounded w-full mb-4 p-2"
+                        className="border rounded w-full mb-4 p-2 cursor-pointer"
                         required
                       >
                         <option value="">-- Pilih Ujian Online --</option>
@@ -435,13 +435,13 @@ function StudentDashboard() {
                     <button
                       type="button"
                       onClick={() => setShowRegisterForm(false)}
-                      className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500"
+                      className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500 cursor-pointer"
                     >
                       Batal
                     </button>
                     <button
                       type="submit"
-                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 cursor-pointer"
                       disabled={uploading}
                     >
                       {uploading ? "Mengirim..." : "Kirim"}
@@ -477,7 +477,7 @@ function StudentDashboard() {
                   <div
                     key={idx}
                     className={`rounded-xl p-5 w-80 shadow-lg  ${exam.status === "ongoing"
-                      ? "bg-tec-darker text-white cursor-pointer"
+                      ? "bg-tec-darker hover:bg-tec-dark text-white cursor-pointer"
                       : "bg-tec-card text-tec-darker"}
                     `}
                     onClick={() => {
